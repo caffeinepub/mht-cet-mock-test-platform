@@ -1,143 +1,102 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-19T21:22:51.085Z",
+  "generatedAt": "2026-02-19T21:32:34.762Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 12,
+    "total": 7,
     "implemented": 7,
     "items": [
       {
-        "id": "REQ-34",
-        "summary": "Add backend API endpoint getTestAttempt in backend/main.mo that accepts attemptId and returns the current test attempt state including testId, userId, currentSection (1 or 2), section1StartTime, section2StartTime, section1SubmittedAt, section2SubmittedAt, and completion status",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-35",
-        "summary": "Create backend API endpoint startSection in backend/main.mo that accepts attemptId and sectionNumber (1 or 2), validates the user owns the attempt, records the section start timestamp, and returns confirmation with the start time",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-36",
-        "summary": "Create backend API endpoint submitSection in backend/main.mo that accepts attemptId, sectionNumber (1 or 2), and answers array, validates timing constraints (within 90 minutes of section start), records the submission timestamp, stores the answers, and returns confirmation",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-37",
-        "summary": "Update the TestInterface.tsx component to fetch the test attempt state on mount using the getTestAttempt endpoint and determine which section (1 or 2) should be active based on section1SubmittedAt and section2SubmittedAt timestamps",
+        "id": "REQ-46",
+        "summary": "Update the ResultPage.tsx component to accept attemptId from URL parameters and fetch the complete test attempt data including testId, userId, section1Score, section2Score, section1Answers, section2Answers, section1StartTime, section1SubmittedAt, section2StartTime, and section2SubmittedAt using the useTestAttemptById hook",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/ResultPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/pages/ResultPage.tsx"
         ]
       },
       {
-        "id": "REQ-38",
-        "summary": "Implement a countdown timer in TestInterface.tsx that calculates remaining time by subtracting elapsed time (current time minus section start time) from 90 minutes, displays the countdown in MM:SS format, and auto-submits the section when time reaches zero",
+        "id": "REQ-47",
+        "summary": "Display the overall test score summary in ResultPage.tsx showing total score (section1Score + section2Score), individual section scores (Section 1: X marks, Section 2: Y marks), total time taken calculated from section start times and submission timestamps, and a performance indicator (e.g., 'Excellent', 'Good', 'Needs Improvement') based on percentage score",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/pages/ResultPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/pages/ResultPage.tsx"
         ]
       },
       {
-        "id": "REQ-39",
-        "summary": "Add a 'Submit Section' button in TestInterface.tsx that calls the submitSection backend endpoint with attemptId, current sectionNumber, and answers array, then automatically transitions to Section 2 if submitting Section 1, or redirects to results page if submitting Section 2",
+        "id": "REQ-48",
+        "summary": "Fetch the full test details including assigned questions for both sections using the useFullSyllabusTestById hook in ResultPage.tsx, and display statistics showing total questions attempted, correct answers, incorrect answers, and unanswered questions for each section separately",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/ResultPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/pages/ResultPage.tsx"
         ]
       },
       {
-        "id": "REQ-40",
-        "summary": "Update TestInterface.tsx to call the startSection backend endpoint automatically when transitioning to Section 2 after Section 1 submission, recording the Section 2 start timestamp and initializing the 90-minute countdown timer for Section 2",
+        "id": "REQ-49",
+        "summary": "Implement a question review section in ResultPage.tsx that displays all questions from both sections with question text, question image (if present), all four options with their text and images, the user's selected answer highlighted, the correct answer indicated, and whether the user's answer was correct or incorrect using visual indicators (e.g., green checkmark for correct, red cross for incorrect)",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/pages/ResultPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/pages/ResultPage.tsx"
         ]
       },
       {
-        "id": "REQ-41",
-        "summary": "Display a transition screen in TestInterface.tsx between Section 1 submission and Section 2 start that shows 'Section 1 Complete!' message, section summary (questions attempted, time taken), and a 'Start Section 2' button that calls the startSection endpoint when clicked",
+        "id": "REQ-50",
+        "summary": "Display the explanation text for each question in the review section of ResultPage.tsx, shown below the options, so students can understand the reasoning behind the correct answer",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/pages/ResultPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/pages/ResultPage.tsx"
         ]
       },
       {
-        "id": "REQ-42",
-        "summary": "Update the backend test attempt data model in backend/main.mo to include fields for section1Answers (array of answer objects with questionId and selectedOptionIndex), section2Answers (array of answer objects), section1Score (Nat), and section2Score (Nat) to store submitted answers and calculated scores for each section",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-43",
-        "summary": "Implement score calculation logic in the submitSection backend endpoint that compares submitted answers against correct answers for each question, awards 1 mark per correct answer in Section 1 (Physics/Chemistry) and 2 marks per correct answer in Section 2 (Maths), stores the section score in the test attempt, and returns the score in the response",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-44",
-        "summary": "Add a React Query hook useTestAttemptQueries in frontend/src/hooks/useQueries.ts that provides a function useTestAttemptById to fetch test attempt data including current section, timing information, and submission status",
+        "id": "REQ-51",
+        "summary": "Add a 'Back to Dashboard' button in ResultPage.tsx that navigates to the StudentDashboard when clicked",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/pages/ResultPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/pages/ResultPage.tsx"
         ]
       },
       {
-        "id": "REQ-45",
-        "summary": "Create a React Query mutation hook useTestSectionMutations in a new file frontend/src/hooks/useTestSectionMutations.ts that provides functions to start a section (startSection) and submit a section (submitSection), with automatic query invalidation for test attempt data on success",
+        "id": "REQ-52",
+        "summary": "Add a 'View Leaderboard' button in ResultPage.tsx that navigates to the Leaderboard page with the testId as a URL parameter when clicked",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useTestSectionMutations.ts"
+          "frontend/src/pages/ResultPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useTestSectionMutations.ts"
+          "frontend/src/pages/ResultPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useTestSectionMutations.ts",
-    "frontend/src/pages/StudentDashboard.tsx",
+    "frontend/src/pages/ResultPage.tsx",
     "frontend/src/pages/TestInterface.tsx",
     "project_state.json",
     "scratch/component-selection.json",

@@ -1,125 +1,136 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Implement auto-transition logic between test sections",
+  "title": "Implement Result Page with Score Display and Question Review",
   "requirements": [
     {
-      "id": "REQ-37",
-      "summary": "Update TestInterface.tsx to fetch test attempt state on mount and determine active section based on submission timestamps",
+      "id": "REQ-46",
+      "summary": "Update ResultPage to fetch test attempt data using attemptId from URL parameters",
       "acceptanceCriteria": [
-        "Component loads current attempt state from backend on mount",
-        "If section1SubmittedAt is null, display Section 1",
-        "If section1SubmittedAt is set but section2SubmittedAt is null, display Section 2",
-        "If both sections are submitted, redirect to results page"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/TestInterface.tsx",
-          "operation": "modify",
-          "description": "Replace placeholder with working test interface that fetches test attempt state using getTestAttempt backend capability on mount, determines which section (1 or 2) to display based on section1SubmittedAt and section2SubmittedAt timestamps, and redirects to results page when both sections are completed. Extract attemptId from URL parameters using the existing urlParams utilities."
-        }
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "summary": "Implement countdown timer in TestInterface.tsx that calculates remaining time and auto-submits section when time reaches zero",
-      "acceptanceCriteria": [
-        "Timer shows remaining time for the active section",
-        "Timer updates every second",
-        "When timer reaches 00:00, section is automatically submitted",
-        "Auto-submission calls the submitSection endpoint with current answers"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/TestInterface.tsx",
-          "operation": "modify",
-          "description": "Add countdown timer logic that calculates remaining time by subtracting elapsed time (current time minus section start time) from 90 minutes (5400000 milliseconds), displays the countdown in MM:SS format, updates every second using useEffect with setInterval, and automatically calls submitSection backend capability with current answers when timer reaches 00:00. Handle cleanup of interval on component unmount."
-        }
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "summary": "Add Submit Section button that submits answers and transitions to next section or results page",
-      "acceptanceCriteria": [
-        "Button is labeled 'Submit Section 1' or 'Submit Section 2' based on active section",
-        "On successful submission of Section 1, UI immediately transitions to Section 2",
-        "On successful submission of Section 2, user is redirected to results page",
-        "Shows confirmation dialog before submission to prevent accidental clicks"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/TestInterface.tsx",
-          "operation": "modify",
-          "description": "Add Submit Section button that displays 'Submit Section 1' or 'Submit Section 2' label based on currentSection. Show confirmation dialog using a confirmation modal before submission. On confirmation, call submitSection backend capability with attemptId, current sectionNumber, and answers array. On successful submission of Section 1, trigger transition to Section 2. On successful submission of Section 2, navigate to results page using TanStack Router."
-        }
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "summary": "Auto-start Section 2 after Section 1 submission by calling startSection backend capability",
-      "acceptanceCriteria": [
-        "Section 2 start is triggered automatically after Section 1 submission",
-        "startSection API is called with sectionNumber=2",
-        "Timer resets to 90 minutes for Section 2",
-        "User sees Section 2 questions immediately after transition"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/TestInterface.tsx",
-          "operation": "modify",
-          "description": "After successful Section 1 submission, automatically call startSection backend capability with attemptId and sectionNumber=2 to record Section 2 start timestamp. Refetch test attempt data to update UI state, reset timer to 90 minutes for Section 2, and display Section 2 questions immediately."
-        }
-      ]
-    },
-    {
-      "id": "REQ-41",
-      "summary": "Display transition screen between Section 1 and Section 2 with summary and Start Section 2 button",
-      "acceptanceCriteria": [
-        "Transition screen appears immediately after Section 1 submission",
-        "Shows count of questions attempted in Section 1",
-        "Shows time taken to complete Section 1",
-        "'Start Section 2' button calls startSection endpoint and loads Section 2 questions",
-        "Screen is styled consistently with the Concept Delta navy blue theme"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/TestInterface.tsx",
-          "operation": "modify",
-          "description": "Add transition screen UI state that appears after Section 1 submission. Display 'Section 1 Complete!' message, show count of questions attempted in Section 1 (length of section1Answers array), calculate and display time taken (section1SubmittedAt minus section1StartTime converted to minutes and seconds), and render a 'Start Section 2' button. When clicked, call startSection backend capability with sectionNumber=2, then load Section 2 questions. Style using Concept Delta navy blue theme colors from Tailwind config."
-        }
-      ]
-    },
-    {
-      "id": "REQ-44",
-      "summary": "Add React Query hook useTestAttemptById to fetch test attempt data including timing and submission status",
-      "acceptanceCriteria": [
-        "Hook calls getTestAttempt backend endpoint",
-        "Returns attempt data including section states and timestamps",
-        "Implements proper error handling for invalid attempt IDs",
-        "Query is enabled only when attemptId is provided"
+        "ResultPage component extracts attemptId from URL parameters",
+        "Component uses useTestAttemptById hook to fetch test attempt data",
+        "Loading state is displayed while fetching attempt data",
+        "Error state is shown if attempt data cannot be fetched"
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add useTestAttemptById query hook that accepts attemptId parameter and calls actor.getTestAttempt(attemptId) to fetch test attempt data including testId, userId, currentSection, section1StartTime, section2StartTime, section1SubmittedAt, section2SubmittedAt, section1Answers, section2Answers, section1Score, section2Score, and isCompleted status. Enable query only when attemptId is provided (enabled: !!actor && !!attemptId). Implement error handling for invalid attempt IDs using retry: false."
+          "description": "Add useTestAttemptById hook that accepts attemptId parameter and returns the test attempt data including testId, userId, section1Score, section2Score, section1Answers, section2Answers, section1StartTime, section1SubmittedAt, section2StartTime, and section2SubmittedAt by calling actor.getTestAttempt(attemptId). Include proper loading and error states."
+        },
+        {
+          "path": "frontend/src/pages/ResultPage.tsx",
+          "operation": "modify",
+          "description": "Replace placeholder implementation with real functionality: extract attemptId from URL parameters using useParams hook, call useTestAttemptById(attemptId) to fetch attempt data, display loading spinner while fetching, show error message if fetch fails or attempt not found, and ensure the component requires authentication before displaying any data."
         }
       ]
     },
     {
-      "id": "REQ-45",
-      "summary": "Create React Query mutation hooks for starting and submitting test sections with automatic cache invalidation",
+      "id": "REQ-47",
+      "summary": "Display overall test score summary with section scores, total time, and performance indicator",
       "acceptanceCriteria": [
-        "startSection mutation calls backend startSection endpoint",
-        "submitSection mutation calls backend submitSection endpoint with answers",
-        "Both mutations invalidate test attempt queries on success",
-        "Mutations handle errors and display appropriate error messages"
+        "Overall score displays sum of section1Score and section2Score",
+        "Section 1 score is displayed separately",
+        "Section 2 score is displayed separately",
+        "Total time taken is calculated and displayed in readable format (e.g., '2h 45m')",
+        "Performance indicator is shown based on score percentage"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useTestSectionMutations.ts",
-          "operation": "create",
-          "description": "Create new file with useTestSectionMutations hook that provides two mutations: startSection (accepts attemptId and sectionNumber, calls actor.startSection) and submitSection (accepts attemptId, sectionNumber, and answers array, calls actor.submitSection). Both mutations use useMutation from React Query with onSuccess callbacks that invalidate test attempt queries using queryClient.invalidateQueries. Implement error handling that logs errors and can optionally display user-facing error messages. Follow the pattern used in existing mutation hooks like useFullSyllabusTestMutations.ts."
+          "path": "frontend/src/pages/ResultPage.tsx",
+          "operation": "modify",
+          "description": "Add score summary section that displays: total score (section1Score + section2Score), individual section scores labeled as 'Section 1: X marks' and 'Section 2: Y marks', total time taken calculated from (section1SubmittedAt - section1StartTime) + (section2SubmittedAt - section2StartTime) formatted as human-readable duration (e.g., '2h 45m'), and performance indicator label ('Excellent' for 80%+, 'Good' for 60-79%, 'Needs Improvement' for below 60%) based on percentage score. Style the summary section prominently using Concept Delta navy blue theme with Card components from shadcn/ui."
+        }
+      ]
+    },
+    {
+      "id": "REQ-48",
+      "summary": "Fetch full test details and display statistics for both sections separately",
+      "acceptanceCriteria": [
+        "Test details with assigned questions are fetched using useFullSyllabusTestById hook",
+        "Section 1 statistics display: total questions, attempted, correct, incorrect, unanswered",
+        "Section 2 statistics display: total questions, attempted, correct, incorrect, unanswered",
+        "Statistics are calculated by comparing submitted answers against correct answers"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useFullSyllabusTestById hook that accepts testId parameter and returns the full test details including assigned questions for both sections by calling actor.getFullSyllabusTests() and filtering by testId. Include proper error handling if test is not found."
+        },
+        {
+          "path": "frontend/src/pages/ResultPage.tsx",
+          "operation": "modify",
+          "description": "Call useFullSyllabusTestById(testId) where testId comes from the test attempt data. For each section, calculate and display statistics: total questions (length of section.questionIds), attempted (count of answers submitted for that section), correct answers (by comparing submitted answers' selectedOptionIndex against question.correctAnswerIndex), incorrect answers (attempted - correct), and unanswered questions (total - attempted). Display statistics in separate cards/sections for Section 1 and Section 2."
+        }
+      ]
+    },
+    {
+      "id": "REQ-49",
+      "summary": "Implement question review section displaying all questions with answers and visual indicators",
+      "acceptanceCriteria": [
+        "All questions from Section 1 and Section 2 are displayed in order",
+        "Question text is shown if present",
+        "Question image is rendered if present",
+        "All four options are displayed with their text and images",
+        "User's selected answer is visually highlighted",
+        "Correct answer is clearly indicated",
+        "Correct/incorrect status is shown with visual indicators (green for correct, red for incorrect)",
+        "Unanswered questions are marked distinctly"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ResultPage.tsx",
+          "operation": "modify",
+          "description": "Add question review section that iterates through all questions from both sections in order. For each question: display question number, render questionText if present, render questionImage if present using img tag, display all four options with their optionText and optionImage. Highlight the user's selected answer with a distinct background color. Indicate the correct answer with a green checkmark icon and green border. For user's answer, show green checkmark if correct or red X icon if incorrect. For unanswered questions, display 'Not Answered' label with gray styling. Use Card components from shadcn/ui for question containers and maintain consistent styling with navy blue theme."
+        }
+      ]
+    },
+    {
+      "id": "REQ-50",
+      "summary": "Display explanation text for each question in the review section",
+      "acceptanceCriteria": [
+        "Explanation text is displayed below each question's options",
+        "Explanation is visible for all questions regardless of whether user answered correctly or incorrectly",
+        "Explanation text is formatted for readability"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ResultPage.tsx",
+          "operation": "modify",
+          "description": "Add explanation display below the options section for each question. Show the question.explanation text in a clearly marked section (e.g., with 'Explanation:' label) using readable typography. Apply subtle background color or border to distinguish the explanation section from options. Ensure explanation is always visible regardless of whether the user answered correctly, incorrectly, or left it unanswered."
+        }
+      ]
+    },
+    {
+      "id": "REQ-51",
+      "summary": "Add 'Back to Dashboard' button that navigates to StudentDashboard",
+      "acceptanceCriteria": [
+        "Button labeled 'Back to Dashboard' is displayed on the result page",
+        "Clicking the button navigates to /student/dashboard route",
+        "Button is styled consistently with the application's design"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ResultPage.tsx",
+          "operation": "modify",
+          "description": "Add a 'Back to Dashboard' button near the top or bottom of the result page using Button component from shadcn/ui. On click, navigate to '/student/dashboard' route using TanStack Router's useNavigate hook. Style the button consistently with Concept Delta navy blue theme."
+        }
+      ]
+    },
+    {
+      "id": "REQ-52",
+      "summary": "Add 'View Leaderboard' button that navigates to Leaderboard page with testId parameter",
+      "acceptanceCriteria": [
+        "Button labeled 'View Leaderboard' is displayed on the result page",
+        "Clicking the button navigates to /leaderboard route with testId parameter",
+        "Button is styled consistently with the application's design"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ResultPage.tsx",
+          "operation": "modify",
+          "description": "Add a 'View Leaderboard' button next to the 'Back to Dashboard' button using Button component from shadcn/ui. On click, navigate to '/leaderboard' route with testId as URL search parameter (e.g., '/leaderboard?testId=123') using TanStack Router's useNavigate hook. Style the button consistently with Concept Delta navy blue theme, potentially as a secondary or outline variant to distinguish it from the primary 'Back to Dashboard' button."
         }
       ]
     }

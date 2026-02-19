@@ -1,217 +1,157 @@
 {
   "kind": "build_request",
-  "title": "Implement auto-transition logic between test sections",
+  "title": "Implement Result Page with Score Display and Question Review",
   "projectName": "Concept Delta",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-34",
-      "text": "Add backend API endpoint getTestAttempt in backend/main.mo that accepts attemptId and returns the current test attempt state including testId, userId, currentSection (1 or 2), section1StartTime, section2StartTime, section1SubmittedAt, section2SubmittedAt, and completion status",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-start-step-3"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Endpoint returns test attempt data for valid attemptId",
-        "Response includes all timing fields for both sections",
-        "Endpoint validates that the requesting user owns the attempt or is an admin"
-      ]
-    },
-    {
-      "id": "REQ-35",
-      "text": "Create backend API endpoint startSection in backend/main.mo that accepts attemptId and sectionNumber (1 or 2), validates the user owns the attempt, records the section start timestamp, and returns confirmation with the start time",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-start-step-3"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Section 1 can be started immediately when test begins",
-        "Section 2 can only be started after Section 1 is submitted or time expires",
-        "Start timestamps are recorded in stable storage",
-        "Returns error if section is already started or prerequisites not met"
-      ]
-    },
-    {
-      "id": "REQ-36",
-      "text": "Create backend API endpoint submitSection in backend/main.mo that accepts attemptId, sectionNumber (1 or 2), and answers array, validates timing constraints (within 90 minutes of section start), records the submission timestamp, stores the answers, and returns confirmation",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-start-step-3"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Submission is only allowed if the section was started",
-        "Submission is rejected if more than 90 minutes have elapsed since section start",
-        "Answers are stored in stable storage with submission timestamp",
-        "Returns success confirmation with submission details"
-      ]
-    },
-    {
-      "id": "REQ-37",
-      "text": "Update the TestInterface.tsx component to fetch the test attempt state on mount using the getTestAttempt endpoint and determine which section (1 or 2) should be active based on section1SubmittedAt and section2SubmittedAt timestamps",
+      "id": "REQ-46",
+      "text": "Update the ResultPage.tsx component to accept attemptId from URL parameters and fetch the complete test attempt data including testId, userId, section1Score, section2Score, section1Answers, section2Answers, section1StartTime, section1SubmittedAt, section2StartTime, and section2SubmittedAt using the useTestAttemptById hook",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-3"
+          "msg-user-start-step-4"
+        ],
+        "quotes": [
+          "start step 4"
         ]
       },
       "acceptanceCriteria": [
-        "Component loads current attempt state from backend on mount",
-        "If section1SubmittedAt is null, display Section 1",
-        "If section1SubmittedAt is set but section2SubmittedAt is null, display Section 2",
-        "If both sections are submitted, redirect to results page"
+        "ResultPage component extracts attemptId from URL parameters",
+        "Component uses useTestAttemptById hook to fetch test attempt data",
+        "Loading state is displayed while fetching attempt data",
+        "Error state is shown if attempt data cannot be fetched"
       ]
     },
     {
-      "id": "REQ-38",
-      "text": "Implement a countdown timer in TestInterface.tsx that calculates remaining time by subtracting elapsed time (current time minus section start time) from 90 minutes, displays the countdown in MM:SS format, and auto-submits the section when time reaches zero",
+      "id": "REQ-47",
+      "text": "Display the overall test score summary in ResultPage.tsx showing total score (section1Score + section2Score), individual section scores (Section 1: X marks, Section 2: Y marks), total time taken calculated from section start times and submission timestamps, and a performance indicator (e.g., 'Excellent', 'Good', 'Needs Improvement') based on percentage score",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-3"
+          "msg-user-start-step-4"
+        ],
+        "quotes": [
+          "start step 4"
         ]
       },
       "acceptanceCriteria": [
-        "Timer shows remaining time for the active section",
-        "Timer updates every second",
-        "When timer reaches 00:00, section is automatically submitted",
-        "Auto-submission calls the submitSection endpoint with current answers"
+        "Overall score displays sum of section1Score and section2Score",
+        "Section 1 score is displayed separately",
+        "Section 2 score is displayed separately",
+        "Total time taken is calculated and displayed in readable format (e.g., '2h 45m')",
+        "Performance indicator is shown based on score percentage"
       ]
     },
     {
-      "id": "REQ-39",
-      "text": "Add a 'Submit Section' button in TestInterface.tsx that calls the submitSection backend endpoint with attemptId, current sectionNumber, and answers array, then automatically transitions to Section 2 if submitting Section 1, or redirects to results page if submitting Section 2",
+      "id": "REQ-48",
+      "text": "Fetch the full test details including assigned questions for both sections using the useFullSyllabusTestById hook in ResultPage.tsx, and display statistics showing total questions attempted, correct answers, incorrect answers, and unanswered questions for each section separately",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-3"
+          "msg-user-start-step-4"
+        ],
+        "quotes": [
+          "start step 4"
         ]
       },
       "acceptanceCriteria": [
-        "Button is labeled 'Submit Section 1' or 'Submit Section 2' based on active section",
-        "On successful submission of Section 1, UI immediately transitions to Section 2",
-        "On successful submission of Section 2, user is redirected to results page",
-        "Shows confirmation dialog before submission to prevent accidental clicks"
+        "Test details with assigned questions are fetched using useFullSyllabusTestById hook",
+        "Section 1 statistics display: total questions, attempted, correct, incorrect, unanswered",
+        "Section 2 statistics display: total questions, attempted, correct, incorrect, unanswered",
+        "Statistics are calculated by comparing submitted answers against correct answers"
       ]
     },
     {
-      "id": "REQ-40",
-      "text": "Update TestInterface.tsx to call the startSection backend endpoint automatically when transitioning to Section 2 after Section 1 submission, recording the Section 2 start timestamp and initializing the 90-minute countdown timer for Section 2",
+      "id": "REQ-49",
+      "text": "Implement a question review section in ResultPage.tsx that displays all questions from both sections with question text, question image (if present), all four options with their text and images, the user's selected answer highlighted, the correct answer indicated, and whether the user's answer was correct or incorrect using visual indicators (e.g., green checkmark for correct, red cross for incorrect)",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-3"
+          "msg-user-start-step-4"
+        ],
+        "quotes": [
+          "start step 4"
         ]
       },
       "acceptanceCriteria": [
-        "Section 2 start is triggered automatically after Section 1 submission",
-        "startSection API is called with sectionNumber=2",
-        "Timer resets to 90 minutes for Section 2",
-        "User sees Section 2 questions immediately after transition"
+        "All questions from Section 1 and Section 2 are displayed in order",
+        "Question text is shown if present",
+        "Question image is rendered if present",
+        "All four options are displayed with their text and images",
+        "User's selected answer is visually highlighted",
+        "Correct answer is clearly indicated",
+        "Correct/incorrect status is shown with visual indicators (green for correct, red for incorrect)",
+        "Unanswered questions are marked distinctly"
       ]
     },
     {
-      "id": "REQ-41",
-      "text": "Display a transition screen in TestInterface.tsx between Section 1 submission and Section 2 start that shows 'Section 1 Complete!' message, section summary (questions attempted, time taken), and a 'Start Section 2' button that calls the startSection endpoint when clicked",
+      "id": "REQ-50",
+      "text": "Display the explanation text for each question in the review section of ResultPage.tsx, shown below the options, so students can understand the reasoning behind the correct answer",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-3"
+          "msg-user-start-step-4"
+        ],
+        "quotes": [
+          "start step 4"
         ]
       },
       "acceptanceCriteria": [
-        "Transition screen appears immediately after Section 1 submission",
-        "Shows count of questions attempted in Section 1",
-        "Shows time taken to complete Section 1",
-        "'Start Section 2' button calls startSection endpoint and loads Section 2 questions",
-        "Screen is styled consistently with the Concept Delta navy blue theme"
+        "Explanation text is displayed below each question's options",
+        "Explanation is visible for all questions regardless of whether user answered correctly or incorrectly",
+        "Explanation text is formatted for readability"
       ]
     },
     {
-      "id": "REQ-42",
-      "text": "Update the backend test attempt data model in backend/main.mo to include fields for section1Answers (array of answer objects with questionId and selectedOptionIndex), section2Answers (array of answer objects), section1Score (Nat), and section2Score (Nat) to store submitted answers and calculated scores for each section",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-start-step-3"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Test attempt structure stores answers separately for each section",
-        "Answers include questionId and selectedOptionIndex fields",
-        "Score fields are initialized to 0 and updated after submission",
-        "Data persists across canister upgrades in stable storage"
-      ]
-    },
-    {
-      "id": "REQ-43",
-      "text": "Implement score calculation logic in the submitSection backend endpoint that compares submitted answers against correct answers for each question, awards 1 mark per correct answer in Section 1 (Physics/Chemistry) and 2 marks per correct answer in Section 2 (Maths), stores the section score in the test attempt, and returns the score in the response",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-start-step-3"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Correct answers in Section 1 award 1 mark each",
-        "Correct answers in Section 2 award 2 marks each",
-        "Incorrect or unanswered questions receive 0 marks",
-        "Section score is calculated and stored immediately upon submission",
-        "Total score is sum of section1Score and section2Score"
-      ]
-    },
-    {
-      "id": "REQ-44",
-      "text": "Add a React Query hook useTestAttemptQueries in frontend/src/hooks/useQueries.ts that provides a function useTestAttemptById to fetch test attempt data including current section, timing information, and submission status",
+      "id": "REQ-51",
+      "text": "Add a 'Back to Dashboard' button in ResultPage.tsx that navigates to the StudentDashboard when clicked",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-3"
+          "msg-user-start-step-4"
+        ],
+        "quotes": [
+          "start step 4"
         ]
       },
       "acceptanceCriteria": [
-        "Hook calls getTestAttempt backend endpoint",
-        "Returns attempt data including section states and timestamps",
-        "Implements proper error handling for invalid attempt IDs",
-        "Query is enabled only when attemptId is provided"
+        "Button labeled 'Back to Dashboard' is displayed on the result page",
+        "Clicking the button navigates to /student/dashboard route",
+        "Button is styled consistently with the application's design"
       ]
     },
     {
-      "id": "REQ-45",
-      "text": "Create a React Query mutation hook useTestSectionMutations in a new file frontend/src/hooks/useTestSectionMutations.ts that provides functions to start a section (startSection) and submit a section (submitSection), with automatic query invalidation for test attempt data on success",
+      "id": "REQ-52",
+      "text": "Add a 'View Leaderboard' button in ResultPage.tsx that navigates to the Leaderboard page with the testId as a URL parameter when clicked",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-3"
+          "msg-user-start-step-4"
+        ],
+        "quotes": [
+          "start step 4"
         ]
       },
       "acceptanceCriteria": [
-        "startSection mutation calls backend startSection endpoint",
-        "submitSection mutation calls backend submitSection endpoint with answers",
-        "Both mutations invalidate test attempt queries on success",
-        "Mutations handle errors and display appropriate error messages"
+        "Button labeled 'View Leaderboard' is displayed on the result page",
+        "Clicking the button navigates to /leaderboard route with testId parameter",
+        "Button is styled consistently with the application's design"
       ]
     }
   ],
   "constraints": [
-    "Maintain single-actor architecture in backend/main.mo",
-    "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
-    "Section 1 must be exactly 90 minutes for Physics and Chemistry questions with 1 mark each",
-    "Section 2 must be exactly 90 minutes for Maths questions with 2 marks each",
-    "Users cannot start Section 2 until Section 1 is submitted or time expires",
-    "All timing and submission data must persist in stable storage"
+    "Do not modify the existing useTestAttemptById and useFullSyllabusTestById hooks - use them as-is",
+    "Maintain consistent styling with the existing Concept Delta navy blue theme",
+    "Ensure the result page is responsive and works on mobile devices",
+    "Do not change the backend scoring logic - only display the scores calculated by the backend"
   ],
   "nonGoals": [
-    "Implementing pause/resume functionality for test sections",
-    "Adding ability to go back to Section 1 after starting Section 2",
-    "Implementing partial credit or negative marking",
-    "Adding section-level analytics or performance insights during the test",
-    "Implementing browser tab detection or anti-cheating measures"
+    "PDF export functionality (will be added in a later step)",
+    "Social sharing to WhatsApp/Telegram (will be added in a later step)",
+    "Leaderboard implementation (separate requirement)",
+    "Detailed analytics or performance graphs",
+    "Ability to retake the test from the result page"
   ],
   "imageRequirements": {
     "required": [],

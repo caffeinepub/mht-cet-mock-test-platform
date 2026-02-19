@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-testinterface-tsx-component-to-fetch-the-test-attempt-state-on-mount-using-the-gettestattempt-endpoint-and-determine-which-section-1-or-2-should-be-active-based-on-section1submittedat-and-section2submittedat-timestamps",
-      "featureTitle": "Update the TestInterface.tsx component to fetch the test attempt state on mount using the getTestAttempt endpoint and determine which section (1 or 2) should be active based on section1SubmittedAt and section2SubmittedAt timestamps",
+      "featureId": "feature-update-the-resultpage-tsx-component-to-accept-attemptid-from-url-parameters-and-fetch-the-complete-test-attempt-data-including-testid-userid-section1score-section2score-section1answers-section2answers-section1starttime-section1submittedat-section2starttime-and-section2submittedat-using-the-usetestattemptbyid-hook",
+      "featureTitle": "Update the ResultPage.tsx component to accept attemptId from URL parameters and fetch the complete test attempt data including testId, userId, section1Score, section2Score, section1Answers, section2Answers, section1StartTime, section1SubmittedAt, section2StartTime, and section2SubmittedAt using the useTestAttemptById hook",
       "files": [
-        "frontend/src/pages/TestInterface.tsx"
+        "frontend/src/pages/ResultPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -17,15 +17,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-37"
+        "REQ-46"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-a-countdown-timer-in-testinterface-tsx-that-calculates-remaining-time-by-subtracting-elapsed-time-current-time-minus-section-start-time-from-90-minutes-displays-the-countdown-in-mm-ss-format-and-auto-submits-the-section-when-time-reaches-zero",
-      "featureTitle": "Implement a countdown timer in TestInterface.tsx that calculates remaining time by subtracting elapsed time (current time minus section start time) from 90 minutes, displays the countdown in MM:SS format, and auto-submits the section when time reaches zero",
+      "featureId": "feature-display-the-overall-test-score-summary-in-resultpage-tsx-showing-total-score-section1score-section2score-individual-section-scores-section-1-x-marks-section-2-y-marks-total-time-taken-calculated-from-section-start-times-and-submission-timestamps-and-a-performance-indicator-e-g-excellent-good-needs-improvement-based-on-percentage-score",
+      "featureTitle": "Display the overall test score summary in ResultPage.tsx showing total score (section1Score + section2Score), individual section scores (Section 1: X marks, Section 2: Y marks), total time taken calculated from section start times and submission timestamps, and a performance indicator (e.g., 'Excellent', 'Good', 'Needs Improvement') based on percentage score",
       "files": [
-        "frontend/src/pages/TestInterface.tsx"
+        "frontend/src/pages/ResultPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -37,15 +37,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-38"
+        "REQ-47"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-submit-section-button-in-testinterface-tsx-that-calls-the-submitsection-backend-endpoint-with-attemptid-current-sectionnumber-and-answers-array-then-automatically-transitions-to-section-2-if-submitting-section-1-or-redirects-to-results-page-if-submitting-section-2",
-      "featureTitle": "Add a 'Submit Section' button in TestInterface.tsx that calls the submitSection backend endpoint with attemptId, current sectionNumber, and answers array, then automatically transitions to Section 2 if submitting Section 1, or redirects to results page if submitting Section 2",
+      "featureId": "feature-fetch-the-full-test-details-including-assigned-questions-for-both-sections-using-the-usefullsyllabustestbyid-hook-in-resultpage-tsx-and-display-statistics-showing-total-questions-attempted-correct-answers-incorrect-answers-and-unanswered-questions-for-each-section-separately",
+      "featureTitle": "Fetch the full test details including assigned questions for both sections using the useFullSyllabusTestById hook in ResultPage.tsx, and display statistics showing total questions attempted, correct answers, incorrect answers, and unanswered questions for each section separately",
       "files": [
-        "frontend/src/pages/TestInterface.tsx"
+        "frontend/src/pages/ResultPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -57,15 +57,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-39"
+        "REQ-48"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-testinterface-tsx-to-call-the-startsection-backend-endpoint-automatically-when-transitioning-to-section-2-after-section-1-submission-recording-the-section-2-start-timestamp-and-initializing-the-90-minute-countdown-timer-for-section-2",
-      "featureTitle": "Update TestInterface.tsx to call the startSection backend endpoint automatically when transitioning to Section 2 after Section 1 submission, recording the Section 2 start timestamp and initializing the 90-minute countdown timer for Section 2",
+      "featureId": "feature-implement-a-question-review-section-in-resultpage-tsx-that-displays-all-questions-from-both-sections-with-question-text-question-image-if-present-all-four-options-with-their-text-and-images-the-user-s-selected-answer-highlighted-the-correct-answer-indicated-and-whether-the-user-s-answer-was-correct-or-incorrect-using-visual-indicators-e-g-green-checkmark-for-correct-red-cross-for-incorrect",
+      "featureTitle": "Implement a question review section in ResultPage.tsx that displays all questions from both sections with question text, question image (if present), all four options with their text and images, the user's selected answer highlighted, the correct answer indicated, and whether the user's answer was correct or incorrect using visual indicators (e.g., green checkmark for correct, red cross for incorrect)",
       "files": [
-        "frontend/src/pages/TestInterface.tsx"
+        "frontend/src/pages/ResultPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -77,15 +77,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-40"
+        "REQ-49"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-display-a-transition-screen-in-testinterface-tsx-between-section-1-submission-and-section-2-start-that-shows-section-1-complete-message-section-summary-questions-attempted-time-taken-and-a-start-section-2-button-that-calls-the-startsection-endpoint-when-clicked",
-      "featureTitle": "Display a transition screen in TestInterface.tsx between Section 1 submission and Section 2 start that shows 'Section 1 Complete!' message, section summary (questions attempted, time taken), and a 'Start Section 2' button that calls the startSection endpoint when clicked",
+      "featureId": "feature-display-the-explanation-text-for-each-question-in-the-review-section-of-resultpage-tsx-shown-below-the-options-so-students-can-understand-the-reasoning-behind-the-correct-answer",
+      "featureTitle": "Display the explanation text for each question in the review section of ResultPage.tsx, shown below the options, so students can understand the reasoning behind the correct answer",
       "files": [
-        "frontend/src/pages/TestInterface.tsx"
+        "frontend/src/pages/ResultPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -97,15 +97,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-41"
+        "REQ-50"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-react-query-hook-usetestattemptqueries-in-frontend-src-hooks-usequeries-ts-that-provides-a-function-usetestattemptbyid-to-fetch-test-attempt-data-including-current-section-timing-information-and-submission-status",
-      "featureTitle": "Add a React Query hook useTestAttemptQueries in frontend/src/hooks/useQueries.ts that provides a function useTestAttemptById to fetch test attempt data including current section, timing information, and submission status",
+      "featureId": "feature-add-a-back-to-dashboard-button-in-resultpage-tsx-that-navigates-to-the-studentdashboard-when-clicked",
+      "featureTitle": "Add a 'Back to Dashboard' button in ResultPage.tsx that navigates to the StudentDashboard when clicked",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/pages/ResultPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -117,15 +117,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-44"
+        "REQ-51"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-a-react-query-mutation-hook-usetestsectionmutations-in-a-new-file-frontend-src-hooks-usetestsectionmutations-ts-that-provides-functions-to-start-a-section-startsection-and-submit-a-section-submitsection-with-automatic-query-invalidation-for-test-attempt-data-on-success",
-      "featureTitle": "Create a React Query mutation hook useTestSectionMutations in a new file frontend/src/hooks/useTestSectionMutations.ts that provides functions to start a section (startSection) and submit a section (submitSection), with automatic query invalidation for test attempt data on success",
+      "featureId": "feature-add-a-view-leaderboard-button-in-resultpage-tsx-that-navigates-to-the-leaderboard-page-with-the-testid-as-a-url-parameter-when-clicked",
+      "featureTitle": "Add a 'View Leaderboard' button in ResultPage.tsx that navigates to the Leaderboard page with the testId as a URL parameter when clicked",
       "files": [
-        "frontend/src/hooks/useTestSectionMutations.ts"
+        "frontend/src/pages/ResultPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -137,7 +137,7 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-45"
+        "REQ-52"
       ],
       "confidence": "high"
     }

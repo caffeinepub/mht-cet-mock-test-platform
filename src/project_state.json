@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 15,
+  "projectStateVersion": 17,
   "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
   "architectural_notes": [
     "Motoko backend canister with stable memory for persistence",
@@ -250,6 +250,62 @@
       "title": "Create a React Query mutation hook useTestSectionMutations in a new file frontend/src/hooks/useTestSectionMutations.ts that provides functions to start a section (startSection) and submit a section (submitSection), with automatic query invalidation for test attempt data on success",
       "reqIds": [
         "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-resultpage-tsx-component-to-accept-attemptid-from-url-parameters-and-fetch-the-complete-test-attempt-data-including-testid-userid-section1score-section2score-section1answers-section2answers-section1starttime-section1submittedat-section2starttime-and-section2submittedat-using-the-usetestattemptbyid-hook",
+      "title": "Update the ResultPage.tsx component to accept attemptId from URL parameters and fetch the complete test attempt data including testId, userId, section1Score, section2Score, section1Answers, section2Answers, section1StartTime, section1SubmittedAt, section2StartTime, and section2SubmittedAt using the useTestAttemptById hook",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-the-overall-test-score-summary-in-resultpage-tsx-showing-total-score-section1score-section2score-individual-section-scores-section-1-x-marks-section-2-y-marks-total-time-taken-calculated-from-section-start-times-and-submission-timestamps-and-a-performance-indicator-e-g-excellent-good-needs-improvement-based-on-percentage-score",
+      "title": "Display the overall test score summary in ResultPage.tsx showing total score (section1Score + section2Score), individual section scores (Section 1: X marks, Section 2: Y marks), total time taken calculated from section start times and submission timestamps, and a performance indicator (e.g., 'Excellent', 'Good', 'Needs Improvement') based on percentage score",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fetch-the-full-test-details-including-assigned-questions-for-both-sections-using-the-usefullsyllabustestbyid-hook-in-resultpage-tsx-and-display-statistics-showing-total-questions-attempted-correct-answers-incorrect-answers-and-unanswered-questions-for-each-section-separately",
+      "title": "Fetch the full test details including assigned questions for both sections using the useFullSyllabusTestById hook in ResultPage.tsx, and display statistics showing total questions attempted, correct answers, incorrect answers, and unanswered questions for each section separately",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-question-review-section-in-resultpage-tsx-that-displays-all-questions-from-both-sections-with-question-text-question-image-if-present-all-four-options-with-their-text-and-images-the-user-s-selected-answer-highlighted-the-correct-answer-indicated-and-whether-the-user-s-answer-was-correct-or-incorrect-using-visual-indicators-e-g-green-checkmark-for-correct-red-cross-for-incorrect",
+      "title": "Implement a question review section in ResultPage.tsx that displays all questions from both sections with question text, question image (if present), all four options with their text and images, the user's selected answer highlighted, the correct answer indicated, and whether the user's answer was correct or incorrect using visual indicators (e.g., green checkmark for correct, red cross for incorrect)",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-the-explanation-text-for-each-question-in-the-review-section-of-resultpage-tsx-shown-below-the-options-so-students-can-understand-the-reasoning-behind-the-correct-answer",
+      "title": "Display the explanation text for each question in the review section of ResultPage.tsx, shown below the options, so students can understand the reasoning behind the correct answer",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-back-to-dashboard-button-in-resultpage-tsx-that-navigates-to-the-studentdashboard-when-clicked",
+      "title": "Add a 'Back to Dashboard' button in ResultPage.tsx that navigates to the StudentDashboard when clicked",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-view-leaderboard-button-in-resultpage-tsx-that-navigates-to-the-leaderboard-page-with-the-testid-as-a-url-parameter-when-clicked",
+      "title": "Add a 'View Leaderboard' button in ResultPage.tsx that navigates to the Leaderboard page with the testId as a URL parameter when clicked",
+      "reqIds": [
+        "REQ-52"
       ],
       "version": 1
     }

@@ -9,9 +9,9 @@ import Iter "mo:core/Iter";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   // Initialize access control state
   let accessControlState = AccessControl.initState();

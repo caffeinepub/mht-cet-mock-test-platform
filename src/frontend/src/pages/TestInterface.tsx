@@ -328,7 +328,7 @@ export default function TestInterface() {
                   <p>You have answered {answeredCount} out of {totalQuestions} questions.</p>
                   {answeredCount < totalQuestions && (
                     <div className="flex items-start gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/20 p-3 text-amber-900 dark:text-amber-200">
-                      <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                       <p className="text-sm">
                         You have {totalQuestions - answeredCount} unanswered question{totalQuestions - answeredCount !== 1 ? 's' : ''}. 
                         Once submitted, you cannot return to this section.
