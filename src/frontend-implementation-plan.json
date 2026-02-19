@@ -1,136 +1,163 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Implement Result Page with Score Display and Question Review",
+  "title": "Step 6: PDF Export with Concept Delta Branding",
   "requirements": [
     {
-      "id": "REQ-46",
-      "summary": "Update ResultPage to fetch test attempt data using attemptId from URL parameters",
+      "id": "REQ-82",
+      "summary": "Install and configure PDF generation library in frontend",
       "acceptanceCriteria": [
-        "ResultPage component extracts attemptId from URL parameters",
-        "Component uses useTestAttemptById hook to fetch test attempt data",
-        "Loading state is displayed while fetching attempt data",
-        "Error state is shown if attempt data cannot be fetched"
+        "PDF generation library is added to frontend dependencies",
+        "Library is properly configured and importable in React components"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/package.json",
           "operation": "modify",
-          "description": "Add useTestAttemptById hook that accepts attemptId parameter and returns the test attempt data including testId, userId, section1Score, section2Score, section1Answers, section2Answers, section1StartTime, section1SubmittedAt, section2StartTime, and section2SubmittedAt by calling actor.getTestAttempt(attemptId). Include proper loading and error states."
+          "description": "Add jsPDF library to dependencies to enable client-side PDF generation from test result data"
+        }
+      ]
+    },
+    {
+      "id": "REQ-83",
+      "summary": "Create PDF generation utility module accepting test data and generating branded PDFs",
+      "acceptanceCriteria": [
+        "Utility function accepts required parameters (attempt, test, profile, questions)",
+        "Function returns a downloadable PDF blob or triggers browser download",
+        "PDF generation handles both full syllabus and chapter-wise test types"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/pdfExport.ts",
+          "operation": "create",
+          "description": "Create utility module exporting generateResultPDF function that accepts TestAttempt, test details (FullSyllabusTest or ChapterWiseTestDetails), UserProfile, and Question array, then generates and downloads a formatted PDF with Concept Delta branding. Function must handle both test types, format dates as readable strings, and return the PDF blob or trigger browser download"
+        }
+      ]
+    },
+    {
+      "id": "REQ-84",
+      "summary": "Design PDF header with Concept Delta logo, test details, and overall score",
+      "acceptanceCriteria": [
+        "Header displays Concept Delta branding consistently",
+        "Student name is pulled from the user profile",
+        "Test name and date are clearly visible",
+        "Overall score is prominently featured in the header"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/pdfExport.ts",
+          "operation": "modify",
+          "description": "Implement PDF header section within generateResultPDF function including Concept Delta logo (using text-based branding with delta symbol Δ), test name from test details, student name from UserProfile.name, attempt date formatted from TestAttempt.createdAt as readable date string (e.g., 'January 15, 2024'), and overall score displayed prominently using TestAttempt.totalScore and calculated total possible marks"
+        }
+      ]
+    },
+    {
+      "id": "REQ-85",
+      "summary": "Add score summary section with marks, percentage, section breakdown, time, and performance indicator",
+      "acceptanceCriteria": [
+        "Total score displays with proper unit labels",
+        "Percentage is calculated and displayed accurately",
+        "Section breakdown shows for full syllabus tests only",
+        "Time taken is formatted as HH:MM:SS",
+        "Performance indicator thresholds are correctly applied"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/pdfExport.ts",
+          "operation": "modify",
+          "description": "Add score summary section to PDF showing total score with unit labels (e.g., '85/200 marks'), percentage calculated from total score and total possible marks, section-wise breakdown (Section 1 score using TestAttempt.section1Score, Section 2 score using TestAttempt.section2Score) only for FullSyllabusTest type, total time taken formatted as HH:MM:SS from TestAttempt.totalTimeTaken, and performance indicator text based on percentage thresholds (Excellent for 80%+, Good for 60-79%, Needs Improvement for below 60%)"
+        }
+      ]
+    },
+    {
+      "id": "REQ-86",
+      "summary": "Add question-by-question breakdown with answers, correctness, and marks",
+      "acceptanceCriteria": [
+        "All questions are listed with sequential numbering",
+        "Question text is included with length handling for long questions",
+        "User's answer and correct answer are clearly labeled",
+        "Correct/incorrect status is visually indicated",
+        "Marks awarded per question are displayed"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/pdfExport.ts",
+          "operation": "modify",
+          "description": "Add question-by-question breakdown section listing all questions with sequential numbering, question text (use Question.questionText with truncation for long text, ignoring Question.questionImage), user's selected answer from TestAttempt answers array mapped to Question.options array by selectedOptionIndex (showing option text only), correct answer from Question.options[Question.correctAnswerIndex] (showing option text only), correctness indicator using ✓ for correct and ✗ for incorrect by comparing selectedOptionIndex with correctAnswerIndex, and marks awarded per question based on test type's marksPerQuestion"
+        }
+      ]
+    },
+    {
+      "id": "REQ-87",
+      "summary": "Add statistics summary with question counts and accuracy percentage",
+      "acceptanceCriteria": [
+        "All statistics are calculated accurately from attempt data",
+        "Counts are displayed with clear labels",
+        "Accuracy percentage is formatted to 2 decimal places",
+        "Statistics section is visually distinct from other sections"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/pdfExport.ts",
+          "operation": "modify",
+          "description": "Add statistics summary section calculating and displaying total questions count from questions array length, questions attempted count from non-zero selectedOptionIndex in answers, correct answers count by comparing selectedOptionIndex with correctAnswerIndex for each answer, incorrect answers count (attempted minus correct), unanswered questions count (total minus attempted), and accuracy percentage calculated as (correct/attempted * 100) formatted to 2 decimal places with clear labels for each statistic"
+        }
+      ]
+    },
+    {
+      "id": "REQ-88",
+      "summary": "Add footer with Concept Delta branding and page numbers",
+      "acceptanceCriteria": [
+        "Footer appears on every page of multi-page PDFs",
+        "Concept Delta branding is consistent with application",
+        "Social media handle matches @coep_conceptdelta2031",
+        "Page numbers are accurate and properly formatted"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/pdfExport.ts",
+          "operation": "modify",
+          "description": "Add footer to each PDF page containing Concept Delta branding text with delta symbol, social media handle @coep_conceptdelta2031, and page numbers in 'Page X of Y' format using jsPDF's page numbering functionality to ensure footer appears on every page of multi-page PDFs"
+        }
+      ]
+    },
+    {
+      "id": "REQ-89",
+      "summary": "Add Export PDF button in ResultPage that triggers PDF generation and download",
+      "acceptanceCriteria": [
+        "Button is prominently displayed on the result page",
+        "Button click triggers PDF generation without errors",
+        "PDF downloads automatically to user's device",
+        "Filename follows the specified format with proper sanitization",
+        "Button shows loading state during PDF generation if needed"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ResultPage.tsx",
+          "operation": "modify",
+          "description": "Add Export PDF button prominently displayed on the result page that imports and calls generateResultPDF from frontend/src/utils/pdfExport.ts with TestAttempt from useQuery result, test details from fullSyllabusTest or chapterWiseTest data, UserProfile from useGetCallerUserProfile hook, and Question array from test details, triggering browser download with sanitized filename format 'ConceptDelta_TestName_StudentName_Date.pdf' (removing special characters invalid in filenames), and include loading state during PDF generation using React state"
+        }
+      ]
+    },
+    {
+      "id": "REQ-90",
+      "summary": "Handle PDF generation errors gracefully with user feedback",
+      "acceptanceCriteria": [
+        "Error message is user-friendly and actionable",
+        "Error details are logged to console for debugging",
+        "PDF generation failure does not crash the application",
+        "User can retry PDF generation after an error"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/pdfExport.ts",
+          "operation": "modify",
+          "description": "Wrap PDF generation logic in try-catch block to handle errors gracefully, logging error details to console for debugging while returning error status to caller, ensuring PDF generation failure does not crash the utility function"
         },
         {
           "path": "frontend/src/pages/ResultPage.tsx",
           "operation": "modify",
-          "description": "Replace placeholder implementation with real functionality: extract attemptId from URL parameters using useParams hook, call useTestAttemptById(attemptId) to fetch attempt data, display loading spinner while fetching, show error message if fetch fails or attempt not found, and ensure the component requires authentication before displaying any data."
-        }
-      ]
-    },
-    {
-      "id": "REQ-47",
-      "summary": "Display overall test score summary with section scores, total time, and performance indicator",
-      "acceptanceCriteria": [
-        "Overall score displays sum of section1Score and section2Score",
-        "Section 1 score is displayed separately",
-        "Section 2 score is displayed separately",
-        "Total time taken is calculated and displayed in readable format (e.g., '2h 45m')",
-        "Performance indicator is shown based on score percentage"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ResultPage.tsx",
-          "operation": "modify",
-          "description": "Add score summary section that displays: total score (section1Score + section2Score), individual section scores labeled as 'Section 1: X marks' and 'Section 2: Y marks', total time taken calculated from (section1SubmittedAt - section1StartTime) + (section2SubmittedAt - section2StartTime) formatted as human-readable duration (e.g., '2h 45m'), and performance indicator label ('Excellent' for 80%+, 'Good' for 60-79%, 'Needs Improvement' for below 60%) based on percentage score. Style the summary section prominently using Concept Delta navy blue theme with Card components from shadcn/ui."
-        }
-      ]
-    },
-    {
-      "id": "REQ-48",
-      "summary": "Fetch full test details and display statistics for both sections separately",
-      "acceptanceCriteria": [
-        "Test details with assigned questions are fetched using useFullSyllabusTestById hook",
-        "Section 1 statistics display: total questions, attempted, correct, incorrect, unanswered",
-        "Section 2 statistics display: total questions, attempted, correct, incorrect, unanswered",
-        "Statistics are calculated by comparing submitted answers against correct answers"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add useFullSyllabusTestById hook that accepts testId parameter and returns the full test details including assigned questions for both sections by calling actor.getFullSyllabusTests() and filtering by testId. Include proper error handling if test is not found."
-        },
-        {
-          "path": "frontend/src/pages/ResultPage.tsx",
-          "operation": "modify",
-          "description": "Call useFullSyllabusTestById(testId) where testId comes from the test attempt data. For each section, calculate and display statistics: total questions (length of section.questionIds), attempted (count of answers submitted for that section), correct answers (by comparing submitted answers' selectedOptionIndex against question.correctAnswerIndex), incorrect answers (attempted - correct), and unanswered questions (total - attempted). Display statistics in separate cards/sections for Section 1 and Section 2."
-        }
-      ]
-    },
-    {
-      "id": "REQ-49",
-      "summary": "Implement question review section displaying all questions with answers and visual indicators",
-      "acceptanceCriteria": [
-        "All questions from Section 1 and Section 2 are displayed in order",
-        "Question text is shown if present",
-        "Question image is rendered if present",
-        "All four options are displayed with their text and images",
-        "User's selected answer is visually highlighted",
-        "Correct answer is clearly indicated",
-        "Correct/incorrect status is shown with visual indicators (green for correct, red for incorrect)",
-        "Unanswered questions are marked distinctly"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ResultPage.tsx",
-          "operation": "modify",
-          "description": "Add question review section that iterates through all questions from both sections in order. For each question: display question number, render questionText if present, render questionImage if present using img tag, display all four options with their optionText and optionImage. Highlight the user's selected answer with a distinct background color. Indicate the correct answer with a green checkmark icon and green border. For user's answer, show green checkmark if correct or red X icon if incorrect. For unanswered questions, display 'Not Answered' label with gray styling. Use Card components from shadcn/ui for question containers and maintain consistent styling with navy blue theme."
-        }
-      ]
-    },
-    {
-      "id": "REQ-50",
-      "summary": "Display explanation text for each question in the review section",
-      "acceptanceCriteria": [
-        "Explanation text is displayed below each question's options",
-        "Explanation is visible for all questions regardless of whether user answered correctly or incorrectly",
-        "Explanation text is formatted for readability"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ResultPage.tsx",
-          "operation": "modify",
-          "description": "Add explanation display below the options section for each question. Show the question.explanation text in a clearly marked section (e.g., with 'Explanation:' label) using readable typography. Apply subtle background color or border to distinguish the explanation section from options. Ensure explanation is always visible regardless of whether the user answered correctly, incorrectly, or left it unanswered."
-        }
-      ]
-    },
-    {
-      "id": "REQ-51",
-      "summary": "Add 'Back to Dashboard' button that navigates to StudentDashboard",
-      "acceptanceCriteria": [
-        "Button labeled 'Back to Dashboard' is displayed on the result page",
-        "Clicking the button navigates to /student/dashboard route",
-        "Button is styled consistently with the application's design"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ResultPage.tsx",
-          "operation": "modify",
-          "description": "Add a 'Back to Dashboard' button near the top or bottom of the result page using Button component from shadcn/ui. On click, navigate to '/student/dashboard' route using TanStack Router's useNavigate hook. Style the button consistently with Concept Delta navy blue theme."
-        }
-      ]
-    },
-    {
-      "id": "REQ-52",
-      "summary": "Add 'View Leaderboard' button that navigates to Leaderboard page with testId parameter",
-      "acceptanceCriteria": [
-        "Button labeled 'View Leaderboard' is displayed on the result page",
-        "Clicking the button navigates to /leaderboard route with testId parameter",
-        "Button is styled consistently with the application's design"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ResultPage.tsx",
-          "operation": "modify",
-          "description": "Add a 'View Leaderboard' button next to the 'Back to Dashboard' button using Button component from shadcn/ui. On click, navigate to '/leaderboard' route with testId as URL search parameter (e.g., '/leaderboard?testId=123') using TanStack Router's useNavigate hook. Style the button consistently with Concept Delta navy blue theme, potentially as a secondary or outline variant to distinguish it from the primary 'Back to Dashboard' button."
+          "description": "Add error handling in Export PDF button click handler to catch errors from generateResultPDF, display user-friendly error message using alert or toast notification indicating PDF generation failed and user should try again, and ensure button remains clickable for retry after error"
         }
       ]
     }

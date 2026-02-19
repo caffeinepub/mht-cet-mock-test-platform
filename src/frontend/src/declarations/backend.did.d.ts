@@ -14,6 +14,12 @@ export interface Answer {
   'selectedOptionIndex' : bigint,
   'questionId' : bigint,
 }
+export interface ChapterWiseTestDetails {
+  'testName' : string,
+  'durationMinutes' : bigint,
+  'questions' : Array<Question>,
+  'marksPerQuestion' : bigint,
+}
 export type ClassLevel = { 'class11th' : null } |
   { 'class12th' : null };
 export interface FullSyllabusTest {
@@ -23,6 +29,12 @@ export interface FullSyllabusTest {
   'section1' : TestSection,
   'section2' : TestSection,
   'testId' : bigint,
+}
+export interface LeaderboardEntry {
+  'userName' : string,
+  'rank' : bigint,
+  'totalScore' : bigint,
+  'totalTimeTaken' : bigint,
 }
 export interface Option {
   'optionImage' : [] | [string],
@@ -47,14 +59,21 @@ export interface TestAttempt {
   'attemptId' : bigint,
   'isCompleted' : boolean,
   'section1StartTime' : [] | [bigint],
+  'singleSectionSubmittedAt' : [] | [bigint],
   'userId' : Principal,
   'createdAt' : bigint,
   'section1Answers' : Array<Answer>,
   'currentSection' : bigint,
   'section2Score' : bigint,
+  'totalScore' : bigint,
+  'totalTimeTaken' : bigint,
   'section2Answers' : Array<Answer>,
   'section1SubmittedAt' : [] | [bigint],
+  'singleSectionScore' : bigint,
   'testId' : bigint,
+  'completionTimestamp' : bigint,
+  'singleSectionStartTime' : [] | [bigint],
+  'singleSectionAnswers' : Array<Answer>,
   'section2StartTime' : [] | [bigint],
 }
 export interface TestSection {
@@ -97,10 +116,15 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'assignQuestionsToChapterWiseTest' : ActorMethod<
+    [bigint, Array<bigint>],
+    undefined
+  >,
   'assignQuestionsToTest' : ActorMethod<
     [bigint, Array<bigint>, Array<bigint>],
     undefined
   >,
+  'createChapterWiseTest' : ActorMethod<[string, bigint, bigint], bigint>,
   'createFullSyllabusTest' : ActorMethod<[string], bigint>,
   'createQuestion' : ActorMethod<
     [
@@ -118,8 +142,14 @@ export interface _SERVICE {
   'getAllQuestions' : ActorMethod<[], Array<Question>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getChapterWiseTestById' : ActorMethod<
+    [bigint],
+    { 'ok' : ChapterWiseTestDetails } |
+      { 'testNotFound' : null }
+  >,
   'getCurrentTestId' : ActorMethod<[], [] | [bigint]>,
   'getFullSyllabusTests' : ActorMethod<[], Array<FullSyllabusTest>>,
+  'getLeaderboard' : ActorMethod<[bigint], Array<LeaderboardEntry>>,
   'getQuestion' : ActorMethod<[bigint], [] | [Question]>,
   'getQuestionsByClassLevel' : ActorMethod<[ClassLevel], Array<Question>>,
   'getQuestionsBySubject' : ActorMethod<[Subject], Array<Question>>,
@@ -130,7 +160,7 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'startSection' : ActorMethod<[bigint, bigint], undefined>,
-  'startTest' : ActorMethod<[bigint], undefined>,
+  'startTest' : ActorMethod<[bigint], bigint>,
   'submitSection' : ActorMethod<
     [bigint, bigint, Array<Answer>],
     { 'score' : bigint, 'correctAnswers' : bigint }

@@ -1,157 +1,169 @@
 {
   "kind": "build_request",
-  "title": "Implement Result Page with Score Display and Question Review",
+  "title": "Step 6: PDF Export with Concept Delta Branding",
   "projectName": "Concept Delta",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-46",
-      "text": "Update the ResultPage.tsx component to accept attemptId from URL parameters and fetch the complete test attempt data including testId, userId, section1Score, section2Score, section1Answers, section2Answers, section1StartTime, section1SubmittedAt, section2StartTime, and section2SubmittedAt using the useTestAttemptById hook",
+      "id": "REQ-82",
+      "text": "Install and configure a PDF generation library (e.g., jsPDF or react-pdf) in the frontend package.json to enable client-side PDF creation from test result data",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-4"
-        ],
-        "quotes": [
-          "start step 4"
+          "msg-user-start-step-6"
         ]
       },
       "acceptanceCriteria": [
-        "ResultPage component extracts attemptId from URL parameters",
-        "Component uses useTestAttemptById hook to fetch test attempt data",
-        "Loading state is displayed while fetching attempt data",
-        "Error state is shown if attempt data cannot be fetched"
+        "PDF generation library is added to frontend dependencies",
+        "Library is properly configured and importable in React components"
       ]
     },
     {
-      "id": "REQ-47",
-      "text": "Display the overall test score summary in ResultPage.tsx showing total score (section1Score + section2Score), individual section scores (Section 1: X marks, Section 2: Y marks), total time taken calculated from section start times and submission timestamps, and a performance indicator (e.g., 'Excellent', 'Good', 'Needs Improvement') based on percentage score",
+      "id": "REQ-83",
+      "text": "Create a utility module in frontend/src/utils/pdfExport.ts that provides a function generateResultPDF accepting test attempt data, test details, user profile, and question details, and generates a formatted PDF document with Concept Delta branding",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-4"
-        ],
-        "quotes": [
-          "start step 4"
+          "msg-user-start-step-6"
         ]
       },
       "acceptanceCriteria": [
-        "Overall score displays sum of section1Score and section2Score",
-        "Section 1 score is displayed separately",
-        "Section 2 score is displayed separately",
-        "Total time taken is calculated and displayed in readable format (e.g., '2h 45m')",
-        "Performance indicator is shown based on score percentage"
+        "Utility function accepts required parameters (attempt, test, profile, questions)",
+        "Function returns a downloadable PDF blob or triggers browser download",
+        "PDF generation handles both full syllabus and chapter-wise test types"
       ]
     },
     {
-      "id": "REQ-48",
-      "text": "Fetch the full test details including assigned questions for both sections using the useFullSyllabusTestById hook in ResultPage.tsx, and display statistics showing total questions attempted, correct answers, incorrect answers, and unanswered questions for each section separately",
+      "id": "REQ-84",
+      "text": "Design the PDF layout to include a header section with the Concept Delta logo, test name, student name from user profile, attempt date formatted as readable date string, and overall score prominently displayed",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-4"
-        ],
-        "quotes": [
-          "start step 4"
+          "msg-user-start-step-6"
         ]
       },
       "acceptanceCriteria": [
-        "Test details with assigned questions are fetched using useFullSyllabusTestById hook",
-        "Section 1 statistics display: total questions, attempted, correct, incorrect, unanswered",
-        "Section 2 statistics display: total questions, attempted, correct, incorrect, unanswered",
-        "Statistics are calculated by comparing submitted answers against correct answers"
+        "Header displays Concept Delta branding consistently",
+        "Student name is pulled from the user profile",
+        "Test name and date are clearly visible",
+        "Overall score is prominently featured in the header"
       ]
     },
     {
-      "id": "REQ-49",
-      "text": "Implement a question review section in ResultPage.tsx that displays all questions from both sections with question text, question image (if present), all four options with their text and images, the user's selected answer highlighted, the correct answer indicated, and whether the user's answer was correct or incorrect using visual indicators (e.g., green checkmark for correct, red cross for incorrect)",
+      "id": "REQ-85",
+      "text": "Include a score summary section in the PDF showing total score with unit label (e.g., '85/200 marks'), percentage score, section-wise breakdown for full syllabus tests (Section 1 score, Section 2 score), total time taken formatted as HH:MM:SS, and performance indicator based on percentage (e.g., 'Excellent' for 80%+, 'Good' for 60-79%, 'Needs Improvement' for below 60%)",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-4"
-        ],
-        "quotes": [
-          "start step 4"
+          "msg-user-start-step-6"
         ]
       },
       "acceptanceCriteria": [
-        "All questions from Section 1 and Section 2 are displayed in order",
-        "Question text is shown if present",
-        "Question image is rendered if present",
-        "All four options are displayed with their text and images",
-        "User's selected answer is visually highlighted",
-        "Correct answer is clearly indicated",
-        "Correct/incorrect status is shown with visual indicators (green for correct, red for incorrect)",
-        "Unanswered questions are marked distinctly"
+        "Total score displays with proper unit labels",
+        "Percentage is calculated and displayed accurately",
+        "Section breakdown shows for full syllabus tests only",
+        "Time taken is formatted as HH:MM:SS",
+        "Performance indicator thresholds are correctly applied"
       ]
     },
     {
-      "id": "REQ-50",
-      "text": "Display the explanation text for each question in the review section of ResultPage.tsx, shown below the options, so students can understand the reasoning behind the correct answer",
+      "id": "REQ-86",
+      "text": "Add a question-by-question breakdown section in the PDF that lists all questions with their question number, question text (truncated if too long), the user's selected answer option text, correct answer option text, whether the answer was correct or incorrect with visual indicator (✓ or ✗), and marks awarded for that question",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-4"
-        ],
-        "quotes": [
-          "start step 4"
+          "msg-user-start-step-6"
         ]
       },
       "acceptanceCriteria": [
-        "Explanation text is displayed below each question's options",
-        "Explanation is visible for all questions regardless of whether user answered correctly or incorrectly",
-        "Explanation text is formatted for readability"
+        "All questions are listed with sequential numbering",
+        "Question text is included with length handling for long questions",
+        "User's answer and correct answer are clearly labeled",
+        "Correct/incorrect status is visually indicated",
+        "Marks awarded per question are displayed"
       ]
     },
     {
-      "id": "REQ-51",
-      "text": "Add a 'Back to Dashboard' button in ResultPage.tsx that navigates to the StudentDashboard when clicked",
+      "id": "REQ-87",
+      "text": "Add a statistics summary section in the PDF showing total questions, questions attempted, correct answers count, incorrect answers count, unanswered questions count, and accuracy percentage calculated as (correct/attempted * 100)",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-4"
-        ],
-        "quotes": [
-          "start step 4"
+          "msg-user-start-step-6"
         ]
       },
       "acceptanceCriteria": [
-        "Button labeled 'Back to Dashboard' is displayed on the result page",
-        "Clicking the button navigates to /student/dashboard route",
-        "Button is styled consistently with the application's design"
+        "All statistics are calculated accurately from attempt data",
+        "Counts are displayed with clear labels",
+        "Accuracy percentage is formatted to 2 decimal places",
+        "Statistics section is visually distinct from other sections"
       ]
     },
     {
-      "id": "REQ-52",
-      "text": "Add a 'View Leaderboard' button in ResultPage.tsx that navigates to the Leaderboard page with the testId as a URL parameter when clicked",
+      "id": "REQ-88",
+      "text": "Add a footer to each PDF page with the Concept Delta branding text, website URL or social media handle @coep_conceptdelta2031, and page numbers in 'Page X of Y' format",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-4"
-        ],
-        "quotes": [
-          "start step 4"
+          "msg-user-start-step-6"
         ]
       },
       "acceptanceCriteria": [
-        "Button labeled 'View Leaderboard' is displayed on the result page",
-        "Clicking the button navigates to /leaderboard route with testId parameter",
-        "Button is styled consistently with the application's design"
+        "Footer appears on every page of multi-page PDFs",
+        "Concept Delta branding is consistent with application",
+        "Social media handle matches @coep_conceptdelta2031",
+        "Page numbers are accurate and properly formatted"
+      ]
+    },
+    {
+      "id": "REQ-89",
+      "text": "Add an 'Export PDF' button in the ResultPage.tsx component that calls the generateResultPDF utility function with the current test attempt data, test details, user profile, and question data, and triggers a browser download of the generated PDF with filename format 'ConceptDelta_TestName_StudentName_Date.pdf'",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-start-step-6"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Button is prominently displayed on the result page",
+        "Button click triggers PDF generation without errors",
+        "PDF downloads automatically to user's device",
+        "Filename follows the specified format with proper sanitization",
+        "Button shows loading state during PDF generation if needed"
+      ]
+    },
+    {
+      "id": "REQ-90",
+      "text": "Handle PDF generation errors gracefully by displaying an error message to the user if PDF generation fails, and log the error details for debugging purposes",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-start-step-6"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Error message is user-friendly and actionable",
+        "Error details are logged to console for debugging",
+        "PDF generation failure does not crash the application",
+        "User can retry PDF generation after an error"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the existing useTestAttemptById and useFullSyllabusTestById hooks - use them as-is",
-    "Maintain consistent styling with the existing Concept Delta navy blue theme",
-    "Ensure the result page is responsive and works on mobile devices",
-    "Do not change the backend scoring logic - only display the scores calculated by the backend"
+    "PDF generation must be performed client-side in the browser, not on the backend",
+    "PDF must use Concept Delta branding consistently with the rest of the application",
+    "Generated PDFs should handle both full syllabus (2-section) and chapter-wise (1-section) test formats",
+    "Do not include question images or option images in the PDF to keep file size manageable",
+    "PDF filename must be sanitized to remove special characters that are invalid in filenames"
   ],
   "nonGoals": [
-    "PDF export functionality (will be added in a later step)",
-    "Social sharing to WhatsApp/Telegram (will be added in a later step)",
-    "Leaderboard implementation (separate requirement)",
-    "Detailed analytics or performance graphs",
-    "Ability to retake the test from the result page"
+    "Server-side PDF generation or storage",
+    "Email delivery of PDF reports",
+    "Batch PDF generation for multiple students",
+    "PDF customization options or templates",
+    "Including detailed explanations text in the PDF (only show correct/incorrect status)",
+    "Generating PDFs for incomplete test attempts",
+    "PDF encryption or password protection"
   ],
   "imageRequirements": {
     "required": [],

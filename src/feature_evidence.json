@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-resultpage-tsx-component-to-accept-attemptid-from-url-parameters-and-fetch-the-complete-test-attempt-data-including-testid-userid-section1score-section2score-section1answers-section2answers-section1starttime-section1submittedat-section2starttime-and-section2submittedat-using-the-usetestattemptbyid-hook",
-      "featureTitle": "Update the ResultPage.tsx component to accept attemptId from URL parameters and fetch the complete test attempt data including testId, userId, section1Score, section2Score, section1Answers, section2Answers, section1StartTime, section1SubmittedAt, section2StartTime, and section2SubmittedAt using the useTestAttemptById hook",
+      "featureId": "feature-create-a-utility-module-in-frontend-src-utils-pdfexport-ts-that-provides-a-function-generateresultpdf-accepting-test-attempt-data-test-details-user-profile-and-question-details-and-generates-a-formatted-pdf-document-with-concept-delta-branding",
+      "featureTitle": "Create a utility module in frontend/src/utils/pdfExport.ts that provides a function generateResultPDF accepting test attempt data, test details, user profile, and question details, and generates a formatted PDF document with Concept Delta branding",
       "files": [
-        "frontend/src/pages/ResultPage.tsx"
+        "frontend/src/utils/pdfExport.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -17,15 +17,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-46"
+        "REQ-83"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-display-the-overall-test-score-summary-in-resultpage-tsx-showing-total-score-section1score-section2score-individual-section-scores-section-1-x-marks-section-2-y-marks-total-time-taken-calculated-from-section-start-times-and-submission-timestamps-and-a-performance-indicator-e-g-excellent-good-needs-improvement-based-on-percentage-score",
-      "featureTitle": "Display the overall test score summary in ResultPage.tsx showing total score (section1Score + section2Score), individual section scores (Section 1: X marks, Section 2: Y marks), total time taken calculated from section start times and submission timestamps, and a performance indicator (e.g., 'Excellent', 'Good', 'Needs Improvement') based on percentage score",
+      "featureId": "feature-design-the-pdf-layout-to-include-a-header-section-with-the-concept-delta-logo-test-name-student-name-from-user-profile-attempt-date-formatted-as-readable-date-string-and-overall-score-prominently-displayed",
+      "featureTitle": "Design the PDF layout to include a header section with the Concept Delta logo, test name, student name from user profile, attempt date formatted as readable date string, and overall score prominently displayed",
       "files": [
-        "frontend/src/pages/ResultPage.tsx"
+        "frontend/src/utils/pdfExport.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -37,15 +37,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-47"
+        "REQ-84"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-fetch-the-full-test-details-including-assigned-questions-for-both-sections-using-the-usefullsyllabustestbyid-hook-in-resultpage-tsx-and-display-statistics-showing-total-questions-attempted-correct-answers-incorrect-answers-and-unanswered-questions-for-each-section-separately",
-      "featureTitle": "Fetch the full test details including assigned questions for both sections using the useFullSyllabusTestById hook in ResultPage.tsx, and display statistics showing total questions attempted, correct answers, incorrect answers, and unanswered questions for each section separately",
+      "featureId": "feature-include-a-score-summary-section-in-the-pdf-showing-total-score-with-unit-label-e-g-85-200-marks-percentage-score-section-wise-breakdown-for-full-syllabus-tests-section-1-score-section-2-score-total-time-taken-formatted-as-hh-mm-ss-and-performance-indicator-based-on-percentage-e-g-excellent-for-80-good-for-60-79-needs-improvement-for-below-60",
+      "featureTitle": "Include a score summary section in the PDF showing total score with unit label (e.g., '85/200 marks'), percentage score, section-wise breakdown for full syllabus tests (Section 1 score, Section 2 score), total time taken formatted as HH:MM:SS, and performance indicator based on percentage (e.g., 'Excellent' for 80%+, 'Good' for 60-79%, 'Needs Improvement' for below 60%)",
       "files": [
-        "frontend/src/pages/ResultPage.tsx"
+        "frontend/src/utils/pdfExport.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -57,15 +57,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-48"
+        "REQ-85"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-a-question-review-section-in-resultpage-tsx-that-displays-all-questions-from-both-sections-with-question-text-question-image-if-present-all-four-options-with-their-text-and-images-the-user-s-selected-answer-highlighted-the-correct-answer-indicated-and-whether-the-user-s-answer-was-correct-or-incorrect-using-visual-indicators-e-g-green-checkmark-for-correct-red-cross-for-incorrect",
-      "featureTitle": "Implement a question review section in ResultPage.tsx that displays all questions from both sections with question text, question image (if present), all four options with their text and images, the user's selected answer highlighted, the correct answer indicated, and whether the user's answer was correct or incorrect using visual indicators (e.g., green checkmark for correct, red cross for incorrect)",
+      "featureId": "feature-add-a-question-by-question-breakdown-section-in-the-pdf-that-lists-all-questions-with-their-question-number-question-text-truncated-if-too-long-the-user-s-selected-answer-option-text-correct-answer-option-text-whether-the-answer-was-correct-or-incorrect-with-visual-indicator-or-and-marks-awarded-for-that-question",
+      "featureTitle": "Add a question-by-question breakdown section in the PDF that lists all questions with their question number, question text (truncated if too long), the user's selected answer option text, correct answer option text, whether the answer was correct or incorrect with visual indicator (✓ or ✗), and marks awarded for that question",
       "files": [
-        "frontend/src/pages/ResultPage.tsx"
+        "frontend/src/utils/pdfExport.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -77,15 +77,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-49"
+        "REQ-86"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-display-the-explanation-text-for-each-question-in-the-review-section-of-resultpage-tsx-shown-below-the-options-so-students-can-understand-the-reasoning-behind-the-correct-answer",
-      "featureTitle": "Display the explanation text for each question in the review section of ResultPage.tsx, shown below the options, so students can understand the reasoning behind the correct answer",
+      "featureId": "feature-add-a-statistics-summary-section-in-the-pdf-showing-total-questions-questions-attempted-correct-answers-count-incorrect-answers-count-unanswered-questions-count-and-accuracy-percentage-calculated-as-correct-attempted-100",
+      "featureTitle": "Add a statistics summary section in the PDF showing total questions, questions attempted, correct answers count, incorrect answers count, unanswered questions count, and accuracy percentage calculated as (correct/attempted * 100)",
       "files": [
-        "frontend/src/pages/ResultPage.tsx"
+        "frontend/src/utils/pdfExport.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -97,15 +97,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-50"
+        "REQ-87"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-back-to-dashboard-button-in-resultpage-tsx-that-navigates-to-the-studentdashboard-when-clicked",
-      "featureTitle": "Add a 'Back to Dashboard' button in ResultPage.tsx that navigates to the StudentDashboard when clicked",
+      "featureId": "feature-add-a-footer-to-each-pdf-page-with-the-concept-delta-branding-text-website-url-or-social-media-handle-coep-conceptdelta2031-and-page-numbers-in-page-x-of-y-format",
+      "featureTitle": "Add a footer to each PDF page with the Concept Delta branding text, website URL or social media handle @coep_conceptdelta2031, and page numbers in 'Page X of Y' format",
       "files": [
-        "frontend/src/pages/ResultPage.tsx"
+        "frontend/src/utils/pdfExport.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -117,13 +117,13 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-51"
+        "REQ-88"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-view-leaderboard-button-in-resultpage-tsx-that-navigates-to-the-leaderboard-page-with-the-testid-as-a-url-parameter-when-clicked",
-      "featureTitle": "Add a 'View Leaderboard' button in ResultPage.tsx that navigates to the Leaderboard page with the testId as a URL parameter when clicked",
+      "featureId": "feature-add-an-export-pdf-button-in-the-resultpage-tsx-component-that-calls-the-generateresultpdf-utility-function-with-the-current-test-attempt-data-test-details-user-profile-and-question-data-and-triggers-a-browser-download-of-the-generated-pdf-with-filename-format-conceptdelta-testname-studentname-date-pdf",
+      "featureTitle": "Add an 'Export PDF' button in the ResultPage.tsx component that calls the generateResultPDF utility function with the current test attempt data, test details, user profile, and question data, and triggers a browser download of the generated PDF with filename format 'ConceptDelta_TestName_StudentName_Date.pdf'",
       "files": [
         "frontend/src/pages/ResultPage.tsx"
       ],
@@ -137,7 +137,28 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-52"
+        "REQ-89"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-handle-pdf-generation-errors-gracefully-by-displaying-an-error-message-to-the-user-if-pdf-generation-fails-and-log-the-error-details-for-debugging-purposes",
+      "featureTitle": "Handle PDF generation errors gracefully by displaying an error message to the user if PDF generation fails, and log the error details for debugging purposes",
+      "files": [
+        "frontend/src/pages/ResultPage.tsx",
+        "frontend/src/utils/pdfExport.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-90"
       ],
       "confidence": "high"
     }

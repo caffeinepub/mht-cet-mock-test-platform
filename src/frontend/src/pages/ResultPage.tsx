@@ -1,29 +1,82 @@
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useTestAttemptById, useFullSyllabusTestById, useAllQuestions } from '../hooks/useQueries';
+import { useTestAttemptById, useFullSyllabusTestById, useAllQuestions, useChapterWiseTestById, useGetCallerUserProfile } from '../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle2, XCircle, Clock, Trophy, Target, TrendingUp, ArrowLeft, BarChart3 } from 'lucide-react';
-import { useEffect } from 'react';
+import { CheckCircle2, XCircle, Clock, Trophy, Target, TrendingUp, ArrowLeft, BarChart3, Download } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { Question, Answer } from '../backend';
+import { generateResultPDF } from '../utils/pdfExport';
+import { toast } from 'sonner';
 
 export default function ResultPage() {
   const { resultId } = useParams({ strict: false });
   const { identity, isInitializing } = useInternetIdentity();
   const navigate = useNavigate();
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const attemptId = resultId ? BigInt(resultId) : null;
   const { data: attempt, isLoading: attemptLoading, error: attemptError } = useTestAttemptById(attemptId);
-  const { data: test, isLoading: testLoading } = useFullSyllabusTestById(attempt?.testId || null);
+  const { data: fullSyllabusTest, isLoading: fullSyllabusTestLoading } = useFullSyllabusTestById(attempt?.testId || null);
+  const { data: chapterWiseTest, isLoading: chapterWiseTestLoading } = useChapterWiseTestById(attempt?.testId || BigInt(0));
   const { data: allQuestions = [] } = useAllQuestions();
+  const { data: userProfile } = useGetCallerUserProfile();
+
+  // Determine which test type we have
+  const test = fullSyllabusTest || chapterWiseTest;
+  const isChapterWise = !!chapterWiseTest && !fullSyllabusTest;
+  const testLoading = fullSyllabusTestLoading || chapterWiseTestLoading;
 
   useEffect(() => {
     if (!isInitializing && !identity) {
       navigate({ to: '/' });
     }
   }, [identity, isInitializing, navigate]);
+
+  const handleExportPDF = async () => {
+    if (!attempt || !test || !userProfile) {
+      toast.error('Unable to generate PDF. Missing required data.');
+      return;
+    }
+
+    setIsGeneratingPDF(true);
+
+    try {
+      // Get questions for this test
+      let testQuestions: Question[];
+      if (isChapterWise && chapterWiseTest) {
+        testQuestions = chapterWiseTest.questions;
+      } else if (fullSyllabusTest) {
+        testQuestions = allQuestions.filter(q => 
+          fullSyllabusTest.section1.questionIds.some(id => id === q.id) ||
+          fullSyllabusTest.section2.questionIds.some(id => id === q.id)
+        );
+      } else {
+        throw new Error('Unable to determine test questions');
+      }
+
+      const result = generateResultPDF({
+        attempt,
+        test,
+        profile: userProfile,
+        questions: testQuestions,
+        isChapterWise,
+      });
+
+      if (result.success) {
+        toast.success('PDF print dialog opened. Use "Save as PDF" in the print dialog.');
+      } else {
+        toast.error(`Failed to generate PDF: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   if (isInitializing || attemptLoading || testLoading) {
     return (
@@ -80,20 +133,36 @@ export default function ResultPage() {
   }
 
   // Calculate scores and statistics
-  const totalScore = Number(attempt.section1Score + attempt.section2Score);
-  const maxSection1Score = test.section1.questionIds.length * Number(test.section1.marksPerQuestion);
-  const maxSection2Score = test.section2.questionIds.length * Number(test.section2.marksPerQuestion);
-  const maxTotalScore = maxSection1Score + maxSection2Score;
+  let totalScore: number;
+  let maxTotalScore: number;
+  let section1Questions: Question[] = [];
+  let section2Questions: Question[] = [];
+
+  if (isChapterWise && chapterWiseTest) {
+    totalScore = Number(attempt.singleSectionScore);
+    maxTotalScore = chapterWiseTest.questions.length * Number(chapterWiseTest.marksPerQuestion);
+  } else if (fullSyllabusTest) {
+    totalScore = Number(attempt.section1Score + attempt.section2Score);
+    const maxSection1Score = fullSyllabusTest.section1.questionIds.length * Number(fullSyllabusTest.section1.marksPerQuestion);
+    const maxSection2Score = fullSyllabusTest.section2.questionIds.length * Number(fullSyllabusTest.section2.marksPerQuestion);
+    maxTotalScore = maxSection1Score + maxSection2Score;
+
+    // Get questions for both sections
+    section1Questions = allQuestions.filter(q => 
+      fullSyllabusTest.section1.questionIds.some(id => id === q.id)
+    );
+    section2Questions = allQuestions.filter(q => 
+      fullSyllabusTest.section2.questionIds.some(id => id === q.id)
+    );
+  } else {
+    totalScore = 0;
+    maxTotalScore = 0;
+  }
+
   const percentage = maxTotalScore > 0 ? (totalScore / maxTotalScore) * 100 : 0;
 
   // Calculate total time
-  const section1Time = attempt.section1SubmittedAt && attempt.section1StartTime
-    ? Number(attempt.section1SubmittedAt - attempt.section1StartTime) / 1000000000
-    : 0;
-  const section2Time = attempt.section2SubmittedAt && attempt.section2StartTime
-    ? Number(attempt.section2SubmittedAt - attempt.section2StartTime) / 1000000000
-    : 0;
-  const totalTimeSeconds = section1Time + section2Time;
+  const totalTimeSeconds = Number(attempt.totalTimeTaken) / 1000000000;
   const totalHours = Math.floor(totalTimeSeconds / 3600);
   const totalMinutes = Math.floor((totalTimeSeconds % 3600) / 60);
   const totalSeconds = Math.floor(totalTimeSeconds % 60);
@@ -108,14 +177,6 @@ export default function ResultPage() {
     performanceLabel = 'Good';
     performanceColor = 'text-blue-600';
   }
-
-  // Get questions for both sections
-  const section1Questions = allQuestions.filter(q => 
-    test.section1.questionIds.some(id => id === q.id)
-  );
-  const section2Questions = allQuestions.filter(q => 
-    test.section2.questionIds.some(id => id === q.id)
-  );
 
   // Calculate section statistics
   const calculateSectionStats = (questions: Question[], answers: Answer[], marksPerQuestion: bigint) => {
@@ -136,24 +197,44 @@ export default function ResultPage() {
     return { total, attempted, correct, incorrect, unanswered };
   };
 
-  const section1Stats = calculateSectionStats(section1Questions, attempt.section1Answers, test.section1.marksPerQuestion);
-  const section2Stats = calculateSectionStats(section2Questions, attempt.section2Answers, test.section2.marksPerQuestion);
-
   // Prepare all questions with answers for review
-  const allQuestionsWithAnswers = [
-    ...section1Questions.map(q => ({
+  let allQuestionsWithAnswers: Array<{
+    question: Question;
+    userAnswer?: Answer;
+    sectionNumber: number;
+    marksPerQuestion: bigint;
+  }> = [];
+
+  if (isChapterWise && chapterWiseTest) {
+    allQuestionsWithAnswers = chapterWiseTest.questions.map(q => ({
       question: q,
-      userAnswer: attempt.section1Answers.find(a => a.questionId === q.id),
+      userAnswer: attempt.singleSectionAnswers.find(a => a.questionId === q.id),
       sectionNumber: 1,
-      marksPerQuestion: test.section1.marksPerQuestion,
-    })),
-    ...section2Questions.map(q => ({
-      question: q,
-      userAnswer: attempt.section2Answers.find(a => a.questionId === q.id),
-      sectionNumber: 2,
-      marksPerQuestion: test.section2.marksPerQuestion,
-    })),
-  ];
+      marksPerQuestion: chapterWiseTest.marksPerQuestion,
+    }));
+  } else if (fullSyllabusTest) {
+    allQuestionsWithAnswers = [
+      ...section1Questions.map(q => ({
+        question: q,
+        userAnswer: attempt.section1Answers.find(a => a.questionId === q.id),
+        sectionNumber: 1,
+        marksPerQuestion: fullSyllabusTest.section1.marksPerQuestion,
+      })),
+      ...section2Questions.map(q => ({
+        question: q,
+        userAnswer: attempt.section2Answers.find(a => a.questionId === q.id),
+        sectionNumber: 2,
+        marksPerQuestion: fullSyllabusTest.section2.marksPerQuestion,
+      })),
+    ];
+  }
+
+  const section1Stats = !isChapterWise && fullSyllabusTest 
+    ? calculateSectionStats(section1Questions, attempt.section1Answers, fullSyllabusTest.section1.marksPerQuestion)
+    : null;
+  const section2Stats = !isChapterWise && fullSyllabusTest
+    ? calculateSectionStats(section2Questions, attempt.section2Answers, fullSyllabusTest.section2.marksPerQuestion)
+    : null;
 
   return (
     <div className="min-h-screen bg-background py-8">
@@ -173,6 +254,14 @@ export default function ResultPage() {
           >
             <BarChart3 className="mr-2 h-4 w-4" />
             View Leaderboard
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleExportPDF}
+            disabled={isGeneratingPDF || !userProfile}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            {isGeneratingPDF ? 'Generating PDF...' : 'Export PDF'}
           </Button>
         </div>
 
@@ -199,25 +288,41 @@ export default function ResultPage() {
                 </div>
               </div>
 
-              <div className="text-center">
-                <div className="mb-2 text-sm font-medium text-muted-foreground">Section 1</div>
-                <div className="text-3xl font-bold">
-                  {Number(attempt.section1Score)}
-                </div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {test.section1.name}
-                </div>
-              </div>
+              {!isChapterWise && fullSyllabusTest && (
+                <>
+                  <div className="text-center">
+                    <div className="mb-2 text-sm font-medium text-muted-foreground">Section 1</div>
+                    <div className="text-3xl font-bold">
+                      {Number(attempt.section1Score)}
+                    </div>
+                    <div className="mt-1 text-sm text-muted-foreground">
+                      {fullSyllabusTest.section1.name}
+                    </div>
+                  </div>
 
-              <div className="text-center">
-                <div className="mb-2 text-sm font-medium text-muted-foreground">Section 2</div>
-                <div className="text-3xl font-bold">
-                  {Number(attempt.section2Score)}
+                  <div className="text-center">
+                    <div className="mb-2 text-sm font-medium text-muted-foreground">Section 2</div>
+                    <div className="text-3xl font-bold">
+                      {Number(attempt.section2Score)}
+                    </div>
+                    <div className="mt-1 text-sm text-muted-foreground">
+                      {fullSyllabusTest.section2.name}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {isChapterWise && (
+                <div className="text-center">
+                  <div className="mb-2 text-sm font-medium text-muted-foreground">Score</div>
+                  <div className="text-3xl font-bold">
+                    {Number(attempt.singleSectionScore)}
+                  </div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    Chapter-wise Test
+                  </div>
                 </div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {test.section2.name}
-                </div>
-              </div>
+              )}
 
               <div className="text-center">
                 <div className="mb-2 text-sm font-medium text-muted-foreground">Total Time</div>
@@ -235,77 +340,79 @@ export default function ResultPage() {
         </Card>
 
         {/* Section Statistics */}
-        <div className="mb-8 grid gap-6 md:grid-cols-2">
-          {/* Section 1 Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Section 1 Statistics
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">{test.section1.name}</p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Questions:</span>
-                  <span className="font-semibold">{section1Stats.total}</span>
+        {!isChapterWise && fullSyllabusTest && section1Stats && section2Stats && (
+          <div className="mb-8 grid gap-6 md:grid-cols-2">
+            {/* Section 1 Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Section 1 Statistics
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">{fullSyllabusTest.section1.name}</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total Questions:</span>
+                    <span className="font-semibold">{section1Stats.total}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Attempted:</span>
+                    <span className="font-semibold">{section1Stats.attempted}</span>
+                  </div>
+                  <div className="flex justify-between text-green-600">
+                    <span>Correct:</span>
+                    <span className="font-semibold">{section1Stats.correct}</span>
+                  </div>
+                  <div className="flex justify-between text-red-600">
+                    <span>Incorrect:</span>
+                    <span className="font-semibold">{section1Stats.incorrect}</span>
+                  </div>
+                  <div className="flex justify-between text-amber-600">
+                    <span>Unanswered:</span>
+                    <span className="font-semibold">{section1Stats.unanswered}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Attempted:</span>
-                  <span className="font-semibold">{section1Stats.attempted}</span>
-                </div>
-                <div className="flex justify-between text-green-600">
-                  <span>Correct:</span>
-                  <span className="font-semibold">{section1Stats.correct}</span>
-                </div>
-                <div className="flex justify-between text-red-600">
-                  <span>Incorrect:</span>
-                  <span className="font-semibold">{section1Stats.incorrect}</span>
-                </div>
-                <div className="flex justify-between text-amber-600">
-                  <span>Unanswered:</span>
-                  <span className="font-semibold">{section1Stats.unanswered}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Section 2 Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Section 2 Statistics
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">{test.section2.name}</p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Questions:</span>
-                  <span className="font-semibold">{section2Stats.total}</span>
+            {/* Section 2 Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Section 2 Statistics
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">{fullSyllabusTest.section2.name}</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total Questions:</span>
+                    <span className="font-semibold">{section2Stats.total}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Attempted:</span>
+                    <span className="font-semibold">{section2Stats.attempted}</span>
+                  </div>
+                  <div className="flex justify-between text-green-600">
+                    <span>Correct:</span>
+                    <span className="font-semibold">{section2Stats.correct}</span>
+                  </div>
+                  <div className="flex justify-between text-red-600">
+                    <span>Incorrect:</span>
+                    <span className="font-semibold">{section2Stats.incorrect}</span>
+                  </div>
+                  <div className="flex justify-between text-amber-600">
+                    <span>Unanswered:</span>
+                    <span className="font-semibold">{section2Stats.unanswered}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Attempted:</span>
-                  <span className="font-semibold">{section2Stats.attempted}</span>
-                </div>
-                <div className="flex justify-between text-green-600">
-                  <span>Correct:</span>
-                  <span className="font-semibold">{section2Stats.correct}</span>
-                </div>
-                <div className="flex justify-between text-red-600">
-                  <span>Incorrect:</span>
-                  <span className="font-semibold">{section2Stats.incorrect}</span>
-                </div>
-                <div className="flex justify-between text-amber-600">
-                  <span>Unanswered:</span>
-                  <span className="font-semibold">{section2Stats.unanswered}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Question Review Section */}
         <Card className="mb-8">
@@ -331,9 +438,11 @@ export default function ResultPage() {
                     <div className="mb-4 flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="mb-2 flex items-center gap-2">
-                          <Badge variant="outline">
-                            Section {sectionNumber}
-                          </Badge>
+                          {!isChapterWise && (
+                            <Badge variant="outline">
+                              Section {sectionNumber}
+                            </Badge>
+                          )}
                           <Badge variant="secondary">
                             {Number(marksPerQuestion)} {Number(marksPerQuestion) === 1 ? 'mark' : 'marks'}
                           </Badge>
@@ -417,7 +526,7 @@ export default function ResultPage() {
                               {option.optionImage && (
                                 <img
                                   src={option.optionImage}
-                                  alt={`Option ${optionIndex + 1}`}
+                                  alt={`Option ${String.fromCharCode(65 + optionIndex)}`}
                                   className="mt-2 max-w-full rounded border"
                                 />
                               )}
@@ -428,38 +537,18 @@ export default function ResultPage() {
                     </div>
 
                     {/* Explanation */}
-                    <Separator className="my-4" />
-                    <div className="rounded-lg bg-accent/50 p-4">
-                      <h4 className="mb-2 font-semibold text-primary">Explanation:</h4>
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {question.explanation}
-                      </p>
-                    </div>
+                    {question.explanation && (
+                      <div className="rounded-lg bg-muted/50 p-4">
+                        <h4 className="mb-2 font-semibold text-sm">Explanation:</h4>
+                        <p className="text-sm text-muted-foreground">{question.explanation}</p>
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
           </CardContent>
         </Card>
-
-        {/* Bottom Action Buttons */}
-        <div className="flex flex-wrap justify-center gap-3 pb-8">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => navigate({ to: '/dashboard' })}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
-          <Button
-            size="lg"
-            onClick={() => navigate({ to: '/leaderboard/$testId', params: { testId: attempt.testId.toString() } })}
-          >
-            <BarChart3 className="mr-2 h-4 w-4" />
-            View Leaderboard
-          </Button>
-        </div>
       </div>
     </div>
   );

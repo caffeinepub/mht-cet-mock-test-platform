@@ -9,6 +9,7 @@ import Iter "mo:core/Iter";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+import Order "mo:core/Order";
 
 
 
@@ -100,12 +101,20 @@ actor {
     overall : { #notStarted; #inProgress; #completed };
   };
 
-  type TestAttempt = {
+  // Add new LeaderboardEntry type
+  public type LeaderboardEntry = {
+    rank : Nat;
+    userName : Text;
+    totalScore : Nat;
+    totalTimeTaken : Int;
+  };
+
+  public type TestAttempt = {
     attemptId : Nat;
     testId : Nat;
     userId : Principal;
     createdAt : Int;
-    currentSection : Nat; // 1 or 2
+    currentSection : Nat;
     section1StartTime : ?Int;
     section2StartTime : ?Int;
     section1SubmittedAt : ?Int;
@@ -115,6 +124,13 @@ actor {
     section2Answers : [Answer];
     section1Score : Nat;
     section2Score : Nat;
+    singleSectionStartTime : ?Int;
+    singleSectionSubmittedAt : ?Int;
+    singleSectionAnswers : [Answer];
+    singleSectionScore : Nat;
+    totalScore : Nat;
+    totalTimeTaken : Int;
+    completionTimestamp : Int;
   };
 
   let testAttempts = Map.empty<Nat, TestAttempt>();
@@ -122,7 +138,153 @@ actor {
 
   let sectionStatuses = Map.empty<Nat, TestAttemptStatus>();
 
-  // User Profile Functions
+  public type TestType = {
+    #fullSyllabus;
+    #chapterWise;
+  };
+
+  public type Test = {
+    testId : Nat;
+    testName : Text;
+    createdAt : Int;
+    testType : TestType;
+    isActive : Bool;
+    marksPerQuestion : ?Nat;
+    durationMinutes : ?Nat;
+    sectionCount : ?Nat;
+    section1 : ?TestSection;
+    section2 : ?TestSection;
+    questionIds : [Nat];
+  };
+
+  let tests = Map.empty<Nat, Test>();
+
+  // New ChapterWiseTestDetails Type
+  public type ChapterWiseTestDetails = {
+    testName : Text;
+    marksPerQuestion : Nat;
+    durationMinutes : Nat;
+    questions : [Question];
+  };
+
+  public shared ({ caller }) func createChapterWiseTest(testName : Text, marksPerQuestion : Nat, durationMinutes : Nat) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can create chapter-wise tests");
+    };
+
+    if (testName == "") {
+      Runtime.trap("Test name cannot be empty");
+    };
+
+    if (marksPerQuestion == 0) {
+      Runtime.trap("Marks per question must be greater than zero");
+    };
+
+    if (durationMinutes < 10 or durationMinutes > 180) {
+      Runtime.trap("Duration must be between 10 and 180 minutes");
+    };
+
+    let testId = nextTestId;
+
+    let newTest : Test = {
+      testId;
+      testName;
+      createdAt = Time.now();
+      testType = #chapterWise : TestType;
+      isActive = true;
+      marksPerQuestion = ?marksPerQuestion;
+      durationMinutes = ?durationMinutes;
+      sectionCount = ?1;
+      section1 = null;
+      section2 = null;
+      questionIds = [];
+    };
+
+    tests.add(testId, newTest);
+    nextTestId += 1;
+
+    testId;
+  };
+
+  public shared ({ caller }) func assignQuestionsToChapterWiseTest(testId : Nat, questionIds : [Nat]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can assign questions");
+    };
+
+    if (questionIds.size() == 0) {
+      Runtime.trap("At least one question must be assigned to the test");
+    };
+
+    for (questionId in questionIds.values()) {
+      switch (questions.get(questionId)) {
+        case (null) {
+          Runtime.trap("Question with ID " # questionId.toText() # " not found");
+        };
+        case (_) {};
+      };
+    };
+
+    switch (tests.get(testId)) {
+      case (null) {
+        Runtime.trap("Test with ID " # testId.toText() # " not found");
+      };
+      case (?test) {
+        if (test.testType != #chapterWise) {
+          Runtime.trap("Cannot assign questions - Test ID " # testId.toText() # " is not a chapter-based test");
+        };
+
+        let updatedTest : Test = {
+          test with
+          questionIds = questionIds;
+        };
+
+        tests.add(testId, updatedTest);
+      };
+    };
+  };
+
+  // New API for fetching chapter-wise test details with full question list
+  public query ({ caller }) func getChapterWiseTestById(testId : Nat) : async { #ok : ChapterWiseTestDetails; #testNotFound } {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access test details");
+    };
+
+    switch (tests.get(testId)) {
+      case (null) {
+        #testNotFound;
+      };
+      case (?test) {
+        if (test.testType != #chapterWise or not test.isActive) {
+          #testNotFound;
+        } else {
+          // Get full list of questions for the test
+          let questionsList = List.empty<Question>();
+          for (questionId in test.questionIds.values()) {
+            switch (questions.get(questionId)) {
+              case (?question) { questionsList.add(question) };
+              case (null) {};
+            };
+          };
+
+          let testDetails : ChapterWiseTestDetails = {
+            testName = test.testName;
+            marksPerQuestion = switch (test.marksPerQuestion) {
+              case (?marks) { marks };
+              case (null) { 0 }; // Shouldn't happen due to validation
+            };
+            durationMinutes = switch (test.durationMinutes) {
+              case (?duration) { duration };
+              case (null) { 0 }; // Shouldn't happen due to validation
+            };
+            questions = questionsList.toArray();
+          };
+
+          #ok(testDetails);
+        };
+      };
+    };
+  };
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
@@ -182,10 +344,16 @@ actor {
   };
 
   public query ({ caller }) func getQuestion(id : Nat) : async ?Question {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access questions");
+    };
     questions.get(id);
   };
 
   public query ({ caller }) func getQuestionsBySubject(subject : Subject) : async [Question] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access questions");
+    };
     let iter = questions.values();
     let filtered = iter.filter(
       func(q) {
@@ -196,6 +364,9 @@ actor {
   };
 
   public query ({ caller }) func getQuestionsByClassLevel(classLevel : ClassLevel) : async [Question] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access questions");
+    };
     let iter = questions.values();
     let filtered = iter.filter(
       func(q) {
@@ -206,6 +377,9 @@ actor {
   };
 
   public query ({ caller }) func getAllQuestions() : async [Question] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access questions");
+    };
     questions.values().toArray();
   };
 
@@ -223,6 +397,9 @@ actor {
   };
 
   public query ({ caller }) func getTotalQuestions() : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access question count");
+    };
     questions.size();
   };
 
@@ -260,6 +437,9 @@ actor {
   };
 
   public query ({ caller }) func getFullSyllabusTests() : async [FullSyllabusTest] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access tests");
+    };
     fullSyllabusTests.values().toArray();
   };
 
@@ -278,7 +458,6 @@ actor {
         let validatedSection1Ids = List.fromArray<Nat>(section1QuestionIds);
         let validatedSection2Ids = List.fromArray<Nat>(section2QuestionIds);
 
-        // Validate question IDs and subjects for section 1
         for (questionId in section1QuestionIds.values()) {
           switch (questions.get(questionId)) {
             case (null) {
@@ -292,7 +471,6 @@ actor {
           };
         };
 
-        // Validate question IDs and subjects for section 2
         for (questionId in section2QuestionIds.values()) {
           switch (questions.get(questionId)) {
             case (null) {
@@ -306,7 +484,6 @@ actor {
           };
         };
 
-        // Update test sections with new question IDs
         let updatedTest : FullSyllabusTest = {
           test with
           section1 = {
@@ -324,20 +501,42 @@ actor {
     };
   };
 
-  public shared ({ caller }) func startTest(testId : Nat) : async () {
+  public shared ({ caller }) func startTest(testId : Nat) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can start tests");
     };
 
     let attemptId = nextTestAttemptId;
+    let currentTime = Time.now();
+
+    // Check if test exists (either full syllabus or chapter-wise)
+    let testExists = switch (fullSyllabusTests.get(testId)) {
+      case (?_) { true };
+      case (null) {
+        switch (tests.get(testId)) {
+          case (?_) { true };
+          case (null) { false };
+        };
+      };
+    };
+
+    if (not testExists) {
+      Runtime.trap("Test not found");
+    };
+
+    // Determine test type
+    let isChapterWise = switch (tests.get(testId)) {
+      case (?test) { test.testType == #chapterWise };
+      case (null) { false };
+    };
 
     let newAttempt : TestAttempt = {
       attemptId;
       testId;
       userId = caller;
-      createdAt = Time.now();
+      createdAt = currentTime;
       currentSection = 1;
-      section1StartTime = null;
+      section1StartTime = if (not isChapterWise) { ?currentTime } else { null };
       section2StartTime = null;
       section1SubmittedAt = null;
       section2SubmittedAt = null;
@@ -346,20 +545,28 @@ actor {
       section2Answers = [];
       section1Score = 0;
       section2Score = 0;
+      singleSectionStartTime = if (isChapterWise) { ?currentTime } else { null };
+      singleSectionSubmittedAt = null;
+      singleSectionAnswers = [];
+      singleSectionScore = 0;
+      totalScore = 0;
+      totalTimeTaken = 0;
+      completionTimestamp = 0;
     };
 
     testAttempts.add(attemptId, newAttempt);
 
     let initialStatus : TestAttemptStatus = {
-      section1 = { status = #notStarted; timestamp = Time.now() };
-      section2 = { status = #notStarted; timestamp = Time.now() };
+      section1 = { status = #notStarted; timestamp = currentTime };
+      section2 = { status = #notStarted; timestamp = currentTime };
       overall = #notStarted;
     };
 
-    // Store the initial section status
     sectionStatuses.add(attemptId, initialStatus);
 
     nextTestAttemptId += 1;
+
+    attemptId;
   };
 
   public shared ({ caller }) func startSection(attemptId : Nat, sectionNumber : Nat) : async () {
@@ -367,18 +574,15 @@ actor {
       Runtime.trap("Unauthorized: Only users can start sections");
     };
 
-    // Check if the test attempt exists
     switch (testAttempts.get(attemptId)) {
       case (null) {
         Runtime.trap("Test attempt not found");
       };
       case (?attempt) {
-        // Check if the caller owns the test attempt
         if (caller != attempt.userId) {
           Runtime.trap("Unauthorized: You do not own this test attempt");
         };
 
-        // Validate section number (should be 1 or 2)
         if (sectionNumber < 1 or sectionNumber > 2) {
           Runtime.trap("Invalid section number");
         };
@@ -414,113 +618,293 @@ actor {
         Runtime.trap("Test attempt not found");
       };
       case (?attempt) {
-        // Check if the caller owns the test attempt
         if (caller != attempt.userId) {
           Runtime.trap("Unauthorized: You do not own this test attempt");
         };
 
-        // Validate section number (should be 1 or 2)
-        if (sectionNumber < 1 or sectionNumber > 2) {
-          Runtime.trap("Invalid section number");
-        };
+        // Check if this is a chapter-wise test (sectionNumber = 0)
+        let isChapterWise = (sectionNumber == 0);
 
-        // Check if section has started
-        if ((sectionNumber == 1 and attempt.section1StartTime == null) or (sectionNumber == 2 and attempt.section2StartTime == null)) {
-          Runtime.trap("Section has not started yet");
-        };
+        if (not isChapterWise) {
+          if (sectionNumber < 1 or sectionNumber > 2) {
+            Runtime.trap("Invalid section number");
+          };
 
-        // Check if section is already submitted
-        if ((sectionNumber == 1 and attempt.section1SubmittedAt != null) or (sectionNumber == 2 and attempt.section2SubmittedAt != null)) {
-          Runtime.trap("Section has already been submitted");
-        };
-
-        // Validate time constraints (within 90 minutes)
-        let sectionStartTime = if (sectionNumber == 1) { attempt.section1StartTime } else {
-          attempt.section2StartTime;
-        };
-
-        let currentTime = Time.now();
-        let timeLimit = 90 * 60 * 1000000000; // 90 minutes in nanoseconds
-
-        switch (sectionStartTime) {
-          case (null) {
+          if ((sectionNumber == 1 and attempt.section1StartTime == null) or (sectionNumber == 2 and attempt.section2StartTime == null)) {
             Runtime.trap("Section has not started yet");
           };
-          case (?startTime) {
-            if (currentTime - startTime > timeLimit) {
-              Runtime.trap("Section submission time exceeded");
-            };
-          };
-        };
 
-        // Score calculation
-        let questionIds = if (sectionNumber == 1) {
-          switch (fullSyllabusTests.get(attempt.testId)) {
+          if ((sectionNumber == 1 and attempt.section1SubmittedAt != null) or (sectionNumber == 2 and attempt.section2SubmittedAt != null)) {
+            Runtime.trap("Section has already been submitted");
+          };
+
+          let sectionStartTime = if (sectionNumber == 1) { attempt.section1StartTime } else {
+            attempt.section2StartTime;
+          };
+
+          let currentTime = Time.now();
+          let timeLimit = 90 * 60 * 1000000000;
+
+          switch (sectionStartTime) {
             case (null) {
-              Runtime.trap("Test not found");
+              Runtime.trap("Section has not started yet");
             };
-            case (?test) {
-              test.section1.questionIds;
-            };
-          };
-        } else {
-          switch (fullSyllabusTests.get(attempt.testId)) {
-            case (null) {
-              Runtime.trap("Test not found");
-            };
-            case (?test) {
-              test.section2.questionIds;
-            };
-          };
-        };
-
-        var score = 0;
-        var correctAnswers = 0;
-
-        for (answer in answers.values()) {
-          switch (questions.get(answer.questionId)) {
-            case (null) {};
-            case (?question) {
-              if (answer.selectedOptionIndex == question.correctAnswerIndex) {
-                correctAnswers += 1;
-                score += if (sectionNumber == 1) { 1 } else { 2 }; // Section 1 = 1 mark, Section 2 = 2 marks
+            case (?startTime) {
+              if (currentTime - startTime > timeLimit) {
+                Runtime.trap("Section submission time exceeded");
               };
             };
           };
-        };
 
-        // Update test attempt with section results
-        let updatedAttempt : TestAttempt = {
-          attempt with
-          currentSection = sectionNumber;
-          section1SubmittedAt = if (sectionNumber == 1) { ?currentTime } else {
-            attempt.section1SubmittedAt;
-          };
-          section2SubmittedAt = if (sectionNumber == 2) { ?currentTime } else {
-            attempt.section2SubmittedAt;
-          };
-          isCompleted = (sectionNumber == 2);
-          section1Score = if (sectionNumber == 1) { score } else { attempt.section1Score };
-          section2Score = if (sectionNumber == 2) { score } else { attempt.section2Score };
-          section1Answers = if (sectionNumber == 1) { answers } else {
-            attempt.section1Answers;
-          };
-          section2Answers = if (sectionNumber == 2) { answers } else {
-            attempt.section2Answers;
-          };
-        };
+          var score = 0;
+          var correctAnswers = 0;
 
-        testAttempts.add(attemptId, updatedAttempt);
+          for (answer in answers.values()) {
+            switch (questions.get(answer.questionId)) {
+              case (null) {};
+              case (?question) {
+                if (answer.selectedOptionIndex == question.correctAnswerIndex) {
+                  correctAnswers += 1;
+                  score += if (sectionNumber == 1) { 1 } else { 2 };
+                };
+              };
+            };
+          };
 
-        {
-          score;
-          correctAnswers;
+          var totalScore = attempt.totalScore;
+          var totalTimeTaken = attempt.totalTimeTaken;
+          var completionTimestamp = attempt.completionTimestamp;
+
+          let isCompleted = (sectionNumber == 2);
+          if (isCompleted) {
+            let section1Score = if (sectionNumber == 1) { score } else { attempt.section1Score };
+            let section2Score = if (sectionNumber == 2) { score } else { attempt.section2Score };
+
+            let section1Time = switch (attempt.section1StartTime, attempt.section1SubmittedAt) {
+              case (?start, ?end) { end - start };
+              case (_) { 0 };
+            };
+
+            let section2Time = switch (attempt.section2StartTime, ?currentTime) {
+              case (?start, ?end) { end - start };
+              case (_) { 0 };
+            };
+
+            totalScore := section1Score + section2Score;
+            totalTimeTaken := section1Time + section2Time;
+            completionTimestamp := currentTime;
+          };
+
+          let updatedAttempt : TestAttempt = {
+            attempt with
+            currentSection = sectionNumber;
+            section1SubmittedAt = if (sectionNumber == 1) { ?currentTime } else {
+              attempt.section1SubmittedAt;
+            };
+            section2SubmittedAt = if (sectionNumber == 2) { ?currentTime } else {
+              attempt.section2SubmittedAt;
+            };
+            isCompleted;
+            section1Score = if (sectionNumber == 1) { score } else { attempt.section1Score };
+            section2Score = if (sectionNumber == 2) { score } else { attempt.section2Score };
+            section1Answers = if (sectionNumber == 1) { answers } else {
+              attempt.section1Answers;
+            };
+            section2Answers = if (sectionNumber == 2) { answers } else {
+              attempt.section2Answers;
+            };
+            totalScore;
+            totalTimeTaken;
+            completionTimestamp;
+          };
+
+          testAttempts.add(attemptId, updatedAttempt);
+
+          return {
+            score;
+            correctAnswers;
+          };
+        } else {
+          if (attempt.singleSectionStartTime == null) {
+            Runtime.trap("Chapter-wise test section has not started yet");
+          };
+
+          if (attempt.singleSectionSubmittedAt != null) {
+            Runtime.trap("Chapter-wise test section has already been submitted");
+          };
+
+          switch (tests.get(attempt.testId)) {
+            case (null) {
+              Runtime.trap("Test configuration not found");
+            };
+            case (?test) {
+              if (test.testType != #chapterWise) {
+                Runtime.trap("Test is not a chapter-wise test");
+              };
+
+              let currentTime = Time.now();
+
+              let customDuration = switch (test.durationMinutes) {
+                case (?duration) { duration };
+                case (null) { Runtime.trap("Test duration not configured") };
+              };
+
+              let timeLimit = customDuration * 60 * 1000000000;
+
+              switch (attempt.singleSectionStartTime) {
+                case (null) {
+                  Runtime.trap("Section has not started yet");
+                };
+                case (?startTime) {
+                  if (currentTime - startTime > timeLimit) {
+                    Runtime.trap("Section submission time exceeded");
+                  };
+                };
+              };
+
+              let customMarksPerQuestion = switch (test.marksPerQuestion) {
+                case (?marks) { marks };
+                case (null) { Runtime.trap("Marks per question not configured") };
+              };
+
+              var score = 0;
+              var correctAnswers = 0;
+
+              for (answer in answers.values()) {
+                switch (questions.get(answer.questionId)) {
+                  case (null) {};
+                  case (?question) {
+                    if (answer.selectedOptionIndex == question.correctAnswerIndex) {
+                      correctAnswers += 1;
+                      score += customMarksPerQuestion;
+                    };
+                  };
+                };
+              };
+
+              let totalTimeTaken = switch (attempt.singleSectionStartTime) {
+                case (?startTime) { currentTime - startTime };
+                case (null) { 0 };
+              };
+
+              let updatedAttempt : TestAttempt = {
+                attempt with
+                singleSectionSubmittedAt = ?currentTime;
+                singleSectionAnswers = answers;
+                singleSectionScore = score;
+                isCompleted = true;
+                totalScore = score;
+                totalTimeTaken;
+                completionTimestamp = currentTime;
+              };
+
+              testAttempts.add(attemptId, updatedAttempt);
+
+              return {
+                score;
+                correctAnswers;
+              };
+            };
+          };
         };
       };
     };
   };
 
-  // API Endpoint to Get Test Attempt Details
+  // New getLeaderboard function
+  public query ({ caller }) func getLeaderboard(testId : Nat) : async [LeaderboardEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access leaderboard");
+    };
+
+    let completedAttemptsList = List.empty<TestAttempt>();
+
+    for (attempt in testAttempts.values()) {
+      if (
+        attempt.testId == testId and
+        attempt.isCompleted and
+        (
+          (attempt.section1Score > 0 or attempt.section2Score > 0) or
+          attempt.singleSectionScore > 0 or
+          attempt.totalScore > 0
+        )
+      ) {
+        completedAttemptsList.add(attempt);
+      };
+    };
+
+    let completedAttempts = completedAttemptsList.toArray();
+
+    let entriesList = List.empty<LeaderboardEntry>();
+
+    for (attempt in completedAttempts.values()) {
+      let userName = switch (userProfiles.get(attempt.userId)) {
+        case (null) { "Student" };
+        case (?profile) { profile.name };
+      };
+
+      let totalScore = if (attempt.totalScore > 0) {
+        attempt.totalScore;
+      } else if (attempt.section1Score > 0 or attempt.section2Score > 0) {
+        attempt.section1Score + attempt.section2Score;
+      } else {
+        attempt.singleSectionScore;
+      };
+
+      entriesList.add({
+        rank = 0;
+        userName;
+        totalScore;
+        totalTimeTaken = attempt.totalTimeTaken;
+      });
+    };
+
+    let compareLeaderboardEntry = func(a : LeaderboardEntry, b : LeaderboardEntry) : Order.Order {
+      if (a.totalScore > b.totalScore) {
+        #less;
+      } else if (a.totalScore < b.totalScore) {
+        #greater;
+      } else {
+        if (a.totalTimeTaken < b.totalTimeTaken) {
+          #less;
+        } else if (a.totalTimeTaken > b.totalTimeTaken) {
+          #greater;
+        } else {
+          #equal;
+        };
+      };
+    };
+
+    var entries = entriesList.toArray();
+    entries := entries.sort(
+      compareLeaderboardEntry
+    );
+
+    let topEntries = if (entries.size() > 10) {
+      entries.sliceToArray(0, 10);
+    } else {
+      entries;
+    };
+
+    // Convert topEntries to List for rank assignment
+    let topEntriesList = List.fromArray<LeaderboardEntry>(topEntries);
+
+    // Manually assign ranks using a for loop
+    let rankedEntriesList = List.empty<LeaderboardEntry>();
+    var currentRank = 1;
+
+    for (entry in topEntriesList.values()) {
+      rankedEntriesList.add({
+        entry with
+        rank = currentRank;
+      });
+      currentRank += 1;
+    };
+
+    // Convert back to array for output
+    rankedEntriesList.toArray();
+  };
+
   public query ({ caller }) func getTestAttempt(attemptId : Nat) : async ?TestAttempt {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access test attempts");
@@ -529,7 +913,6 @@ actor {
     switch (testAttempts.get(attemptId)) {
       case (null) { null };
       case (?attempt) {
-        // Users can only view their own test attempts, admins can view all
         if (caller != attempt.userId and not AccessControl.isAdmin(accessControlState, caller)) {
           Runtime.trap("Unauthorized: You can only view your own test attempts");
         };
@@ -538,7 +921,6 @@ actor {
     };
   };
 
-  // API Endpoint to Get All Test Attempts (For a User)
   public query ({ caller }) func getUserTestAttempts(userId : Principal) : async [TestAttempt] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access test attempts");
@@ -557,7 +939,6 @@ actor {
     filtered.toArray();
   };
 
-  // Query current test in progress
   public query ({ caller }) func getCurrentTestId() : async ?Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can get current test ID");

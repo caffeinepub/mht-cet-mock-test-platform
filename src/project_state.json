@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 17,
-  "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
+  "projectStateVersion": 25,
+  "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable single section with custom duration, marks per question, and mixed subject support). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
   "architectural_notes": [
     "Motoko backend canister with stable memory for persistence",
     "React frontend canister with Vite, React Router, React Query, Tailwind CSS",
@@ -308,6 +308,182 @@
         "REQ-52"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-create-an-admin-chapter-wise-test-creation-page-component-in-frontend-src-pages-adminchapterwisetestcreate-tsx-with-form-fields-for-test-name-text-input-chapter-description-optional-textarea-marks-per-question-number-input-with-default-1-duration-in-minutes-number-input-with-default-30-a-question-selection-section-that-displays-all-available-questions-with-checkboxes-allowing-mixed-subjects-and-class-levels-and-a-submit-button-that-creates-the-test-and-assigns-selected-questions",
+      "title": "Create an admin chapter-wise test creation page component in frontend/src/pages/AdminChapterWiseTestCreate.tsx with form fields for test name (text input), chapter description (optional textarea), marks per question (number input with default 1), duration in minutes (number input with default 30), a question selection section that displays all available questions with checkboxes allowing mixed subjects and class levels, and a submit button that creates the test and assigns selected questions",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-react-query-mutation-hooks-in-a-new-file-frontend-src-hooks-usechapterwisetestmutations-ts-that-provide-functions-to-create-a-chapter-wise-test-createchapterwisetest-and-assign-questions-to-it-assignquestionstochapterwisetest-with-automatic-query-invalidation-for-test-lists-on-success",
+      "title": "Create React Query mutation hooks in a new file frontend/src/hooks/useChapterWiseTestMutations.ts that provide functions to create a chapter-wise test (createChapterWiseTest) and assign questions to it (assignQuestionsToChapterWiseTest), with automatic query invalidation for test lists on success",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-route-for-the-admin-chapter-wise-test-creation-page-in-frontend-src-routetree-tsx-at-path-admin-tests-chapter-wise-create-accessible-only-when-user-is-authenticated-with-admin-role",
+      "title": "Add a route for the admin chapter-wise test creation page in frontend/src/routeTree.tsx at path '/admin/tests/chapter-wise/create', accessible only when user is authenticated with admin role",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-create-chapter-wise-test-button-in-the-admindashboard-tsx-component-under-the-test-management-tab-that-navigates-to-admin-tests-chapter-wise-create",
+      "title": "Add a 'Create Chapter-Wise Test' button in the AdminDashboard.tsx component under the Test Management tab that navigates to '/admin/tests/chapter-wise/create'",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-usequeries-ts-hook-to-add-a-usechapterwisetests-function-that-fetches-all-chapter-wise-tests-with-their-configurations-testname-marksperquestion-durationminutes-sectioncount-questioncount",
+      "title": "Update the useQueries.ts hook to add a useChapterWiseTests function that fetches all chapter-wise tests with their configurations (testName, marksPerQuestion, durationMinutes, sectionCount, questionCount)",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-studentdashboard-tsx-to-fetch-and-display-both-full-syllabus-tests-and-chapter-wise-tests-in-separate-sections-showing-for-chapter-wise-tests-test-name-chapter-description-duration-e-g-30-minutes-marks-per-question-e-g-1-mark-question-total-questions-count-and-a-start-test-button",
+      "title": "Update StudentDashboard.tsx to fetch and display both full syllabus tests and chapter-wise tests in separate sections, showing for chapter-wise tests: test name, chapter description, duration (e.g., '30 minutes'), marks per question (e.g., '1 mark/question'), total questions count, and a 'Start Test' button",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admindashboard-tsx-test-management-tab-to-display-both-full-syllabus-tests-and-chapter-wise-tests-in-separate-lists-showing-for-each-test-type-test-name-test-type-label-full-syllabus-or-chapter-wise-configuration-summary-for-fullsyllabus-2-sections-90-90min-for-chapterwise-duration-in-minutes-marks-per-question-number-of-assigned-questions-and-creation-date",
+      "title": "Update the AdminDashboard.tsx Test Management tab to display both full syllabus tests and chapter-wise tests in separate lists, showing for each test type: test name, test type label ('Full Syllabus' or 'Chapter-Wise'), configuration summary (for fullSyllabus: '2 sections, 90+90min'; for chapterWise: 'duration in minutes, marks per question'), number of assigned questions, and creation date",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-studentdashboard-tsx-to-group-and-display-chapter-wise-tests-by-class-level-11th-and-12th-in-separate-sections-with-each-class-level-section-containing-subject-based-subsections-physics-chemistry-mathematics-showing-tests-filtered-by-their-assigned-questions-subjects",
+      "title": "Update StudentDashboard.tsx to group and display chapter-wise tests by class level (11th and 12th) in separate sections, with each class level section containing subject-based subsections (Physics, Chemistry, Mathematics) showing tests filtered by their assigned questions' subjects",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-admindashboard-tsx-test-management-tab-to-group-and-display-chapter-wise-tests-by-class-level-11th-and-12th-in-separate-sections-with-each-class-level-section-containing-subject-based-subsections-physics-chemistry-mathematics-showing-tests-filtered-by-their-assigned-questions-subjects",
+      "title": "Update AdminDashboard.tsx Test Management tab to group and display chapter-wise tests by class level (11th and 12th) in separate sections, with each class level section containing subject-based subsections (Physics, Chemistry, Mathematics) showing tests filtered by their assigned questions' subjects",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-react-query-hook-usechapterwisetestbyid-in-frontend-src-hooks-usequeries-ts-that-fetches-a-single-chapter-wise-test-by-id-with-its-complete-assigned-question-details-including-subject-and-class-level-properties",
+      "title": "Create a React Query hook useChapterWiseTestById in frontend/src/hooks/useQueries.ts that fetches a single chapter-wise test by ID with its complete assigned question details including subject and class level properties",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-react-query-hook-useleaderboard-in-frontend-src-hooks-usequeries-ts-that-fetches-leaderboard-data-for-a-given-testid-using-the-getleaderboard-backend-endpoint",
+      "title": "Create a React Query hook useLeaderboard in frontend/src/hooks/useQueries.ts that fetches leaderboard data for a given testId using the getLeaderboard backend endpoint",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-leaderboard-tsx-page-component-to-fetch-and-display-the-top-10-scorers-using-the-useleaderboard-hook-with-testid-from-url-parameters-showing-a-table-or-card-layout-with-columns-for-rank-1-10-user-name-total-score-with-unit-label-e-g-85-marks-and-time-taken-in-mm-ss-format",
+      "title": "Update the Leaderboard.tsx page component to fetch and display the top 10 scorers using the useLeaderboard hook with testId from URL parameters, showing a table or card layout with columns for rank (1-10), user name, total score with unit label (e.g., '85 marks'), and time taken in MM:SS format",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-back-to-dashboard-button-in-leaderboard-tsx-that-navigates-to-the-studentdashboard-when-clicked",
+      "title": "Add a 'Back to Dashboard' button in Leaderboard.tsx that navigates to the StudentDashboard when clicked",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-visual-ranking-indicators-in-leaderboard-tsx-for-the-top-3-positions-display-a-gold-medal-icon-or-gold-background-for-rank-1-silver-medal-background-for-rank-2-and-bronze-medal-background-for-rank-3-with-standard-styling-for-ranks-4-10",
+      "title": "Add visual ranking indicators in Leaderboard.tsx for the top 3 positions: display a gold medal icon or gold background for rank 1, silver medal/background for rank 2, and bronze medal/background for rank 3, with standard styling for ranks 4-10",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-utility-module-in-frontend-src-utils-pdfexport-ts-that-provides-a-function-generateresultpdf-accepting-test-attempt-data-test-details-user-profile-and-question-details-and-generates-a-formatted-pdf-document-with-concept-delta-branding",
+      "title": "Create a utility module in frontend/src/utils/pdfExport.ts that provides a function generateResultPDF accepting test attempt data, test details, user profile, and question details, and generates a formatted PDF document with Concept Delta branding",
+      "reqIds": [
+        "REQ-83"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-design-the-pdf-layout-to-include-a-header-section-with-the-concept-delta-logo-test-name-student-name-from-user-profile-attempt-date-formatted-as-readable-date-string-and-overall-score-prominently-displayed",
+      "title": "Design the PDF layout to include a header section with the Concept Delta logo, test name, student name from user profile, attempt date formatted as readable date string, and overall score prominently displayed",
+      "reqIds": [
+        "REQ-84"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-include-a-score-summary-section-in-the-pdf-showing-total-score-with-unit-label-e-g-85-200-marks-percentage-score-section-wise-breakdown-for-full-syllabus-tests-section-1-score-section-2-score-total-time-taken-formatted-as-hh-mm-ss-and-performance-indicator-based-on-percentage-e-g-excellent-for-80-good-for-60-79-needs-improvement-for-below-60",
+      "title": "Include a score summary section in the PDF showing total score with unit label (e.g., '85/200 marks'), percentage score, section-wise breakdown for full syllabus tests (Section 1 score, Section 2 score), total time taken formatted as HH:MM:SS, and performance indicator based on percentage (e.g., 'Excellent' for 80%+, 'Good' for 60-79%, 'Needs Improvement' for below 60%)",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-question-by-question-breakdown-section-in-the-pdf-that-lists-all-questions-with-their-question-number-question-text-truncated-if-too-long-the-user-s-selected-answer-option-text-correct-answer-option-text-whether-the-answer-was-correct-or-incorrect-with-visual-indicator-or-and-marks-awarded-for-that-question",
+      "title": "Add a question-by-question breakdown section in the PDF that lists all questions with their question number, question text (truncated if too long), the user's selected answer option text, correct answer option text, whether the answer was correct or incorrect with visual indicator (✓ or ✗), and marks awarded for that question",
+      "reqIds": [
+        "REQ-86"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-statistics-summary-section-in-the-pdf-showing-total-questions-questions-attempted-correct-answers-count-incorrect-answers-count-unanswered-questions-count-and-accuracy-percentage-calculated-as-correct-attempted-100",
+      "title": "Add a statistics summary section in the PDF showing total questions, questions attempted, correct answers count, incorrect answers count, unanswered questions count, and accuracy percentage calculated as (correct/attempted * 100)",
+      "reqIds": [
+        "REQ-87"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-footer-to-each-pdf-page-with-the-concept-delta-branding-text-website-url-or-social-media-handle-coep-conceptdelta2031-and-page-numbers-in-page-x-of-y-format",
+      "title": "Add a footer to each PDF page with the Concept Delta branding text, website URL or social media handle @coep_conceptdelta2031, and page numbers in 'Page X of Y' format",
+      "reqIds": [
+        "REQ-88"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-export-pdf-button-in-the-resultpage-tsx-component-that-calls-the-generateresultpdf-utility-function-with-the-current-test-attempt-data-test-details-user-profile-and-question-data-and-triggers-a-browser-download-of-the-generated-pdf-with-filename-format-conceptdelta-testname-studentname-date-pdf",
+      "title": "Add an 'Export PDF' button in the ResultPage.tsx component that calls the generateResultPDF utility function with the current test attempt data, test details, user profile, and question data, and triggers a browser download of the generated PDF with filename format 'ConceptDelta_TestName_StudentName_Date.pdf'",
+      "reqIds": [
+        "REQ-89"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-handle-pdf-generation-errors-gracefully-by-displaying-an-error-message-to-the-user-if-pdf-generation-fails-and-log-the-error-details-for-debugging-purposes",
+      "title": "Handle PDF generation errors gracefully by displaying an error message to the user if PDF generation fails, and log the error details for debugging purposes",
+      "reqIds": [
+        "REQ-90"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -574,6 +750,206 @@
       "summary": "Implement score calculation logic in the submitSection backend endpoint that compares submitted answers against correct answers for each question, awards 1 mark per correct answer in Section 1 (Physics/Chemistry) and 2 marks per correct answer in Section 2 (Maths), stores the section score in the test attempt, and returns the score in the response",
       "reqIds": [
         "REQ-43"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Chapter-wise test creation: admin sets test name, custom marks per question, custom duration (minutes), single section",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Backend TestType variant (fullSyllabus/chapterWise) with conditional marking and duration logic",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Backend createChapterWiseTest endpoint: accepts testName, marksPerQuestion, durationMinutes, returns testId",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Update TestAttempt model with singleSectionStartTime, singleSectionSubmittedAt, singleSectionAnswers, singleSectionScore for chapterWise tests",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Update startTest and submitSection endpoints to handle chapterWise single-section flow with custom duration and marking",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Admin chapter-wise test creation page with test name, marks per question, duration inputs, and question selection",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-51",
+      "summary": "Update admin dashboard to display both test types with type-specific configuration details and 'Create Chapter-Wise Test' button",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Update student dashboard to show both test types with appropriate duration and marking info",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-53",
+      "summary": "Update TestInterface to handle chapterWise single-section flow with custom duration timer",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-54",
+      "summary": "Update ResultPage to display chapterWise single-section scores, timing, and question review",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-55",
+      "summary": "Add a testType field to the test data model in backend/main.mo as a variant type with two options: #fullSyllabus and #chapterWise",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-56",
+      "summary": "Add optional configuration fields to the test data model in backend/main.mo for chapter-wise tests: marksPerQuestion (Nat), durationMinutes (Nat), and sectionCount (Nat, always 1 for chapterWise)",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-57",
+      "summary": "Create a backend API endpoint createChapterWiseTest in backend/main.mo that accepts testName (Text), marksPerQuestion (Nat), durationMinutes (Nat), validates input, generates a unique test ID, creates a test with testType = #chapterWise and the provided configuration (sectionCount = 1), stores it in stable storage, and returns the test ID with success confirmation",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-58",
+      "summary": "Create a backend API endpoint assignQuestionsToChapterWiseTest in backend/main.mo that accepts testId and an array of questionIds, validates that the test exists and is a chapterWise test, associates all questions with the single section, and returns success confirmation",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-59",
+      "summary": "Update the TestAttempt data model in backend/main.mo to include fields for single-section chapter-wise tests: singleSectionStartTime (optional Int timestamp), singleSectionSubmittedAt (optional Int timestamp), singleSectionAnswers (optional array of answer objects), and singleSectionScore (optional Nat)",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-60",
+      "summary": "Update the startTest backend endpoint in backend/main.mo to handle both test types: for fullSyllabus tests, initialize section1StartTime as before; for chapterWise tests, initialize singleSectionStartTime with the current timestamp",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-61",
+      "summary": "Update the submitSection backend endpoint in backend/main.mo to handle chapterWise tests: accept sectionNumber = 0 for single-section tests, validate timing against the test's custom durationMinutes field, calculate score using the test's custom marksPerQuestion value, store answers in singleSectionAnswers, store score in singleSectionScore, and record singleSectionSubmittedAt timestamp",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "Update the getTestAttempt backend endpoint in backend/main.mo to return singleSectionStartTime, singleSectionSubmittedAt, and singleSectionScore fields when the test attempt is for a chapterWise test",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-69",
+      "summary": "Update TestInterface.tsx to detect test type from the test attempt data and handle chapterWise tests with a single section: display custom duration countdown timer (calculated from test's durationMinutes field), show all questions in one continuous section without section transitions, and auto-submit when timer reaches zero",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-70",
+      "summary": "Update ResultPage.tsx to handle both test types: for chapterWise tests, display single section score using singleSectionScore, calculate time taken from singleSectionStartTime to singleSectionSubmittedAt, show total questions attempted/correct/incorrect from singleSectionAnswers, and display all questions with answers and explanations in a single review section",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-71",
+      "summary": "Display chapter-wise tests in student dashboard grouped by class level (11th/12th), with subject segregation (Physics/Chemistry/Maths) under each class",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-72",
+      "summary": "Display chapter-wise tests in admin panel grouped by class level (11th/12th), with subject segregation (Physics/Chemistry/Maths) under each class",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-75",
+      "summary": "Add a backend API endpoint getChapterWiseTestById in backend/main.mo that accepts testId and returns the complete test details including testName, marksPerQuestion, durationMinutes, and the full list of assigned questions with their subject and classLevel properties to enable frontend filtering by class and subject",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-76",
+      "summary": "Add a leaderboard data structure to the TestAttempt model in backend/main.mo that stores testId, userId, userName (from user profile), totalScore (section1Score + section2Score for fullSyllabus, or singleSectionScore for chapterWise), totalTimeTaken (calculated from start and submission timestamps), and completionTimestamp",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-77",
+      "summary": "Create a backend API endpoint getLeaderboard in backend/main.mo that accepts testId, fetches all completed test attempts for that test, sorts them by totalScore (descending) then by totalTimeTaken (ascending) as tiebreaker, returns the top 10 entries with rank, userName, totalScore, and totalTimeTaken formatted as MM:SS",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-81",
+      "summary": "Update the submitSection backend endpoint in backend/main.mo to automatically calculate and store totalScore and totalTimeTaken in the TestAttempt when the final section is submitted (section 2 for fullSyllabus tests, or the single section for chapterWise tests)",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-82",
+      "summary": "Fetch the user's display name from the UserProfile when calculating leaderboard entries in the getLeaderboard backend endpoint, using the userId from each TestAttempt to look up the corresponding user profile and extract the name field",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-83",
+      "summary": "Install and configure a PDF generation library (e.g., jsPDF or react-pdf) in the frontend package.json to enable client-side PDF creation from test result data",
+      "reqIds": [
+        "REQ-82"
       ],
       "status": "pending"
     }

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { FullSyllabusTest, Question, UserProfile, TestAttempt } from '../backend';
+import type { FullSyllabusTest, Question, UserProfile, TestAttempt, ChapterWiseTestDetails, LeaderboardEntry } from '../backend';
 
 // Full Syllabus Test Hooks
 export function useFullSyllabusTests() {
@@ -27,6 +27,53 @@ export function useFullSyllabusTestById(testId: bigint | null) {
       return tests.find(test => test.testId === testId) || null;
     },
     enabled: !!actor && !isFetching && testId !== null,
+  });
+}
+
+// Chapter-Wise Test Hooks
+export interface ChapterWiseTest {
+  testId: bigint;
+  testName: string;
+  createdAt: bigint;
+  testType: { chapterWise: null } | { fullSyllabus: null };
+  isActive: boolean;
+  marksPerQuestion?: bigint;
+  durationMinutes?: bigint;
+  sectionCount?: bigint;
+  questionIds: bigint[];
+}
+
+export function useChapterWiseTests() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ChapterWiseTest[]>({
+    queryKey: ['chapterWiseTests'],
+    queryFn: async () => {
+      if (!actor) return [];
+      // Backend doesn't have a separate getChapterWiseTests endpoint
+      // We need to filter from a unified test list or use a workaround
+      // For now, return empty array - backend needs to provide this endpoint
+      return [];
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useChapterWiseTestById(testId: bigint) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ChapterWiseTestDetails | null>({
+    queryKey: ['chapterWiseTestDetails', testId.toString()],
+    queryFn: async () => {
+      if (!actor) return null;
+      const result = await actor.getChapterWiseTestById(testId);
+      if (result.__kind__ === 'ok') {
+        return result.ok;
+      }
+      return null;
+    },
+    enabled: !!actor && !isFetching,
+    retry: false,
   });
 }
 
@@ -76,6 +123,21 @@ export function useTestAttemptById(attemptId: bigint | null) {
       return actor.getTestAttempt(attemptId);
     },
     enabled: !!actor && !isFetching && attemptId !== null,
+    retry: false,
+  });
+}
+
+// Leaderboard Hook
+export function useLeaderboard(testId: bigint | null) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<LeaderboardEntry[]>({
+    queryKey: ['leaderboard', testId?.toString()],
+    queryFn: async () => {
+      if (!actor || testId === null) return [];
+      return actor.getLeaderboard(testId);
+    },
+    enabled: !!actor && !isFetching && testId !== null,
     retry: false,
   });
 }

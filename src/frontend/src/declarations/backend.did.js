@@ -48,6 +48,12 @@ export const Question = IDL.Record({
   'options' : IDL.Vec(Option),
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
+export const ChapterWiseTestDetails = IDL.Record({
+  'testName' : IDL.Text,
+  'durationMinutes' : IDL.Nat,
+  'questions' : IDL.Vec(Question),
+  'marksPerQuestion' : IDL.Nat,
+});
 export const TestSection = IDL.Record({
   'subjects' : IDL.Vec(Subject),
   'name' : IDL.Text,
@@ -63,6 +69,12 @@ export const FullSyllabusTest = IDL.Record({
   'section2' : TestSection,
   'testId' : IDL.Nat,
 });
+export const LeaderboardEntry = IDL.Record({
+  'userName' : IDL.Text,
+  'rank' : IDL.Nat,
+  'totalScore' : IDL.Nat,
+  'totalTimeTaken' : IDL.Int,
+});
 export const Answer = IDL.Record({
   'selectedOptionIndex' : IDL.Nat,
   'questionId' : IDL.Nat,
@@ -73,14 +85,21 @@ export const TestAttempt = IDL.Record({
   'attemptId' : IDL.Nat,
   'isCompleted' : IDL.Bool,
   'section1StartTime' : IDL.Opt(IDL.Int),
+  'singleSectionSubmittedAt' : IDL.Opt(IDL.Int),
   'userId' : IDL.Principal,
   'createdAt' : IDL.Int,
   'section1Answers' : IDL.Vec(Answer),
   'currentSection' : IDL.Nat,
   'section2Score' : IDL.Nat,
+  'totalScore' : IDL.Nat,
+  'totalTimeTaken' : IDL.Int,
   'section2Answers' : IDL.Vec(Answer),
   'section1SubmittedAt' : IDL.Opt(IDL.Int),
+  'singleSectionScore' : IDL.Nat,
   'testId' : IDL.Nat,
+  'completionTimestamp' : IDL.Int,
+  'singleSectionStartTime' : IDL.Opt(IDL.Int),
+  'singleSectionAnswers' : IDL.Vec(Answer),
   'section2StartTime' : IDL.Opt(IDL.Int),
 });
 
@@ -113,9 +132,19 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'assignQuestionsToChapterWiseTest' : IDL.Func(
+      [IDL.Nat, IDL.Vec(IDL.Nat)],
+      [],
+      [],
+    ),
   'assignQuestionsToTest' : IDL.Func(
       [IDL.Nat, IDL.Vec(IDL.Nat), IDL.Vec(IDL.Nat)],
       [],
+      [],
+    ),
+  'createChapterWiseTest' : IDL.Func(
+      [IDL.Text, IDL.Nat, IDL.Nat],
+      [IDL.Nat],
       [],
     ),
   'createFullSyllabusTest' : IDL.Func([IDL.Text], [IDL.Nat], []),
@@ -136,8 +165,23 @@ export const idlService = IDL.Service({
   'getAllQuestions' : IDL.Func([], [IDL.Vec(Question)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getChapterWiseTestById' : IDL.Func(
+      [IDL.Nat],
+      [
+        IDL.Variant({
+          'ok' : ChapterWiseTestDetails,
+          'testNotFound' : IDL.Null,
+        }),
+      ],
+      ['query'],
+    ),
   'getCurrentTestId' : IDL.Func([], [IDL.Opt(IDL.Nat)], ['query']),
   'getFullSyllabusTests' : IDL.Func([], [IDL.Vec(FullSyllabusTest)], ['query']),
+  'getLeaderboard' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(LeaderboardEntry)],
+      ['query'],
+    ),
   'getQuestion' : IDL.Func([IDL.Nat], [IDL.Opt(Question)], ['query']),
   'getQuestionsByClassLevel' : IDL.Func(
       [ClassLevel],
@@ -160,7 +204,7 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'startSection' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
-  'startTest' : IDL.Func([IDL.Nat], [], []),
+  'startTest' : IDL.Func([IDL.Nat], [IDL.Nat], []),
   'submitSection' : IDL.Func(
       [IDL.Nat, IDL.Nat, IDL.Vec(Answer)],
       [IDL.Record({ 'score' : IDL.Nat, 'correctAnswers' : IDL.Nat })],
@@ -211,6 +255,12 @@ export const idlFactory = ({ IDL }) => {
     'options' : IDL.Vec(Option),
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
+  const ChapterWiseTestDetails = IDL.Record({
+    'testName' : IDL.Text,
+    'durationMinutes' : IDL.Nat,
+    'questions' : IDL.Vec(Question),
+    'marksPerQuestion' : IDL.Nat,
+  });
   const TestSection = IDL.Record({
     'subjects' : IDL.Vec(Subject),
     'name' : IDL.Text,
@@ -226,6 +276,12 @@ export const idlFactory = ({ IDL }) => {
     'section2' : TestSection,
     'testId' : IDL.Nat,
   });
+  const LeaderboardEntry = IDL.Record({
+    'userName' : IDL.Text,
+    'rank' : IDL.Nat,
+    'totalScore' : IDL.Nat,
+    'totalTimeTaken' : IDL.Int,
+  });
   const Answer = IDL.Record({
     'selectedOptionIndex' : IDL.Nat,
     'questionId' : IDL.Nat,
@@ -236,14 +292,21 @@ export const idlFactory = ({ IDL }) => {
     'attemptId' : IDL.Nat,
     'isCompleted' : IDL.Bool,
     'section1StartTime' : IDL.Opt(IDL.Int),
+    'singleSectionSubmittedAt' : IDL.Opt(IDL.Int),
     'userId' : IDL.Principal,
     'createdAt' : IDL.Int,
     'section1Answers' : IDL.Vec(Answer),
     'currentSection' : IDL.Nat,
     'section2Score' : IDL.Nat,
+    'totalScore' : IDL.Nat,
+    'totalTimeTaken' : IDL.Int,
     'section2Answers' : IDL.Vec(Answer),
     'section1SubmittedAt' : IDL.Opt(IDL.Int),
+    'singleSectionScore' : IDL.Nat,
     'testId' : IDL.Nat,
+    'completionTimestamp' : IDL.Int,
+    'singleSectionStartTime' : IDL.Opt(IDL.Int),
+    'singleSectionAnswers' : IDL.Vec(Answer),
     'section2StartTime' : IDL.Opt(IDL.Int),
   });
   
@@ -276,9 +339,19 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'assignQuestionsToChapterWiseTest' : IDL.Func(
+        [IDL.Nat, IDL.Vec(IDL.Nat)],
+        [],
+        [],
+      ),
     'assignQuestionsToTest' : IDL.Func(
         [IDL.Nat, IDL.Vec(IDL.Nat), IDL.Vec(IDL.Nat)],
         [],
+        [],
+      ),
+    'createChapterWiseTest' : IDL.Func(
+        [IDL.Text, IDL.Nat, IDL.Nat],
+        [IDL.Nat],
         [],
       ),
     'createFullSyllabusTest' : IDL.Func([IDL.Text], [IDL.Nat], []),
@@ -299,10 +372,25 @@ export const idlFactory = ({ IDL }) => {
     'getAllQuestions' : IDL.Func([], [IDL.Vec(Question)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getChapterWiseTestById' : IDL.Func(
+        [IDL.Nat],
+        [
+          IDL.Variant({
+            'ok' : ChapterWiseTestDetails,
+            'testNotFound' : IDL.Null,
+          }),
+        ],
+        ['query'],
+      ),
     'getCurrentTestId' : IDL.Func([], [IDL.Opt(IDL.Nat)], ['query']),
     'getFullSyllabusTests' : IDL.Func(
         [],
         [IDL.Vec(FullSyllabusTest)],
+        ['query'],
+      ),
+    'getLeaderboard' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(LeaderboardEntry)],
         ['query'],
       ),
     'getQuestion' : IDL.Func([IDL.Nat], [IDL.Opt(Question)], ['query']),
@@ -331,7 +419,7 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'startSection' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
-    'startTest' : IDL.Func([IDL.Nat], [], []),
+    'startTest' : IDL.Func([IDL.Nat], [IDL.Nat], []),
     'submitSection' : IDL.Func(
         [IDL.Nat, IDL.Nat, IDL.Vec(Answer)],
         [IDL.Record({ 'score' : IDL.Nat, 'correctAnswers' : IDL.Nat })],
