@@ -15,6 +15,10 @@ export interface FullSyllabusTest {
     section2: TestSection;
     testId: bigint;
 }
+export interface Answer {
+    selectedOptionIndex: bigint;
+    questionId: bigint;
+}
 export interface TestSection {
     subjects: Array<Subject>;
     name: string;
@@ -38,6 +42,22 @@ export interface Question {
 }
 export interface UserProfile {
     name: string;
+}
+export interface TestAttempt {
+    section2SubmittedAt?: bigint;
+    section1Score: bigint;
+    attemptId: bigint;
+    isCompleted: boolean;
+    section1StartTime?: bigint;
+    userId: Principal;
+    createdAt: bigint;
+    section1Answers: Array<Answer>;
+    currentSection: bigint;
+    section2Score: bigint;
+    section2Answers: Array<Answer>;
+    section1SubmittedAt?: bigint;
+    testId: bigint;
+    section2StartTime?: bigint;
 }
 export enum ClassLevel {
     class11th = "class11th",
@@ -67,9 +87,16 @@ export interface backendInterface {
     getQuestion(id: bigint): Promise<Question | null>;
     getQuestionsByClassLevel(classLevel: ClassLevel): Promise<Array<Question>>;
     getQuestionsBySubject(subject: Subject): Promise<Array<Question>>;
+    getTestAttempt(attemptId: bigint): Promise<TestAttempt | null>;
     getTotalQuestions(): Promise<bigint>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getUserTestAttempts(userId: Principal): Promise<Array<TestAttempt>>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    startSection(attemptId: bigint, sectionNumber: bigint): Promise<void>;
     startTest(testId: bigint): Promise<void>;
+    submitSection(attemptId: bigint, sectionNumber: bigint, answers: Array<Answer>): Promise<{
+        score: bigint;
+        correctAnswers: bigint;
+    }>;
 }

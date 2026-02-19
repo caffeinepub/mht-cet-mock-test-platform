@@ -63,6 +63,26 @@ export const FullSyllabusTest = IDL.Record({
   'section2' : TestSection,
   'testId' : IDL.Nat,
 });
+export const Answer = IDL.Record({
+  'selectedOptionIndex' : IDL.Nat,
+  'questionId' : IDL.Nat,
+});
+export const TestAttempt = IDL.Record({
+  'section2SubmittedAt' : IDL.Opt(IDL.Int),
+  'section1Score' : IDL.Nat,
+  'attemptId' : IDL.Nat,
+  'isCompleted' : IDL.Bool,
+  'section1StartTime' : IDL.Opt(IDL.Int),
+  'userId' : IDL.Principal,
+  'createdAt' : IDL.Int,
+  'section1Answers' : IDL.Vec(Answer),
+  'currentSection' : IDL.Nat,
+  'section2Score' : IDL.Nat,
+  'section2Answers' : IDL.Vec(Answer),
+  'section1SubmittedAt' : IDL.Opt(IDL.Int),
+  'testId' : IDL.Nat,
+  'section2StartTime' : IDL.Opt(IDL.Int),
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -125,15 +145,27 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getQuestionsBySubject' : IDL.Func([Subject], [IDL.Vec(Question)], ['query']),
+  'getTestAttempt' : IDL.Func([IDL.Nat], [IDL.Opt(TestAttempt)], ['query']),
   'getTotalQuestions' : IDL.Func([], [IDL.Nat], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'getUserTestAttempts' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Vec(TestAttempt)],
+      ['query'],
+    ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'startSection' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
   'startTest' : IDL.Func([IDL.Nat], [], []),
+  'submitSection' : IDL.Func(
+      [IDL.Nat, IDL.Nat, IDL.Vec(Answer)],
+      [IDL.Record({ 'score' : IDL.Nat, 'correctAnswers' : IDL.Nat })],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -193,6 +225,26 @@ export const idlFactory = ({ IDL }) => {
     'section1' : TestSection,
     'section2' : TestSection,
     'testId' : IDL.Nat,
+  });
+  const Answer = IDL.Record({
+    'selectedOptionIndex' : IDL.Nat,
+    'questionId' : IDL.Nat,
+  });
+  const TestAttempt = IDL.Record({
+    'section2SubmittedAt' : IDL.Opt(IDL.Int),
+    'section1Score' : IDL.Nat,
+    'attemptId' : IDL.Nat,
+    'isCompleted' : IDL.Bool,
+    'section1StartTime' : IDL.Opt(IDL.Int),
+    'userId' : IDL.Principal,
+    'createdAt' : IDL.Int,
+    'section1Answers' : IDL.Vec(Answer),
+    'currentSection' : IDL.Nat,
+    'section2Score' : IDL.Nat,
+    'section2Answers' : IDL.Vec(Answer),
+    'section1SubmittedAt' : IDL.Opt(IDL.Int),
+    'testId' : IDL.Nat,
+    'section2StartTime' : IDL.Opt(IDL.Int),
   });
   
   return IDL.Service({
@@ -264,15 +316,27 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Question)],
         ['query'],
       ),
+    'getTestAttempt' : IDL.Func([IDL.Nat], [IDL.Opt(TestAttempt)], ['query']),
     'getTotalQuestions' : IDL.Func([], [IDL.Nat], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'getUserTestAttempts' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(TestAttempt)],
+        ['query'],
+      ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'startSection' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
     'startTest' : IDL.Func([IDL.Nat], [], []),
+    'submitSection' : IDL.Func(
+        [IDL.Nat, IDL.Nat, IDL.Vec(Answer)],
+        [IDL.Record({ 'score' : IDL.Nat, 'correctAnswers' : IDL.Nat })],
+        [],
+      ),
   });
 };
 

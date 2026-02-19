@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 13,
+  "projectStateVersion": 15,
   "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
   "architectural_notes": [
     "Motoko backend canister with stable memory for persistence",
@@ -194,6 +194,62 @@
       "title": "Update the StudentDashboard.tsx available tests section to fetch and display Full Syllabus Mock Tests using the useFullSyllabusTests hook, showing test name, section configurations (Section 1: 90min Physics+Chemistry, Section 2: 90min Maths), and a 'Start Test' button for each test",
       "reqIds": [
         "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-testinterface-tsx-component-to-fetch-the-test-attempt-state-on-mount-using-the-gettestattempt-endpoint-and-determine-which-section-1-or-2-should-be-active-based-on-section1submittedat-and-section2submittedat-timestamps",
+      "title": "Update the TestInterface.tsx component to fetch the test attempt state on mount using the getTestAttempt endpoint and determine which section (1 or 2) should be active based on section1SubmittedAt and section2SubmittedAt timestamps",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-countdown-timer-in-testinterface-tsx-that-calculates-remaining-time-by-subtracting-elapsed-time-current-time-minus-section-start-time-from-90-minutes-displays-the-countdown-in-mm-ss-format-and-auto-submits-the-section-when-time-reaches-zero",
+      "title": "Implement a countdown timer in TestInterface.tsx that calculates remaining time by subtracting elapsed time (current time minus section start time) from 90 minutes, displays the countdown in MM:SS format, and auto-submits the section when time reaches zero",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-submit-section-button-in-testinterface-tsx-that-calls-the-submitsection-backend-endpoint-with-attemptid-current-sectionnumber-and-answers-array-then-automatically-transitions-to-section-2-if-submitting-section-1-or-redirects-to-results-page-if-submitting-section-2",
+      "title": "Add a 'Submit Section' button in TestInterface.tsx that calls the submitSection backend endpoint with attemptId, current sectionNumber, and answers array, then automatically transitions to Section 2 if submitting Section 1, or redirects to results page if submitting Section 2",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-testinterface-tsx-to-call-the-startsection-backend-endpoint-automatically-when-transitioning-to-section-2-after-section-1-submission-recording-the-section-2-start-timestamp-and-initializing-the-90-minute-countdown-timer-for-section-2",
+      "title": "Update TestInterface.tsx to call the startSection backend endpoint automatically when transitioning to Section 2 after Section 1 submission, recording the Section 2 start timestamp and initializing the 90-minute countdown timer for Section 2",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-a-transition-screen-in-testinterface-tsx-between-section-1-submission-and-section-2-start-that-shows-section-1-complete-message-section-summary-questions-attempted-time-taken-and-a-start-section-2-button-that-calls-the-startsection-endpoint-when-clicked",
+      "title": "Display a transition screen in TestInterface.tsx between Section 1 submission and Section 2 start that shows 'Section 1 Complete!' message, section summary (questions attempted, time taken), and a 'Start Section 2' button that calls the startSection endpoint when clicked",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-react-query-hook-usetestattemptqueries-in-frontend-src-hooks-usequeries-ts-that-provides-a-function-usetestattemptbyid-to-fetch-test-attempt-data-including-current-section-timing-information-and-submission-status",
+      "title": "Add a React Query hook useTestAttemptQueries in frontend/src/hooks/useQueries.ts that provides a function useTestAttemptById to fetch test attempt data including current section, timing information, and submission status",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-react-query-mutation-hook-usetestsectionmutations-in-a-new-file-frontend-src-hooks-usetestsectionmutations-ts-that-provides-functions-to-start-a-section-startsection-and-submit-a-section-submitsection-with-automatic-query-invalidation-for-test-attempt-data-on-success",
+      "title": "Create a React Query mutation hook useTestSectionMutations in a new file frontend/src/hooks/useTestSectionMutations.ts that provides functions to start a section (startSection) and submit a section (submitSection), with automatic query invalidation for test attempt data on success",
+      "reqIds": [
+        "REQ-45"
       ],
       "version": 1
     }
@@ -422,6 +478,46 @@
       "summary": "Add admin role-based authorization to the assignQuestionsToTest endpoint so only authenticated admin users can assign questions to Full Syllabus Tests",
       "reqIds": [
         "REQ-27"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Add backend API endpoint getTestAttempt in backend/main.mo that accepts attemptId and returns the current test attempt state including testId, userId, currentSection (1 or 2), section1StartTime, section2StartTime, section1SubmittedAt, section2SubmittedAt, and completion status",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Create backend API endpoint startSection in backend/main.mo that accepts attemptId and sectionNumber (1 or 2), validates the user owns the attempt, records the section start timestamp, and returns confirmation with the start time",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Create backend API endpoint submitSection in backend/main.mo that accepts attemptId, sectionNumber (1 or 2), and answers array, validates timing constraints (within 90 minutes of section start), records the submission timestamp, stores the answers, and returns confirmation",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Update the backend test attempt data model in backend/main.mo to include fields for section1Answers (array of answer objects with questionId and selectedOptionIndex), section2Answers (array of answer objects), section1Score (Nat), and section2Score (Nat) to store submitted answers and calculated scores for each section",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Implement score calculation logic in the submitSection backend endpoint that compares submitted answers against correct answers for each question, awards 1 mark per correct answer in Section 1 (Physics/Chemistry) and 2 marks per correct answer in Section 2 (Maths), stores the section score in the test attempt, and returns the score in the response",
+      "reqIds": [
+        "REQ-43"
       ],
       "status": "pending"
     }

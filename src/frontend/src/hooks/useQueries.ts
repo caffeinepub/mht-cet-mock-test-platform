@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { FullSyllabusTest, Question } from '../backend';
+import type { FullSyllabusTest, Question, UserProfile, TestAttempt } from '../backend';
 
 // Full Syllabus Test Hooks
 export function useFullSyllabusTests() {
@@ -48,7 +48,7 @@ export function useAllQuestions() {
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
 
-  const query = useQuery({
+  const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
@@ -63,4 +63,19 @@ export function useGetCallerUserProfile() {
     isLoading: actorFetching || query.isLoading,
     isFetched: !!actor && query.isFetched,
   };
+}
+
+// Test Attempt Hooks
+export function useTestAttemptById(attemptId: bigint | null) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<TestAttempt | null>({
+    queryKey: ['testAttempt', attemptId?.toString()],
+    queryFn: async () => {
+      if (!actor || attemptId === null) return null;
+      return actor.getTestAttempt(attemptId);
+    },
+    enabled: !!actor && !isFetching && attemptId !== null,
+    retry: false,
+  });
 }

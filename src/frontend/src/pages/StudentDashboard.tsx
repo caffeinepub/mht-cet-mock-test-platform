@@ -1,22 +1,57 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useFullSyllabusTests } from '../hooks/useQueries';
+import { useActor } from '../hooks/useActor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, BookOpen, Award } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function StudentDashboard() {
   const { identity, isInitializing } = useInternetIdentity();
+  const { actor } = useActor();
   const navigate = useNavigate();
   const { data: tests = [], isLoading: testsLoading } = useFullSyllabusTests();
+  const [startingTest, setStartingTest] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isInitializing && !identity) {
       navigate({ to: '/' });
     }
   }, [identity, isInitializing, navigate]);
+
+  const handleStartTest = async (testId: bigint) => {
+    if (!actor) return;
+    
+    setStartingTest(testId.toString());
+    
+    try {
+      // Start the test and get attempt ID
+      await actor.startTest(testId);
+      
+      // Get the user's test attempts to find the newly created one
+      const attempts = await actor.getUserTestAttempts(identity!.getPrincipal());
+      const latestAttempt = attempts
+        .filter(a => a.testId === testId)
+        .sort((a, b) => Number(b.createdAt - a.createdAt))[0];
+      
+      if (latestAttempt) {
+        // Start Section 1
+        await actor.startSection(latestAttempt.attemptId, BigInt(1));
+        
+        // Navigate to test interface with attemptId
+        navigate({
+          to: '/test/$testId',
+          params: { testId: testId.toString() },
+          search: { attemptId: latestAttempt.attemptId.toString() },
+        });
+      }
+    } catch (error) {
+      console.error('Error starting test:', error);
+      setStartingTest(null);
+    }
+  };
 
   if (isInitializing || testsLoading) {
     return (
@@ -116,8 +151,13 @@ export default function StudentDashboard() {
                       </div>
                     </div>
 
-                    <Button className="w-full" size="lg">
-                      Start Test
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      onClick={() => handleStartTest(test.testId)}
+                      disabled={startingTest === test.testId.toString()}
+                    >
+                      {startingTest === test.testId.toString() ? 'Starting...' : 'Start Test'}
                     </Button>
                   </CardContent>
                 </Card>

@@ -10,6 +10,10 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface Answer {
+  'selectedOptionIndex' : bigint,
+  'questionId' : bigint,
+}
 export type ClassLevel = { 'class11th' : null } |
   { 'class12th' : null };
 export interface FullSyllabusTest {
@@ -37,6 +41,22 @@ export interface Question {
 export type Subject = { 'maths' : null } |
   { 'chemistry' : null } |
   { 'physics' : null };
+export interface TestAttempt {
+  'section2SubmittedAt' : [] | [bigint],
+  'section1Score' : bigint,
+  'attemptId' : bigint,
+  'isCompleted' : boolean,
+  'section1StartTime' : [] | [bigint],
+  'userId' : Principal,
+  'createdAt' : bigint,
+  'section1Answers' : Array<Answer>,
+  'currentSection' : bigint,
+  'section2Score' : bigint,
+  'section2Answers' : Array<Answer>,
+  'section1SubmittedAt' : [] | [bigint],
+  'testId' : bigint,
+  'section2StartTime' : [] | [bigint],
+}
 export interface TestSection {
   'subjects' : Array<Subject>,
   'name' : string,
@@ -103,11 +123,18 @@ export interface _SERVICE {
   'getQuestion' : ActorMethod<[bigint], [] | [Question]>,
   'getQuestionsByClassLevel' : ActorMethod<[ClassLevel], Array<Question>>,
   'getQuestionsBySubject' : ActorMethod<[Subject], Array<Question>>,
+  'getTestAttempt' : ActorMethod<[bigint], [] | [TestAttempt]>,
   'getTotalQuestions' : ActorMethod<[], bigint>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getUserTestAttempts' : ActorMethod<[Principal], Array<TestAttempt>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'startSection' : ActorMethod<[bigint, bigint], undefined>,
   'startTest' : ActorMethod<[bigint], undefined>,
+  'submitSection' : ActorMethod<
+    [bigint, bigint, Array<Answer>],
+    { 'score' : bigint, 'correctAnswers' : bigint }
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

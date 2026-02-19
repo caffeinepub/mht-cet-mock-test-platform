@@ -1,110 +1,125 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Implement Full Syllabus Test Structure with Two-Section Format - Frontend",
+  "title": "Implement auto-transition logic between test sections",
   "requirements": [
     {
-      "id": "REQ-28",
-      "summary": "Create React Query hooks for fetching Full Syllabus Tests",
+      "id": "REQ-37",
+      "summary": "Update TestInterface.tsx to fetch test attempt state on mount and determine active section based on submission timestamps",
       "acceptanceCriteria": [
-        "useFullSyllabusTests hook fetches and returns array of Full Syllabus Tests",
-        "useFullSyllabusTestById hook accepts testId parameter and returns test details with assigned questions",
-        "Both hooks use React Query for caching and state management",
-        "Hooks integrate with the backend actor from useActor"
+        "Component loads current attempt state from backend on mount",
+        "If section1SubmittedAt is null, display Section 1",
+        "If section1SubmittedAt is set but section2SubmittedAt is null, display Section 2",
+        "If both sections are submitted, redirect to results page"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TestInterface.tsx",
+          "operation": "modify",
+          "description": "Replace placeholder with working test interface that fetches test attempt state using getTestAttempt backend capability on mount, determines which section (1 or 2) to display based on section1SubmittedAt and section2SubmittedAt timestamps, and redirects to results page when both sections are completed. Extract attemptId from URL parameters using the existing urlParams utilities."
+        }
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "summary": "Implement countdown timer in TestInterface.tsx that calculates remaining time and auto-submits section when time reaches zero",
+      "acceptanceCriteria": [
+        "Timer shows remaining time for the active section",
+        "Timer updates every second",
+        "When timer reaches 00:00, section is automatically submitted",
+        "Auto-submission calls the submitSection endpoint with current answers"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TestInterface.tsx",
+          "operation": "modify",
+          "description": "Add countdown timer logic that calculates remaining time by subtracting elapsed time (current time minus section start time) from 90 minutes (5400000 milliseconds), displays the countdown in MM:SS format, updates every second using useEffect with setInterval, and automatically calls submitSection backend capability with current answers when timer reaches 00:00. Handle cleanup of interval on component unmount."
+        }
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "summary": "Add Submit Section button that submits answers and transitions to next section or results page",
+      "acceptanceCriteria": [
+        "Button is labeled 'Submit Section 1' or 'Submit Section 2' based on active section",
+        "On successful submission of Section 1, UI immediately transitions to Section 2",
+        "On successful submission of Section 2, user is redirected to results page",
+        "Shows confirmation dialog before submission to prevent accidental clicks"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TestInterface.tsx",
+          "operation": "modify",
+          "description": "Add Submit Section button that displays 'Submit Section 1' or 'Submit Section 2' label based on currentSection. Show confirmation dialog using a confirmation modal before submission. On confirmation, call submitSection backend capability with attemptId, current sectionNumber, and answers array. On successful submission of Section 1, trigger transition to Section 2. On successful submission of Section 2, navigate to results page using TanStack Router."
+        }
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "summary": "Auto-start Section 2 after Section 1 submission by calling startSection backend capability",
+      "acceptanceCriteria": [
+        "Section 2 start is triggered automatically after Section 1 submission",
+        "startSection API is called with sectionNumber=2",
+        "Timer resets to 90 minutes for Section 2",
+        "User sees Section 2 questions immediately after transition"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TestInterface.tsx",
+          "operation": "modify",
+          "description": "After successful Section 1 submission, automatically call startSection backend capability with attemptId and sectionNumber=2 to record Section 2 start timestamp. Refetch test attempt data to update UI state, reset timer to 90 minutes for Section 2, and display Section 2 questions immediately."
+        }
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "summary": "Display transition screen between Section 1 and Section 2 with summary and Start Section 2 button",
+      "acceptanceCriteria": [
+        "Transition screen appears immediately after Section 1 submission",
+        "Shows count of questions attempted in Section 1",
+        "Shows time taken to complete Section 1",
+        "'Start Section 2' button calls startSection endpoint and loads Section 2 questions",
+        "Screen is styled consistently with the Concept Delta navy blue theme"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TestInterface.tsx",
+          "operation": "modify",
+          "description": "Add transition screen UI state that appears after Section 1 submission. Display 'Section 1 Complete!' message, show count of questions attempted in Section 1 (length of section1Answers array), calculate and display time taken (section1SubmittedAt minus section1StartTime converted to minutes and seconds), and render a 'Start Section 2' button. When clicked, call startSection backend capability with sectionNumber=2, then load Section 2 questions. Style using Concept Delta navy blue theme colors from Tailwind config."
+        }
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "summary": "Add React Query hook useTestAttemptById to fetch test attempt data including timing and submission status",
+      "acceptanceCriteria": [
+        "Hook calls getTestAttempt backend endpoint",
+        "Returns attempt data including section states and timestamps",
+        "Implements proper error handling for invalid attempt IDs",
+        "Query is enabled only when attemptId is provided"
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add useFullSyllabusTests hook that fetches all Full Syllabus Tests by calling actor.getFullSyllabusTests() and returns the array with React Query caching. Add useFullSyllabusTestById hook that accepts testId parameter and fetches a single test by filtering the results from getFullSyllabusTests(). Both hooks should follow the existing pattern used in useQueries.ts with proper enabled conditions checking for actor availability."
+          "description": "Add useTestAttemptById query hook that accepts attemptId parameter and calls actor.getTestAttempt(attemptId) to fetch test attempt data including testId, userId, currentSection, section1StartTime, section2StartTime, section1SubmittedAt, section2SubmittedAt, section1Answers, section2Answers, section1Score, section2Score, and isCompleted status. Enable query only when attemptId is provided (enabled: !!actor && !!attemptId). Implement error handling for invalid attempt IDs using retry: false."
         }
       ]
     },
     {
-      "id": "REQ-29",
-      "summary": "Create React Query mutation hooks for Full Syllabus Test operations",
+      "id": "REQ-45",
+      "summary": "Create React Query mutation hooks for starting and submitting test sections with automatic cache invalidation",
       "acceptanceCriteria": [
-        "createFullSyllabusTest mutation accepts test name and calls backend API",
-        "assignQuestionsToTest mutation accepts testId, section1QuestionIds, section2QuestionIds and calls backend API",
-        "Both mutations invalidate relevant queries on success",
-        "Error handling is implemented for failed mutations"
+        "startSection mutation calls backend startSection endpoint",
+        "submitSection mutation calls backend submitSection endpoint with answers",
+        "Both mutations invalidate test attempt queries on success",
+        "Mutations handle errors and display appropriate error messages"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useFullSyllabusTestMutations.ts",
+          "path": "frontend/src/hooks/useTestSectionMutations.ts",
           "operation": "create",
-          "description": "Create mutation hooks file exporting useFullSyllabusTestMutations that returns createFullSyllabusTest and assignQuestionsToTest mutations. createFullSyllabusTest accepts { testName: string } and calls actor.createFullSyllabusTest(testName), returning the test ID. assignQuestionsToTest accepts { testId: bigint, section1QuestionIds: bigint[], section2QuestionIds: bigint[] } and calls actor.assignQuestionsToTest. Both mutations use useMutation from React Query, invalidate ['fullSyllabusTests'] query key on success, and include proper error handling. Follow the pattern established in useQuestionMutations.ts."
-        }
-      ]
-    },
-    {
-      "id": "REQ-30",
-      "summary": "Create admin Full Syllabus Test creation page with question selection by section",
-      "acceptanceCriteria": [
-        "Page includes authentication guard requiring admin role",
-        "Form has test name input field",
-        "Section 1 displays Physics and Chemistry questions with checkboxes",
-        "Section 2 displays Maths questions with checkboxes",
-        "Questions are fetched from backend and filtered by subject",
-        "Submit button creates test and assigns selected questions using the mutation hooks",
-        "Success message displays the created test ID",
-        "Error messages display for validation failures or API errors"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminFullSyllabusTestCreate.tsx",
-          "operation": "create",
-          "description": "Create admin page component with authentication guard that redirects non-admin users. Include a form with test name input field. Fetch all questions using the existing getAllQuestions hook from useQueries.ts. Display two sections: Section 1 showing Physics and Chemistry questions filtered by subject with checkboxes for selection, and Section 2 showing Maths questions with checkboxes. Each question should display its text/image preview and subject. Track selected question IDs in state for each section. On submit, call createFullSyllabusTest mutation with test name, then call assignQuestionsToTest mutation with the returned test ID and selected question arrays. Display success message with test ID on successful creation. Display error messages for validation failures or API errors. Use shadcn/ui components (Button, Input, Card, Checkbox, Label) for consistent styling with the existing admin pages. Include section headers indicating duration and marks configuration (Section 1: 90min Physics+Chemistry 1 mark each, Section 2: 90min Maths 2 marks each)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-31",
-      "summary": "Add route for Full Syllabus Test creation page",
-      "acceptanceCriteria": [
-        "Route '/admin/tests/full-syllabus/create' is added to route tree",
-        "Route requires authentication",
-        "Route redirects non-admin users to appropriate page"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/routeTree.tsx",
-          "operation": "modify",
-          "description": "Add a new route entry for '/admin/tests/full-syllabus/create' that imports and renders AdminFullSyllabusTestCreate component. Follow the existing route pattern used for other admin routes like '/admin/dashboard' and '/admin/questions/create'. Ensure the route is nested under the root route with Layout wrapper."
-        }
-      ]
-    },
-    {
-      "id": "REQ-32",
-      "summary": "Add navigation to Full Syllabus Test creation from AdminDashboard",
-      "acceptanceCriteria": [
-        "Button or link appears in the Test Management tab of AdminDashboard",
-        "Clicking navigates to /admin/tests/full-syllabus/create",
-        "Button styling is consistent with existing admin interface"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminDashboard.tsx",
-          "operation": "modify",
-          "description": "Add a 'Create Full Syllabus Test' button or card in the Test Management tab content section. Use Link component from TanStack Router to navigate to '/admin/tests/full-syllabus/create'. Style the button/card consistently with existing elements in the dashboard using shadcn/ui Button component. Position it prominently in the Test Management tab alongside other test management actions."
-        }
-      ]
-    },
-    {
-      "id": "REQ-33",
-      "summary": "Display Full Syllabus Tests in StudentDashboard available tests section",
-      "acceptanceCriteria": [
-        "Available tests section fetches Full Syllabus Tests from backend",
-        "Each test displays name and section details (subjects, duration, marks)",
-        "Start Test button is displayed for each active test",
-        "Empty state message displays when no tests are available",
-        "Loading state is shown while fetching tests"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/StudentDashboard.tsx",
-          "operation": "modify",
-          "description": "Replace the placeholder available tests section with useFullSyllabusTests hook to fetch tests from backend. Display loading state while fetching. Map over the returned tests array and render a card for each active test showing: test name, Section 1 details (90min, Physics+Chemistry, 1 mark each), Section 2 details (90min, Maths, 2 marks each), and a 'Start Test' button that navigates to the test interface. Display an empty state message when no active tests are available. Use shadcn/ui Card, Badge, and Button components for consistent styling. Filter tests to show only active ones (isActive === true)."
+          "description": "Create new file with useTestSectionMutations hook that provides two mutations: startSection (accepts attemptId and sectionNumber, calls actor.startSection) and submitSection (accepts attemptId, sectionNumber, and answers array, calls actor.submitSection). Both mutations use useMutation from React Query with onSuccess callbacks that invalidate test attempt queries using queryClient.invalidateQueries. Implement error handling that logs errors and can optionally display user-facing error messages. Follow the pattern used in existing mutation hooks like useFullSyllabusTestMutations.ts."
         }
       ]
     }

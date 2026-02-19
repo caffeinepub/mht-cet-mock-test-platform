@@ -5,16 +5,17 @@
   "frontend/src/components/Navbar.tsx": "Navigation bar component with Concept Delta branding (delta symbol and name), responsive mobile menu, and Internet Identity login/logout functionality.",
   "frontend/src/components/Footer.tsx": "Footer component with Concept Delta branding, quick links, social media handle (@coep_conceptdelta2031), YouTube channel link, and caffeine.ai attribution.",
   "frontend/src/pages/LandingPage.tsx": "Landing page with solid white background, faint students-studying background image (10% opacity), hero banner, COEP tagline, YouTube section with teacher-teaching image, Telegram section with study-notes image, CTA button, and features section showcasing platform benefits.",
-  "frontend/src/pages/StudentDashboard.tsx": "Student dashboard displaying available Full Syllabus Tests with section details (subjects, duration, marks), Start Test buttons, and progress statistics cards.",
+  "frontend/src/pages/StudentDashboard.tsx": "Student dashboard displaying available Full Syllabus Tests with Start Test functionality that creates test attempts, starts Section 1, and navigates to the test interface with attemptId.",
   "frontend/src/pages/AdminDashboard.tsx": "Admin dashboard with tabbed interface including Test Management tab with \"Create Full Syllabus Test\" button that navigates to the test creation page.",
-  "frontend/src/pages/TestInterface.tsx": "Test-taking interface page (placeholder) that will display questions, timer, and navigation when backend is integrated.",
+  "frontend/src/pages/TestInterface.tsx": "Complete test-taking interface with countdown timer, question display with radio options, auto-submit on timeout, section transition screen, and submit confirmation dialog with progress tracking.",
   "frontend/src/pages/ResultPage.tsx": "Results display page (placeholder) that will show test scores, time breakdown, and detailed question review when backend is integrated.",
   "frontend/src/pages/Leaderboard.tsx": "Leaderboard page (placeholder) that will display top 10 scorers with ranks, scores, and times when backend is integrated.",
-  "frontend/src/hooks/useQueries.ts": "Custom React Query hooks for fetching Full Syllabus Tests, individual test by ID, all questions, and caller user profile with proper actor integration and caching.",
+  "frontend/src/hooks/useQueries.ts": "Custom React Query hooks for fetching Full Syllabus Tests, questions, user profiles, and test attempts with proper actor integration and caching.",
   "frontend/src/index.css": "Global styles with OKLCH color system for Concept Delta navy blue theme, responsive hero image styles, and base Tailwind configuration for light and dark modes.",
   "frontend/index.html": "HTML entry point with updated title, meta tags, and description for Concept Delta MHT-CET platform.",
   "frontend/src/hooks/useQuestionMutations.ts": "Custom React Query hook for question mutations with useCreateQuestion that handles creating questions with validation and query invalidation, using properly typed QuestionOption interface to avoid conflicts with TypeScript's generic Option type.",
   "frontend/src/pages/AdminQuestionCreate.tsx": "Admin question creation page with comprehensive form including optional question text/image, four option sections with optional text/image, correct answer selector, explanation textarea, subject dropdown, and class level dropdown with full validation and base64 image handling.",
   "frontend/src/hooks/useFullSyllabusTestMutations.ts": "React Query mutation hooks for creating Full Syllabus Tests and assigning questions to test sections with automatic query invalidation on success.",
-  "frontend/src/pages/AdminFullSyllabusTestCreate.tsx": "Admin page for creating Full Syllabus Tests with test name input and two sections for selecting Physics/Chemistry and Maths questions via checkboxes, with validation and success/error handling."
+  "frontend/src/pages/AdminFullSyllabusTestCreate.tsx": "Admin page for creating Full Syllabus Tests with test name input and two sections for selecting Physics/Chemistry and Maths questions via checkboxes, with validation and success/error handling.",
+  "frontend/src/hooks/useTestSectionMutations.ts": "React Query mutation hooks for starting and submitting test sections with automatic cache invalidation on success."
 }

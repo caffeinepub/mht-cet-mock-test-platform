@@ -2,8 +2,108 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-create-a-react-query-hook-usefullsyllabustestqueries-in-frontend-src-hooks-usequeries-ts-that-provides-functions-to-fetch-all-full-syllabus-tests-usefullsyllabustests-and-fetch-a-single-test-by-id-with-its-assigned-questions-usefullsyllabustestbyid",
-      "featureTitle": "Create a React Query hook useFullSyllabusTestQueries in frontend/src/hooks/useQueries.ts that provides functions to fetch all Full Syllabus Tests (useFullSyllabusTests) and fetch a single test by ID with its assigned questions (useFullSyllabusTestById)",
+      "featureId": "feature-update-the-testinterface-tsx-component-to-fetch-the-test-attempt-state-on-mount-using-the-gettestattempt-endpoint-and-determine-which-section-1-or-2-should-be-active-based-on-section1submittedat-and-section2submittedat-timestamps",
+      "featureTitle": "Update the TestInterface.tsx component to fetch the test attempt state on mount using the getTestAttempt endpoint and determine which section (1 or 2) should be active based on section1SubmittedAt and section2SubmittedAt timestamps",
+      "files": [
+        "frontend/src/pages/TestInterface.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-37"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-countdown-timer-in-testinterface-tsx-that-calculates-remaining-time-by-subtracting-elapsed-time-current-time-minus-section-start-time-from-90-minutes-displays-the-countdown-in-mm-ss-format-and-auto-submits-the-section-when-time-reaches-zero",
+      "featureTitle": "Implement a countdown timer in TestInterface.tsx that calculates remaining time by subtracting elapsed time (current time minus section start time) from 90 minutes, displays the countdown in MM:SS format, and auto-submits the section when time reaches zero",
+      "files": [
+        "frontend/src/pages/TestInterface.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-38"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-submit-section-button-in-testinterface-tsx-that-calls-the-submitsection-backend-endpoint-with-attemptid-current-sectionnumber-and-answers-array-then-automatically-transitions-to-section-2-if-submitting-section-1-or-redirects-to-results-page-if-submitting-section-2",
+      "featureTitle": "Add a 'Submit Section' button in TestInterface.tsx that calls the submitSection backend endpoint with attemptId, current sectionNumber, and answers array, then automatically transitions to Section 2 if submitting Section 1, or redirects to results page if submitting Section 2",
+      "files": [
+        "frontend/src/pages/TestInterface.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-39"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-testinterface-tsx-to-call-the-startsection-backend-endpoint-automatically-when-transitioning-to-section-2-after-section-1-submission-recording-the-section-2-start-timestamp-and-initializing-the-90-minute-countdown-timer-for-section-2",
+      "featureTitle": "Update TestInterface.tsx to call the startSection backend endpoint automatically when transitioning to Section 2 after Section 1 submission, recording the Section 2 start timestamp and initializing the 90-minute countdown timer for Section 2",
+      "files": [
+        "frontend/src/pages/TestInterface.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-40"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-display-a-transition-screen-in-testinterface-tsx-between-section-1-submission-and-section-2-start-that-shows-section-1-complete-message-section-summary-questions-attempted-time-taken-and-a-start-section-2-button-that-calls-the-startsection-endpoint-when-clicked",
+      "featureTitle": "Display a transition screen in TestInterface.tsx between Section 1 submission and Section 2 start that shows 'Section 1 Complete!' message, section summary (questions attempted, time taken), and a 'Start Section 2' button that calls the startSection endpoint when clicked",
+      "files": [
+        "frontend/src/pages/TestInterface.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-41"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-react-query-hook-usetestattemptqueries-in-frontend-src-hooks-usequeries-ts-that-provides-a-function-usetestattemptbyid-to-fetch-test-attempt-data-including-current-section-timing-information-and-submission-status",
+      "featureTitle": "Add a React Query hook useTestAttemptQueries in frontend/src/hooks/useQueries.ts that provides a function useTestAttemptById to fetch test attempt data including current section, timing information, and submission status",
       "files": [
         "frontend/src/hooks/useQueries.ts"
       ],
@@ -17,15 +117,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-28"
+        "REQ-44"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-create-a-react-query-mutation-hook-usefullsyllabustestmutations-in-a-new-file-frontend-src-hooks-usefullsyllabustestmutations-ts-that-provides-functions-to-create-a-new-full-syllabus-test-createfullsyllabustest-and-assign-questions-to-a-test-assignquestionstotest-with-query-invalidation-on-success",
-      "featureTitle": "Create a React Query mutation hook useFullSyllabusTestMutations in a new file frontend/src/hooks/useFullSyllabusTestMutations.ts that provides functions to create a new Full Syllabus Test (createFullSyllabusTest) and assign questions to a test (assignQuestionsToTest), with query invalidation on success",
+      "featureId": "feature-create-a-react-query-mutation-hook-usetestsectionmutations-in-a-new-file-frontend-src-hooks-usetestsectionmutations-ts-that-provides-functions-to-start-a-section-startsection-and-submit-a-section-submitsection-with-automatic-query-invalidation-for-test-attempt-data-on-success",
+      "featureTitle": "Create a React Query mutation hook useTestSectionMutations in a new file frontend/src/hooks/useTestSectionMutations.ts that provides functions to start a section (startSection) and submit a section (submitSection), with automatic query invalidation for test attempt data on success",
       "files": [
-        "frontend/src/hooks/useFullSyllabusTestMutations.ts"
+        "frontend/src/hooks/useTestSectionMutations.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -37,87 +137,7 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-29"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-create-an-admin-full-syllabus-test-creation-page-component-in-frontend-src-pages-adminfullsyllabustestcreate-tsx-with-a-form-containing-test-name-input-field-two-question-selection-sections-section-1-for-physics-chemistry-section-2-for-maths-where-each-section-displays-available-questions-filtered-by-subject-with-checkboxes-for-selection-and-a-submit-button-that-creates-the-test-and-assigns-selected-questions",
-      "featureTitle": "Create an admin Full Syllabus Test creation page component in frontend/src/pages/AdminFullSyllabusTestCreate.tsx with a form containing test name input field, two question selection sections (Section 1 for Physics+Chemistry, Section 2 for Maths), where each section displays available questions filtered by subject with checkboxes for selection, and a submit button that creates the test and assigns selected questions",
-      "files": [
-        "frontend/src/pages/AdminFullSyllabusTestCreate.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-30"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-route-for-the-admin-full-syllabus-test-creation-page-in-frontend-src-routetree-tsx-at-path-admin-tests-full-syllabus-create-accessible-only-when-user-is-authenticated-with-admin-role",
-      "featureTitle": "Add a route for the admin Full Syllabus Test creation page in frontend/src/routeTree.tsx at path '/admin/tests/full-syllabus/create', accessible only when user is authenticated with admin role",
-      "files": [
-        "frontend/src/routeTree.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-31"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-create-full-syllabus-test-button-or-navigation-link-in-the-admindashboard-tsx-component-under-the-test-management-tab-that-navigates-to-the-full-syllabus-test-creation-page-at-admin-tests-full-syllabus-create",
-      "featureTitle": "Add a 'Create Full Syllabus Test' button or navigation link in the AdminDashboard.tsx component under the Test Management tab that navigates to the Full Syllabus Test creation page at /admin/tests/full-syllabus/create",
-      "files": [
-        "frontend/src/pages/AdminDashboard.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-32"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-studentdashboard-tsx-available-tests-section-to-fetch-and-display-full-syllabus-mock-tests-using-the-usefullsyllabustests-hook-showing-test-name-section-configurations-section-1-90min-physics-chemistry-section-2-90min-maths-and-a-start-test-button-for-each-test",
-      "featureTitle": "Update the StudentDashboard.tsx available tests section to fetch and display Full Syllabus Mock Tests using the useFullSyllabusTests hook, showing test name, section configurations (Section 1: 90min Physics+Chemistry, Section 2: 90min Maths), and a 'Start Test' button for each test",
-      "files": [
-        "frontend/src/pages/StudentDashboard.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-33"
+        "REQ-45"
       ],
       "confidence": "high"
     }

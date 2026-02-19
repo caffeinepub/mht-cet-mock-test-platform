@@ -1,16 +1,15 @@
 # Specification
 
 ## Summary
-**Goal:** Implement Full Syllabus Mock Test structure with two-section format (Section 1: Physics+Chemistry, Section 2: Maths) including admin creation interface and student test listing.
+**Goal:** Implement auto-transition logic between test sections with timing controls and score calculation.
 
 **Planned changes:**
-- Add Motoko data model for Full Syllabus Tests with two pre-configured sections (Section 1: 90min Physics+Chemistry at 1 mark each, Section 2: 90min Maths at 2 marks each)
-- Implement stable storage for Full Syllabus Tests persisting across canister upgrades
-- Create backend API endpoints: createFullSyllabusTest (admin-only), getFullSyllabusTests, assignQuestionsToTest (admin-only)
-- Add React Query hooks for fetching tests and mutations for creating tests and assigning questions
-- Create admin Full Syllabus Test creation page with test name input and two question selection sections filtered by subject
-- Add route '/admin/tests/full-syllabus/create' with admin authentication guard
-- Add 'Create Full Syllabus Test' navigation in AdminDashboard Test Management tab
-- Update StudentDashboard to display available Full Syllabus Tests with section details and Start Test buttons
+- Add backend endpoints for getTestAttempt, startSection, and submitSection with timing validation
+- Update test attempt data model to store section answers, scores, and timestamps
+- Implement 90-minute countdown timer for each section with auto-submission at zero
+- Add automatic section transition from Section 1 to Section 2 after submission
+- Display transition screen between sections showing summary and start button
+- Implement score calculation (1 mark per correct answer in Section 1, 2 marks in Section 2)
+- Create React Query hooks for fetching attempt state and mutating section data
 
-**User-visible outcome:** Admins can create Full Syllabus Mock Tests with pre-configured two-section format and assign Physics, Chemistry, and Maths questions to appropriate sections. Students can view available Full Syllabus Tests showing section configurations on their dashboard.
+**User-visible outcome:** Users can take timed tests with automatic transitions between sections, see countdown timers for each 90-minute section, submit sections manually or have them auto-submit when time expires, and view a transition screen between sections showing their progress.
