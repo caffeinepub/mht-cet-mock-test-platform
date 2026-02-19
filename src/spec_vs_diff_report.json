@@ -1,0 +1,36 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-19T21:13:55.077Z",
+  "summary": "The diff implements a Full Syllabus Test structure with backend data models, stable storage, API endpoints (create, retrieve, assign questions), admin-only authorization, React Query hooks, admin creation page, routing, and student dashboard integration. All 13 requirements (REQ-21 through REQ-33) appear to be addressed with corresponding backend and frontend changes.",
+  "missing_requirements": [],
+  "hallucinated_features": [
+    {
+      "description": "Migration module added in backend/migration.mo with upgrade logic for fullSyllabusTests and nextTestId",
+      "reason": "No requirement explicitly requested a migration module. REQ-22 only requires stable storage with stable variables; migration handling was not specified.",
+      "evidence": [
+        "backend/migration.mo"
+      ]
+    },
+    {
+      "description": "currentTestId variable in backend/main.mo (var currentTestId : ?Nat = null)",
+      "reason": "No requirement mentions tracking a 'current test' or maintaining currentTestId state. This variable appears unused in the provided diff.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    }
+  ],
+  "confidence": 0.88,
+  "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/hooks/useFullSyllabusTestMutations.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminDashboard.tsx",
+    "frontend/src/pages/AdminFullSyllabusTestCreate.tsx",
+    "frontend/src/pages/StudentDashboard.tsx",
+    "frontend/src/routeTree.tsx",
+    "project_state.json"
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Implement Full Syllabus Test Structure with Two-Section Format - Frontend",
+  "requirements": [
+    {
+      "id": "REQ-28",
+      "summary": "Create React Query hooks for fetching Full Syllabus Tests",
+      "acceptanceCriteria": [
+        "useFullSyllabusTests hook fetches and returns array of Full Syllabus Tests",
+        "useFullSyllabusTestById hook accepts testId parameter and returns test details with assigned questions",
+        "Both hooks use React Query for caching and state management",
+        "Hooks integrate with the backend actor from useActor"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add useFullSyllabusTests hook that fetches all Full Syllabus Tests by calling actor.getFullSyllabusTests() and returns the array with React Query caching. Add useFullSyllabusTestById hook that accepts testId parameter and fetches a single test by filtering the results from getFullSyllabusTests(). Both hooks should follow the existing pattern used in useQueries.ts with proper enabled conditions checking for actor availability."
+        }
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "summary": "Create React Query mutation hooks for Full Syllabus Test operations",
+      "acceptanceCriteria": [
+        "createFullSyllabusTest mutation accepts test name and calls backend API",
+        "assignQuestionsToTest mutation accepts testId, section1QuestionIds, section2QuestionIds and calls backend API",
+        "Both mutations invalidate relevant queries on success",
+        "Error handling is implemented for failed mutations"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useFullSyllabusTestMutations.ts",
+          "operation": "create",
+          "description": "Create mutation hooks file exporting useFullSyllabusTestMutations that returns createFullSyllabusTest and assignQuestionsToTest mutations. createFullSyllabusTest accepts { testName: string } and calls actor.createFullSyllabusTest(testName), returning the test ID. assignQuestionsToTest accepts { testId: bigint, section1QuestionIds: bigint[], section2QuestionIds: bigint[] } and calls actor.assignQuestionsToTest. Both mutations use useMutation from React Query, invalidate ['fullSyllabusTests'] query key on success, and include proper error handling. Follow the pattern established in useQuestionMutations.ts."
+        }
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "summary": "Create admin Full Syllabus Test creation page with question selection by section",
+      "acceptanceCriteria": [
+        "Page includes authentication guard requiring admin role",
+        "Form has test name input field",
+        "Section 1 displays Physics and Chemistry questions with checkboxes",
+        "Section 2 displays Maths questions with checkboxes",
+        "Questions are fetched from backend and filtered by subject",
+        "Submit button creates test and assigns selected questions using the mutation hooks",
+        "Success message displays the created test ID",
+        "Error messages display for validation failures or API errors"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminFullSyllabusTestCreate.tsx",
+          "operation": "create",
+          "description": "Create admin page component with authentication guard that redirects non-admin users. Include a form with test name input field. Fetch all questions using the existing getAllQuestions hook from useQueries.ts. Display two sections: Section 1 showing Physics and Chemistry questions filtered by subject with checkboxes for selection, and Section 2 showing Maths questions with checkboxes. Each question should display its text/image preview and subject. Track selected question IDs in state for each section. On submit, call createFullSyllabusTest mutation with test name, then call assignQuestionsToTest mutation with the returned test ID and selected question arrays. Display success message with test ID on successful creation. Display error messages for validation failures or API errors. Use shadcn/ui components (Button, Input, Card, Checkbox, Label) for consistent styling with the existing admin pages. Include section headers indicating duration and marks configuration (Section 1: 90min Physics+Chemistry 1 mark each, Section 2: 90min Maths 2 marks each)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "summary": "Add route for Full Syllabus Test creation page",
+      "acceptanceCriteria": [
+        "Route '/admin/tests/full-syllabus/create' is added to route tree",
+        "Route requires authentication",
+        "Route redirects non-admin users to appropriate page"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/routeTree.tsx",
+          "operation": "modify",
+          "description": "Add a new route entry for '/admin/tests/full-syllabus/create' that imports and renders AdminFullSyllabusTestCreate component. Follow the existing route pattern used for other admin routes like '/admin/dashboard' and '/admin/questions/create'. Ensure the route is nested under the root route with Layout wrapper."
+        }
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "summary": "Add navigation to Full Syllabus Test creation from AdminDashboard",
+      "acceptanceCriteria": [
+        "Button or link appears in the Test Management tab of AdminDashboard",
+        "Clicking navigates to /admin/tests/full-syllabus/create",
+        "Button styling is consistent with existing admin interface"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminDashboard.tsx",
+          "operation": "modify",
+          "description": "Add a 'Create Full Syllabus Test' button or card in the Test Management tab content section. Use Link component from TanStack Router to navigate to '/admin/tests/full-syllabus/create'. Style the button/card consistently with existing elements in the dashboard using shadcn/ui Button component. Position it prominently in the Test Management tab alongside other test management actions."
+        }
+      ]
+    },
+    {
+      "id": "REQ-33",
+      "summary": "Display Full Syllabus Tests in StudentDashboard available tests section",
+      "acceptanceCriteria": [
+        "Available tests section fetches Full Syllabus Tests from backend",
+        "Each test displays name and section details (subjects, duration, marks)",
+        "Start Test button is displayed for each active test",
+        "Empty state message displays when no tests are available",
+        "Loading state is shown while fetching tests"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/StudentDashboard.tsx",
+          "operation": "modify",
+          "description": "Replace the placeholder available tests section with useFullSyllabusTests hook to fetch tests from backend. Display loading state while fetching. Map over the returned tests array and render a card for each active test showing: test name, Section 1 details (90min, Physics+Chemistry, 1 mark each), Section 2 details (90min, Maths, 2 marks each), and a 'Start Test' button that navigates to the test interface. Display an empty state message when no active tests are available. Use shadcn/ui Card, Badge, and Button components for consistent styling. Filter tests to show only active ones (isActive === true)."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,433 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 13,
+  "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
+  "architectural_notes": [
+    "Motoko backend canister with stable memory for persistence",
+    "React frontend canister with Vite, React Router, React Query, Tailwind CSS",
+    "Internet Identity for authentication",
+    "Navy blue (#1e3a8a) primary color with white background, Inter font",
+    "Base64 image storage in backend (consider asset canister if 1000+ questions)",
+    "Scoring: Physics/Chemistry 1 mark each, Maths 2 marks each, no negative marking",
+    "Mobile-first responsive design: <640px mobile, 640-1024px tablet, >1024px desktop",
+    "Test types: 'fullSyllabus' (auto-split, 90+90 min, fixed marking) or 'chapterWise' (admin-configurable duration, marks, single section)",
+    "Logo: Delta (Δ) symbol, brand name 'Concept Delta' not 'COEPian Delta'",
+    "Question model: optional text/image for question, 4 options each with optional text/image, correctAnswer index 0-3, explanation, subject (Physics/Chemistry/Maths), class (11th/12th)"
+  ],
+  "known_issues": [
+    "Base64 image storage may cause large canister memory usage with 1000+ questions",
+    "YouTube subscription verification requires manual admin check (honor system initially)",
+    "Mobile responsiveness critical as 70%+ students use phones"
+  ],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-change-all-references-from-coepian-delta-to-concept-delta-throughout-the-application-navbar-footer-pdf-exports-branding-elements",
+      "title": "Change all references from 'COEPian Delta' to 'Concept Delta' throughout the application (navbar, footer, PDF exports, branding elements)",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-the-uploaded-hero-image-photo-2026-02-19-19-46-20-jpg-showing-concept-delta-logo-with-delta-triangle-and-coep-conceptdelta2031-handle-on-dark-blue-background-to-the-top-of-the-home-page-as-a-prominent-header-banner",
+      "title": "Add the uploaded hero image (photo_2026-02-19_19-46-20.jpg showing Concept Delta logo with delta triangle and '@coep_conceptdelta2031' handle on dark blue background) to the top of the home page as a prominent header banner",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-hero-banner-image-at-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-1-img-1-on-the-landing-page-with-the-exact-previously-uploaded-image-file-photo-2026-02-19-19-46-20-jpg-showing-concept-delta-logo-with-delta-triangle-and-coep-conceptdelta2031-handle-on-dark-blue-background",
+      "title": "Replace the hero banner image at XPath /html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[1]/img[1] on the landing page with the exact previously uploaded image file photo_2026-02-19_19-46-20.jpg (showing Concept Delta logo with delta triangle and '@coep_conceptdelta2031' handle on dark blue background)",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-landing-page-tagline-at-xpath-html-1-body-1-div-1-div-1-main-1-div-1-section-1-div-1-p-1-to-display-founded-by-coep-technological-university-students-in-bold-format-followed-by-one-of-maharashtra-s-top-engineering-institutes-in-small-text-below",
+      "title": "Update the landing page tagline at XPath /html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/section[1]/div[1]/p[1] to display 'Founded by COEP Technological University students' in bold format, followed by 'One of Maharashtra's top engineering institutes' in small text below",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-youtube-subscription-section-on-the-landing-page-with-an-attractive-youtube-logo-linking-to-https-youtube-com-conceptdelta2026-si-qaplvhch-b-gqyhu-displaying-the-text-subscribe-to-youtube-channel-to-unlock-all-test-series",
+      "title": "Add a YouTube subscription section on the landing page with an attractive YouTube logo, linking to https://youtube.com/@conceptdelta2026?si=QAplvhCH-B-GqYhu, displaying the text 'Subscribe to YouTube channel to unlock all test series'",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-telegram-channel-section-on-the-landing-page-with-a-colorful-telegram-logo-linking-to-https-t-me-conceptdelta-displaying-the-text-join-telegram-for-test-explanation",
+      "title": "Add a Telegram channel section on the landing page with a colorful Telegram logo, linking to https://t.me/Conceptdelta, displaying the text 'Join Telegram for test explanation'",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-set-the-landing-page-background-to-clean-white-with-a-blurred-students-studying-image-overlay",
+      "title": "Set the landing page background to clean white with a blurred students-studying image overlay",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-youtube-section-image-at-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-2-section-2-div-1-div-1-div-1-img-1-with-a-generated-teacher-teaching-student-image",
+      "title": "Replace the YouTube section image at XPath /html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[2]/section[2]/div[1]/div[1]/div[1]/img[1] with a generated teacher-teaching-student image",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-telegram-section-image-at-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-2-section-3-div-1-div-1-div-1-img-1-with-a-generated-notes-notebook-image",
+      "title": "Replace the Telegram section image at XPath /html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[2]/section[3]/div[1]/div[1]/div[1]/img[1] with a generated notes/notebook image",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-change-the-entire-home-page-background-at-xpath-html-1-body-1-div-1-div-1-main-1-div-1-div-2-section-1-to-solid-white-color",
+      "title": "Change the entire home page background at XPath /html[1]/body[1]/div[1]/div[1]/main[1]/div[1]/div[2]/section[1] to solid white color",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-faint-subtle-background-image-of-students-studying-to-the-home-page-background-ensuring-it-does-not-interfere-with-content-readability",
+      "title": "Add a faint/subtle background image of students studying to the home page background, ensuring it does not interfere with content readability",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-the-generated-teacher-teaching-student-and-notes-images-as-static-assets-in-frontend-public-assets-generated-and-reference-them-in-the-youtube-and-telegram-sections-respectively",
+      "title": "Integrate the generated teacher-teaching-student and notes images as static assets in frontend/public/assets/generated and reference them in the YouTube and Telegram sections respectively",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-admin-question-creation-page-component-in-frontend-src-pages-adminquestioncreate-tsx-with-form-fields-for-question-text-textarea-optional-question-image-upload-file-input-accepting-images-optional-four-option-sections-each-with-text-input-and-image-upload-all-optional-a-radio-button-group-to-select-the-correct-answer-0-3-explanation-textarea-subject-dropdown-physics-chemistry-maths-and-class-level-dropdown-11th-12th",
+      "title": "Create an admin question creation page component in frontend/src/pages/AdminQuestionCreate.tsx with form fields for question text (textarea, optional), question image upload (file input accepting images, optional), four option sections each with text input and image upload (all optional), a radio button group to select the correct answer (0-3), explanation textarea, subject dropdown (Physics/Chemistry/Maths), and class level dropdown (11th/12th)",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-the-admin-question-creation-form-with-the-backend-createquestion-api-using-react-query-mutation-handle-form-submission-by-converting-uploaded-images-to-base64-validate-that-at-least-one-of-question-text-or-question-image-is-provided-and-at-least-one-option-has-content-display-success-message-with-the-created-question-id-on-successful-creation-and-show-error-messages-for-validation-or-api-failures",
+      "title": "Integrate the admin question creation form with the backend createQuestion API using React Query mutation, handle form submission by converting uploaded images to base64, validate that at least one of question text or question image is provided and at least one option has content, display success message with the created question ID on successful creation, and show error messages for validation or API failures",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-route-for-the-admin-question-creation-page-in-frontend-src-routetree-tsx-at-path-admin-questions-create-accessible-only-when-user-is-authenticated-with-admin-role",
+      "title": "Add a route for the admin question creation page in frontend/src/routeTree.tsx at path '/admin/questions/create', accessible only when user is authenticated with admin role",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-create-question-button-or-navigation-link-in-the-admindashboard-tsx-component-that-navigates-to-the-question-creation-page-at-admin-questions-create",
+      "title": "Add a 'Create Question' button or navigation link in the AdminDashboard.tsx component that navigates to the question creation page at /admin/questions/create",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-react-query-hook-usefullsyllabustestqueries-in-frontend-src-hooks-usequeries-ts-that-provides-functions-to-fetch-all-full-syllabus-tests-usefullsyllabustests-and-fetch-a-single-test-by-id-with-its-assigned-questions-usefullsyllabustestbyid",
+      "title": "Create a React Query hook useFullSyllabusTestQueries in frontend/src/hooks/useQueries.ts that provides functions to fetch all Full Syllabus Tests (useFullSyllabusTests) and fetch a single test by ID with its assigned questions (useFullSyllabusTestById)",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-react-query-mutation-hook-usefullsyllabustestmutations-in-a-new-file-frontend-src-hooks-usefullsyllabustestmutations-ts-that-provides-functions-to-create-a-new-full-syllabus-test-createfullsyllabustest-and-assign-questions-to-a-test-assignquestionstotest-with-query-invalidation-on-success",
+      "title": "Create a React Query mutation hook useFullSyllabusTestMutations in a new file frontend/src/hooks/useFullSyllabusTestMutations.ts that provides functions to create a new Full Syllabus Test (createFullSyllabusTest) and assign questions to a test (assignQuestionsToTest), with query invalidation on success",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-admin-full-syllabus-test-creation-page-component-in-frontend-src-pages-adminfullsyllabustestcreate-tsx-with-a-form-containing-test-name-input-field-two-question-selection-sections-section-1-for-physics-chemistry-section-2-for-maths-where-each-section-displays-available-questions-filtered-by-subject-with-checkboxes-for-selection-and-a-submit-button-that-creates-the-test-and-assigns-selected-questions",
+      "title": "Create an admin Full Syllabus Test creation page component in frontend/src/pages/AdminFullSyllabusTestCreate.tsx with a form containing test name input field, two question selection sections (Section 1 for Physics+Chemistry, Section 2 for Maths), where each section displays available questions filtered by subject with checkboxes for selection, and a submit button that creates the test and assigns selected questions",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-route-for-the-admin-full-syllabus-test-creation-page-in-frontend-src-routetree-tsx-at-path-admin-tests-full-syllabus-create-accessible-only-when-user-is-authenticated-with-admin-role",
+      "title": "Add a route for the admin Full Syllabus Test creation page in frontend/src/routeTree.tsx at path '/admin/tests/full-syllabus/create', accessible only when user is authenticated with admin role",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-create-full-syllabus-test-button-or-navigation-link-in-the-admindashboard-tsx-component-under-the-test-management-tab-that-navigates-to-the-full-syllabus-test-creation-page-at-admin-tests-full-syllabus-create",
+      "title": "Add a 'Create Full Syllabus Test' button or navigation link in the AdminDashboard.tsx component under the Test Management tab that navigates to the Full Syllabus Test creation page at /admin/tests/full-syllabus/create",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-studentdashboard-tsx-available-tests-section-to-fetch-and-display-full-syllabus-mock-tests-using-the-usefullsyllabustests-hook-showing-test-name-section-configurations-section-1-90min-physics-chemistry-section-2-90min-maths-and-a-start-test-button-for-each-test",
+      "title": "Update the StudentDashboard.tsx available tests section to fetch and display Full Syllabus Mock Tests using the useFullSyllabusTests hook, showing test name, section configurations (Section 1: 90min Physics+Chemistry, Section 2: 90min Maths), and a 'Start Test' button for each test",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Internet Identity authentication with role-based routing (student/admin)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Admin question creation with text/image upload, 4 option images, correct answer, explanation, subject tag, class level",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Admin test creation for chapter-wise tests: name, duration, marks per question, question selection",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Student test-taking interface with timer, navigation, mark for review, auto-submit",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Result page with score, time breakdown, correct/incorrect stats, question review with explanations",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Full syllabus mock tests with auto-split (Section 1: 90min Physics+Chemistry 1 mark each, Section 2: 90min Maths 2 marks each)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Leaderboard showing top 10 scorers with rank, name, score, time",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Admin analytics dashboard with user stats, test attempts, completion rates, daily active users",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "PDF export with Concept Delta branding, score summary, question breakdown",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "YouTube subscription gate popup before test access",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Social sharing to WhatsApp/Telegram with pre-filled score message",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Admin user management: view users, block/unblock, manual subscription verification",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Question gallery with grid view, filters by subject/class, search, preview",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Student suggestion system with form and admin review interface",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Landing page with hero section, features, YouTube link, 'Get Started' CTA using provided image at top",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Landing page tagline: 'Founded by COEP Technological University students' (bold) and 'One of Maharashtra's top engineering institutes' (small text at bottom)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "YouTube channel section with logo, link to @conceptdelta2026, and text: 'Subscribe to YouTube channel to unlock all test series'",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Telegram channel section with colorful logo, link to t.me/Conceptdelta, and text: 'Join Telegram for test explanations'",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Landing page background: clean white with blurred students-studying image",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Add teacher-teaching-student image near YouTube section",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Add notes image near Telegram section",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Question data model: text (optional), image (optional), 4 options each with text and image (optional), correct answer index (0-3), explanation, subject tag (Physics/Chemistry/Maths), class level (11th/12th)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Admin question creation interface with text and image upload fields, 4 option fields (text + image upload each), correct answer selector, explanation textarea, subject dropdown, class dropdown",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Create a Motoko data model for questions in backend/main.mo with fields: questionText (optional Text), questionImage (optional Text for base64), four options each containing optionText (optional Text) and optionImage (optional Text for base64), correctAnswerIndex (Nat from 0-3), explanation (Text), subject (variant type: Physics, Chemistry, Maths), and classLevel (variant type: Class11th, Class12th)",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Implement stable storage in backend/main.mo to persist questions across canister upgrades using stable variables, storing questions in a stable array or HashMap",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Create a backend API endpoint createQuestion in backend/main.mo that accepts questionText (optional), questionImage (optional base64 string), four option objects (each with optionText and optionImage), correctAnswerIndex (0-3), explanation text, subject enum, and classLevel enum, validates the input, generates a unique question ID, stores the question in stable storage, and returns the question ID",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Add role-based authorization to the createQuestion endpoint so only authenticated admin users can create questions, using Internet Identity principal to verify admin status",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Create a Motoko data model in backend/main.mo for Full Syllabus Mock Tests with fields: testId (unique identifier), testName (Text), createdAt (timestamp), section1 configuration (duration 90 minutes, subjects Physics and Chemistry, marks per question 1), section2 configuration (duration 90 minutes, subject Maths, marks per question 2), and status (active/inactive)",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Implement stable storage in backend/main.mo for Full Syllabus Mock Tests using stable variables, storing tests in a stable HashMap or array to persist across canister upgrades",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Create a backend API endpoint createFullSyllabusTest in backend/main.mo that accepts testName (Text), validates input, generates a unique test ID, creates a test with pre-configured section1 (90min Physics+Chemistry, 1 mark each) and section2 (90min Maths, 2 marks each), stores it in stable storage, and returns the test ID",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Add role-based authorization to the createFullSyllabusTest endpoint so only authenticated admin users can create Full Syllabus Tests, using Internet Identity principal to verify admin status via the existing access control integration",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Create a backend API endpoint getFullSyllabusTests in backend/main.mo that returns a list of all Full Syllabus Mock Tests with their IDs, names, section configurations, creation timestamps, and status",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Create a backend API endpoint assignQuestionsToTest in backend/main.mo that accepts testId and arrays of questionIds for section1 (Physics and Chemistry questions) and section2 (Maths questions), validates that the questions exist and match the section subjects, associates the questions with the test, and returns success confirmation",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Add admin role-based authorization to the assignQuestionsToTest endpoint so only authenticated admin users can assign questions to Full Syllabus Tests",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Concept Delta",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

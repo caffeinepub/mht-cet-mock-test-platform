@@ -1,0 +1,125 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-create-a-react-query-hook-usefullsyllabustestqueries-in-frontend-src-hooks-usequeries-ts-that-provides-functions-to-fetch-all-full-syllabus-tests-usefullsyllabustests-and-fetch-a-single-test-by-id-with-its-assigned-questions-usefullsyllabustestbyid",
+      "featureTitle": "Create a React Query hook useFullSyllabusTestQueries in frontend/src/hooks/useQueries.ts that provides functions to fetch all Full Syllabus Tests (useFullSyllabusTests) and fetch a single test by ID with its assigned questions (useFullSyllabusTestById)",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-28"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-react-query-mutation-hook-usefullsyllabustestmutations-in-a-new-file-frontend-src-hooks-usefullsyllabustestmutations-ts-that-provides-functions-to-create-a-new-full-syllabus-test-createfullsyllabustest-and-assign-questions-to-a-test-assignquestionstotest-with-query-invalidation-on-success",
+      "featureTitle": "Create a React Query mutation hook useFullSyllabusTestMutations in a new file frontend/src/hooks/useFullSyllabusTestMutations.ts that provides functions to create a new Full Syllabus Test (createFullSyllabusTest) and assign questions to a test (assignQuestionsToTest), with query invalidation on success",
+      "files": [
+        "frontend/src/hooks/useFullSyllabusTestMutations.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-29"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-an-admin-full-syllabus-test-creation-page-component-in-frontend-src-pages-adminfullsyllabustestcreate-tsx-with-a-form-containing-test-name-input-field-two-question-selection-sections-section-1-for-physics-chemistry-section-2-for-maths-where-each-section-displays-available-questions-filtered-by-subject-with-checkboxes-for-selection-and-a-submit-button-that-creates-the-test-and-assigns-selected-questions",
+      "featureTitle": "Create an admin Full Syllabus Test creation page component in frontend/src/pages/AdminFullSyllabusTestCreate.tsx with a form containing test name input field, two question selection sections (Section 1 for Physics+Chemistry, Section 2 for Maths), where each section displays available questions filtered by subject with checkboxes for selection, and a submit button that creates the test and assigns selected questions",
+      "files": [
+        "frontend/src/pages/AdminFullSyllabusTestCreate.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-30"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-route-for-the-admin-full-syllabus-test-creation-page-in-frontend-src-routetree-tsx-at-path-admin-tests-full-syllabus-create-accessible-only-when-user-is-authenticated-with-admin-role",
+      "featureTitle": "Add a route for the admin Full Syllabus Test creation page in frontend/src/routeTree.tsx at path '/admin/tests/full-syllabus/create', accessible only when user is authenticated with admin role",
+      "files": [
+        "frontend/src/routeTree.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-31"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-create-full-syllabus-test-button-or-navigation-link-in-the-admindashboard-tsx-component-under-the-test-management-tab-that-navigates-to-the-full-syllabus-test-creation-page-at-admin-tests-full-syllabus-create",
+      "featureTitle": "Add a 'Create Full Syllabus Test' button or navigation link in the AdminDashboard.tsx component under the Test Management tab that navigates to the Full Syllabus Test creation page at /admin/tests/full-syllabus/create",
+      "files": [
+        "frontend/src/pages/AdminDashboard.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-32"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-studentdashboard-tsx-available-tests-section-to-fetch-and-display-full-syllabus-mock-tests-using-the-usefullsyllabustests-hook-showing-test-name-section-configurations-section-1-90min-physics-chemistry-section-2-90min-maths-and-a-start-test-button-for-each-test",
+      "featureTitle": "Update the StudentDashboard.tsx available tests section to fetch and display Full Syllabus Mock Tests using the useFullSyllabusTests hook, showing test name, section configurations (Section 1: 90min Physics+Chemistry, Section 2: 90min Maths), and a 'Start Test' button for each test",
+      "files": [
+        "frontend/src/pages/StudentDashboard.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-33"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

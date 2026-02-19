@@ -1,0 +1,275 @@
+{
+  "kind": "build_request",
+  "title": "Implement Full Syllabus Test Structure with Two-Section Format",
+  "projectName": "Concept Delta",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-21",
+      "text": "Create a Motoko data model in backend/main.mo for Full Syllabus Mock Tests with fields: testId (unique identifier), testName (Text), createdAt (timestamp), section1 configuration (duration 90 minutes, subjects Physics and Chemistry, marks per question 1), section2 configuration (duration 90 minutes, subject Maths, marks per question 2), and status (active/inactive)",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Full Syllabus Test type is defined as a variant or record type in Motoko",
+        "Section 1 is configured for Physics + Chemistry with 90-minute duration and 1 mark per question",
+        "Section 2 is configured for Maths with 90-minute duration and 2 marks per question",
+        "Test model includes unique ID, name, creation timestamp, and active/inactive status"
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "text": "Implement stable storage in backend/main.mo for Full Syllabus Mock Tests using stable variables, storing tests in a stable HashMap or array to persist across canister upgrades",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Full Syllabus Tests are stored in stable memory",
+        "Test data persists across canister upgrades",
+        "Stable variable follows existing patterns used for questions storage"
+      ]
+    },
+    {
+      "id": "REQ-23",
+      "text": "Create a backend API endpoint createFullSyllabusTest in backend/main.mo that accepts testName (Text), validates input, generates a unique test ID, creates a test with pre-configured section1 (90min Physics+Chemistry, 1 mark each) and section2 (90min Maths, 2 marks each), stores it in stable storage, and returns the test ID",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "API endpoint createFullSyllabusTest accepts test name parameter",
+        "Endpoint automatically configures two sections with correct subjects, durations, and marks",
+        "Unique test ID is generated and returned on success",
+        "Test is persisted to stable storage",
+        "Input validation ensures test name is not empty"
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "text": "Add role-based authorization to the createFullSyllabusTest endpoint so only authenticated admin users can create Full Syllabus Tests, using Internet Identity principal to verify admin status via the existing access control integration",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Only admin principals can call createFullSyllabusTest",
+        "Non-admin users receive an authorization error",
+        "Authorization uses the existing access control pattern from createQuestion"
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "text": "Create a backend API endpoint getFullSyllabusTests in backend/main.mo that returns a list of all Full Syllabus Mock Tests with their IDs, names, section configurations, creation timestamps, and status",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Endpoint returns array of Full Syllabus Test objects",
+        "Each test includes ID, name, section1/section2 configs, timestamp, and status",
+        "Endpoint is callable by both authenticated and unauthenticated users"
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "text": "Create a backend API endpoint assignQuestionsToTest in backend/main.mo that accepts testId and arrays of questionIds for section1 (Physics and Chemistry questions) and section2 (Maths questions), validates that the questions exist and match the section subjects, associates the questions with the test, and returns success confirmation",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Endpoint accepts testId and two arrays of questionIds (section1QuestionIds, section2QuestionIds)",
+        "Validates that section1 questions are Physics or Chemistry only",
+        "Validates that section2 questions are Maths only",
+        "Validates that all questionIds exist in the question store",
+        "Updates the test record to include the assigned question IDs",
+        "Returns error if validation fails"
+      ]
+    },
+    {
+      "id": "REQ-27",
+      "text": "Add admin role-based authorization to the assignQuestionsToTest endpoint so only authenticated admin users can assign questions to Full Syllabus Tests",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Only admin principals can call assignQuestionsToTest",
+        "Non-admin users receive an authorization error"
+      ]
+    },
+    {
+      "id": "REQ-28",
+      "text": "Create a React Query hook useFullSyllabusTestQueries in frontend/src/hooks/useQueries.ts that provides functions to fetch all Full Syllabus Tests (useFullSyllabusTests) and fetch a single test by ID with its assigned questions (useFullSyllabusTestById)",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "useFullSyllabusTests hook fetches and returns array of Full Syllabus Tests",
+        "useFullSyllabusTestById hook accepts testId parameter and returns test details with assigned questions",
+        "Both hooks use React Query for caching and state management",
+        "Hooks integrate with the backend actor from useActor"
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "text": "Create a React Query mutation hook useFullSyllabusTestMutations in a new file frontend/src/hooks/useFullSyllabusTestMutations.ts that provides functions to create a new Full Syllabus Test (createFullSyllabusTest) and assign questions to a test (assignQuestionsToTest), with query invalidation on success",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "createFullSyllabusTest mutation accepts test name and calls backend API",
+        "assignQuestionsToTest mutation accepts testId, section1QuestionIds, section2QuestionIds and calls backend API",
+        "Both mutations invalidate relevant queries on success",
+        "Error handling is implemented for failed mutations"
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "text": "Create an admin Full Syllabus Test creation page component in frontend/src/pages/AdminFullSyllabusTestCreate.tsx with a form containing test name input field, two question selection sections (Section 1 for Physics+Chemistry, Section 2 for Maths), where each section displays available questions filtered by subject with checkboxes for selection, and a submit button that creates the test and assigns selected questions",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Page includes authentication guard requiring admin role",
+        "Form has test name input field",
+        "Section 1 displays Physics and Chemistry questions with checkboxes",
+        "Section 2 displays Maths questions with checkboxes",
+        "Questions are fetched from backend and filtered by subject",
+        "Submit button creates test and assigns selected questions using the mutation hooks",
+        "Success message displays the created test ID",
+        "Error messages display for validation failures or API errors"
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "text": "Add a route for the admin Full Syllabus Test creation page in frontend/src/routeTree.tsx at path '/admin/tests/full-syllabus/create', accessible only when user is authenticated with admin role",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Route '/admin/tests/full-syllabus/create' is added to route tree",
+        "Route requires authentication",
+        "Route redirects non-admin users to appropriate page"
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "text": "Add a 'Create Full Syllabus Test' button or navigation link in the AdminDashboard.tsx component under the Test Management tab that navigates to the Full Syllabus Test creation page at /admin/tests/full-syllabus/create",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Button or link appears in the Test Management tab of AdminDashboard",
+        "Clicking navigates to /admin/tests/full-syllabus/create",
+        "Button styling is consistent with existing admin interface"
+      ]
+    },
+    {
+      "id": "REQ-33",
+      "text": "Update the StudentDashboard.tsx available tests section to fetch and display Full Syllabus Mock Tests using the useFullSyllabusTests hook, showing test name, section configurations (Section 1: 90min Physics+Chemistry, Section 2: 90min Maths), and a 'Start Test' button for each test",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "start step 2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Available tests section fetches Full Syllabus Tests from backend",
+        "Each test displays name and section details (subjects, duration, marks)",
+        "Start Test button is displayed for each active test",
+        "Empty state message displays when no tests are available",
+        "Loading state is shown while fetching tests"
+      ]
+    }
+  ],
+  "constraints": [
+    "Maintain single-actor architecture with all Motoko logic in backend/main.mo",
+    "Use existing access control patterns for admin authorization",
+    "Section 1 must always be 90 minutes with Physics and Chemistry questions at 1 mark each",
+    "Section 2 must always be 90 minutes with Maths questions at 2 marks each",
+    "Do not modify immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui"
+  ],
+  "nonGoals": [
+    "Chapter-wise test implementation (separate step)",
+    "Test-taking interface implementation (separate step)",
+    "Result page implementation (separate step)",
+    "Leaderboard integration (separate step)",
+    "PDF export functionality (separate step)",
+    "YouTube subscription gate (separate step)"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
