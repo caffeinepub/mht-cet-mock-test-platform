@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { FullSyllabusTest, Question, UserProfile, TestAttempt, ChapterWiseTestDetails, LeaderboardEntry } from '../backend';
+import type { FullSyllabusTest, Question, UserProfile, TestAttempt, ChapterWiseTestDetails, LeaderboardEntry, UserRole__1 } from '../backend';
 
 // Full Syllabus Test Hooks
 export function useFullSyllabusTests() {
@@ -100,6 +100,29 @@ export function useGetCallerUserProfile() {
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getCallerUserProfile();
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
+// User Role Hook - Fixed to use correct UserRole__1 type
+export function useGetCallerUserRole() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  const query = useQuery<UserRole__1>({
+    queryKey: ['currentUserRole'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      const role = await actor.getCallerUserRole();
+      console.log('useGetCallerUserRole - Backend returned role:', role);
+      return role;
     },
     enabled: !!actor && !actorFetching,
     retry: false,

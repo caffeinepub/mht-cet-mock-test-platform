@@ -89,11 +89,15 @@ export enum Subject {
 }
 export enum UserRole {
     admin = "admin",
+    student = "student"
+}
+export enum UserRole__1 {
+    admin = "admin",
     user = "user",
     guest = "guest"
 }
 export interface backendInterface {
-    assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    assignCallerUserRole(user: Principal, role: UserRole__1): Promise<void>;
     assignQuestionsToChapterWiseTest(testId: bigint, questionIds: Array<bigint>): Promise<void>;
     assignQuestionsToTest(testId: bigint, section1QuestionIds: Array<bigint>, section2QuestionIds: Array<bigint>): Promise<void>;
     createChapterWiseTest(testName: string, marksPerQuestion: bigint, durationMinutes: bigint): Promise<bigint>;
@@ -102,7 +106,7 @@ export interface backendInterface {
     deleteQuestion(id: bigint): Promise<void>;
     getAllQuestions(): Promise<Array<Question>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
-    getCallerUserRole(): Promise<UserRole>;
+    getCallerUserRole(): Promise<UserRole__1>;
     getChapterWiseTestById(testId: bigint): Promise<{
         __kind__: "ok";
         ok: ChapterWiseTestDetails;
@@ -119,6 +123,7 @@ export interface backendInterface {
     getTestAttempt(attemptId: bigint): Promise<TestAttempt | null>;
     getTotalQuestions(): Promise<bigint>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getUserRole(): Promise<UserRole>;
     getUserTestAttempts(userId: Principal): Promise<Array<TestAttempt>>;
     isCallerAdmin(): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;

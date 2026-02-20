@@ -1,83 +1,73 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T06:18:32.074Z",
+  "generatedAt": "2026-02-20T07:14:44.312Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
+    "total": 4,
     "implemented": 3,
     "items": [
       {
-        "id": "REQ-91",
-        "summary": "Update the AdminQuestionCreate.tsx form to make the explanation textarea field optional instead of required, removing any validation that enforces explanation text presence",
+        "id": "REQ-107",
+        "summary": "Update the Navbar.tsx component to ensure the 'Admin' navigation link renders correctly for authenticated users with admin role by verifying the useGetCallerUserRole hook is properly invoked and its return value is correctly checked against 'admin' string, fixing any conditional rendering logic that may be preventing the Admin link from displaying",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/AdminQuestionCreate.tsx",
-          "frontend/src/hooks/useQuestionMutations.ts"
+          "frontend/src/components/Navbar.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/AdminQuestionCreate.tsx",
-          "frontend/src/hooks/useQuestionMutations.ts"
+          "frontend/src/components/Navbar.tsx"
         ]
       },
       {
-        "id": "REQ-92",
-        "summary": "Update the Question data type in backend/main.mo to make the explanation field optional by changing its type from Text to ?Text",
+        "id": "REQ-108",
+        "summary": "Debug and fix the useGetCallerUserRole hook in frontend/src/hooks/useQueries.ts to ensure it correctly fetches and returns the user role from the backend getUserRole endpoint, handling the response properly and returning 'admin' for admin users, 'student' for students, or null/undefined for unauthenticated users",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-109",
+        "summary": "Verify and fix the backend getUserRole endpoint in backend/main.mo to ensure it correctly identifies admin users by checking the caller's principal against the stored admin principals list or admin token validation logic, returning the correct role value ('admin' or 'student') based on the authorization check",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-93",
-        "summary": "Update the createQuestion backend endpoint in backend/main.mo to accept optional explanation parameter and store null when no explanation is provided",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-94",
-        "summary": "Update ResultPage.tsx and TestInterface.tsx to handle questions with null/missing explanations gracefully by hiding the explanation section or displaying a placeholder message when no explanation exists",
+        "id": "REQ-110",
+        "summary": "Add comprehensive console logging to the Navbar.tsx component that logs the authentication state from useInternetIdentity, the user role value from useGetCallerUserRole, and the conditional rendering decision for the Admin link to help diagnose why the Admin link is not appearing for admin users",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/ResultPage.tsx",
-          "frontend/src/pages/TestInterface.tsx"
+          "frontend/src/components/Navbar.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/ResultPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-95",
-        "summary": "Update the PDF export utility in frontend/src/utils/pdfExport.ts to handle questions with null/missing explanations by omitting the explanation row in the question breakdown section when no explanation is provided",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/pdfExport.ts"
+          "frontend/src/components/Navbar.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/Navbar.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useQuestionMutations.ts",
+    "frontend/src/pages/AdminChapterWiseTestCreate.tsx",
+    "frontend/src/pages/AdminDashboard.tsx",
+    "frontend/src/pages/AdminFullSyllabusTestCreate.tsx",
     "frontend/src/pages/AdminQuestionCreate.tsx",
-    "frontend/src/pages/ResultPage.tsx",
-    "frontend/src/utils/pdfExport.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

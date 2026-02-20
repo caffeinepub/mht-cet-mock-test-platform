@@ -19,7 +19,7 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'success' : IDL.Opt(IDL.Bool),
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
-export const UserRole = IDL.Variant({
+export const UserRole__1 = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
   'guest' : IDL.Null,
@@ -102,6 +102,10 @@ export const TestAttempt = IDL.Record({
   'singleSectionAnswers' : IDL.Vec(Answer),
   'section2StartTime' : IDL.Opt(IDL.Int),
 });
+export const UserRole = IDL.Variant({
+  'admin' : IDL.Null,
+  'student' : IDL.Null,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -131,7 +135,7 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
   'assignQuestionsToChapterWiseTest' : IDL.Func(
       [IDL.Nat, IDL.Vec(IDL.Nat)],
       [],
@@ -164,7 +168,7 @@ export const idlService = IDL.Service({
   'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
   'getAllQuestions' : IDL.Func([], [IDL.Vec(Question)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
-  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
   'getChapterWiseTestById' : IDL.Func(
       [IDL.Nat],
       [
@@ -196,6 +200,7 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'getUserRole' : IDL.Func([], [UserRole], ['query']),
   'getUserTestAttempts' : IDL.Func(
       [IDL.Principal],
       [IDL.Vec(TestAttempt)],
@@ -226,7 +231,7 @@ export const idlFactory = ({ IDL }) => {
     'success' : IDL.Opt(IDL.Bool),
     'topped_up_amount' : IDL.Opt(IDL.Nat),
   });
-  const UserRole = IDL.Variant({
+  const UserRole__1 = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
@@ -309,6 +314,7 @@ export const idlFactory = ({ IDL }) => {
     'singleSectionAnswers' : IDL.Vec(Answer),
     'section2StartTime' : IDL.Opt(IDL.Int),
   });
+  const UserRole = IDL.Variant({ 'admin' : IDL.Null, 'student' : IDL.Null });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -338,7 +344,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
     'assignQuestionsToChapterWiseTest' : IDL.Func(
         [IDL.Nat, IDL.Vec(IDL.Nat)],
         [],
@@ -371,7 +377,7 @@ export const idlFactory = ({ IDL }) => {
     'deleteQuestion' : IDL.Func([IDL.Nat], [], []),
     'getAllQuestions' : IDL.Func([], [IDL.Vec(Question)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
-    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
     'getChapterWiseTestById' : IDL.Func(
         [IDL.Nat],
         [
@@ -411,6 +417,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'getUserRole' : IDL.Func([], [UserRole], ['query']),
     'getUserTestAttempts' : IDL.Func(
         [IDL.Principal],
         [IDL.Vec(TestAttempt)],

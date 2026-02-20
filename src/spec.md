@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Make the explanation field optional when creating questions in the admin interface.
+**Goal:** Fix the Admin panel link visibility in the navigation bar for authenticated admin users.
 
 **Planned changes:**
-- Update the Question data type to make explanation field optional (?Text)
-- Remove validation requiring explanation in the question creation form
-- Update the createQuestion backend endpoint to accept null explanations
-- Handle null explanations gracefully in result display and PDF export
+- Debug and fix the useGetCallerUserRole hook to correctly fetch and return user roles from the backend
+- Verify the backend getUserRole endpoint correctly identifies admin users and returns the appropriate role
+- Fix the conditional rendering logic in Navbar.tsx to properly display the Admin link for admin users
+- Add console logging to diagnose the authentication state, user role value, and conditional rendering decisions
 
-**User-visible outcome:** Admins can create questions without providing an explanation. The explanation field is now marked as optional in the form, and questions without explanations display properly in results and PDF exports.
+**User-visible outcome:** Authenticated admin users will see the "Admin" navigation link in the menu bar (both desktop and mobile), while non-admin users continue to see only their appropriate navigation options.

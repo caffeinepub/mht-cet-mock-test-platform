@@ -1,109 +1,96 @@
 {
   "kind": "build_request",
-  "title": "Make explanation field optional in question creation",
-  "priority": "normal",
+  "title": "Fix Admin panel visibility in navbar for authenticated admin users",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-91",
-      "text": "Update the AdminQuestionCreate.tsx form to make the explanation textarea field optional instead of required, removing any validation that enforces explanation text presence",
+      "id": "REQ-107",
+      "text": "Update the Navbar.tsx component to ensure the 'Admin' navigation link renders correctly for authenticated users with admin role by verifying the useGetCallerUserRole hook is properly invoked and its return value is correctly checked against 'admin' string, fixing any conditional rendering logic that may be preventing the Admin link from displaying",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-latest"
         ],
         "quotes": [
-          "explanation not comepalsary"
+          "i am admin and i not see admin panel option in manue bar"
         ]
       },
       "acceptanceCriteria": [
-        "The explanation field in the question creation form is marked as optional",
-        "Form validation does not require explanation text to be provided",
-        "Questions can be successfully created without providing an explanation",
-        "The form UI indicates that explanation is optional (e.g., with '(optional)' label)"
+        "Admin users can see the 'Admin' navigation link in the menu bar when authenticated",
+        "The Admin link is visible in both desktop and mobile navigation menus for admin role users",
+        "Non-admin users continue to not see the Admin link",
+        "The useGetCallerUserRole hook correctly returns 'admin' for admin users and the conditional rendering logic properly handles this value"
       ]
     },
     {
-      "id": "REQ-92",
-      "text": "Update the Question data type in backend/main.mo to make the explanation field optional by changing its type from Text to ?Text",
+      "id": "REQ-108",
+      "text": "Debug and fix the useGetCallerUserRole hook in frontend/src/hooks/useQueries.ts to ensure it correctly fetches and returns the user role from the backend getUserRole endpoint, handling the response properly and returning 'admin' for admin users, 'student' for students, or null/undefined for unauthenticated users",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "i am admin and i not see admin panel option in manue bar"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The useGetCallerUserRole hook successfully calls the backend getUserRole endpoint when user is authenticated",
+        "The hook correctly transforms the backend response into a usable role string ('admin' or 'student')",
+        "The hook returns null or undefined when user is not authenticated",
+        "React Query caching and invalidation work correctly for role data"
+      ]
+    },
+    {
+      "id": "REQ-109",
+      "text": "Verify and fix the backend getUserRole endpoint in backend/main.mo to ensure it correctly identifies admin users by checking the caller's principal against the stored admin principals list or admin token validation logic, returning the correct role value ('admin' or 'student') based on the authorization check",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-latest"
         ],
         "quotes": [
-          "explanation not comepalsary"
+          "i am admin and i not see admin panel option in manue bar"
         ]
       },
       "acceptanceCriteria": [
-        "The Question type's explanation field is defined as ?Text instead of Text",
-        "The backend accepts null/empty explanation values when creating questions",
-        "Existing questions with explanations remain unaffected"
+        "The getUserRole endpoint correctly identifies authenticated admin users and returns 'admin' role",
+        "The endpoint returns 'student' role for authenticated non-admin users",
+        "The endpoint handles unauthenticated calls appropriately",
+        "Admin principal checking or token validation logic works correctly"
       ]
     },
     {
-      "id": "REQ-93",
-      "text": "Update the createQuestion backend endpoint in backend/main.mo to accept optional explanation parameter and store null when no explanation is provided",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "explanation not comepalsary"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The createQuestion endpoint accepts explanation as an optional parameter",
-        "Questions are successfully created when explanation is null or empty",
-        "The stored question has null explanation when none is provided"
-      ]
-    },
-    {
-      "id": "REQ-94",
-      "text": "Update ResultPage.tsx and TestInterface.tsx to handle questions with null/missing explanations gracefully by hiding the explanation section or displaying a placeholder message when no explanation exists",
+      "id": "REQ-110",
+      "text": "Add comprehensive console logging to the Navbar.tsx component that logs the authentication state from useInternetIdentity, the user role value from useGetCallerUserRole, and the conditional rendering decision for the Admin link to help diagnose why the Admin link is not appearing for admin users",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-latest"
         ],
         "quotes": [
-          "explanation not comepalsary"
+          "i am admin and i not see admin panel option in manue bar"
         ]
       },
       "acceptanceCriteria": [
-        "Questions without explanations display properly in the result review section",
-        "No explanation text is shown when the field is null or empty",
-        "The UI remains visually consistent whether explanation exists or not"
-      ]
-    },
-    {
-      "id": "REQ-95",
-      "text": "Update the PDF export utility in frontend/src/utils/pdfExport.ts to handle questions with null/missing explanations by omitting the explanation row in the question breakdown section when no explanation is provided",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "explanation not comepalsary"
-        ]
-      },
-      "acceptanceCriteria": [
-        "PDF generation succeeds for tests containing questions without explanations",
-        "The explanation section is omitted from the PDF for questions with null explanation",
-        "PDF layout remains properly formatted when explanations are missing"
+        "Console logs show the isAuthenticated value when Navbar renders",
+        "Console logs show the userRole value returned from useGetCallerUserRole hook",
+        "Console logs show whether the Admin link conditional rendering evaluates to true or false",
+        "Logs help identify where in the chain the admin role check is failing"
       ]
     }
   ],
   "constraints": [
-    "Maintain backward compatibility with existing questions that have explanations",
-    "Do not modify the single-actor backend architecture",
-    "Do not edit immutable frontend paths (useInternetIdentity, useActor, main.tsx, components/ui)"
+    "Do not modify the useInternetIdentity.ts or useInternetIdentity.tsx hooks as they are in immutablePaths",
+    "Do not modify the useActor.ts hook as it is in immutablePaths",
+    "Maintain backward compatibility with existing student user navigation experience",
+    "Preserve the existing conditional rendering pattern for role-based UI elements"
   ],
   "nonGoals": [
-    "Making other question fields optional",
-    "Changing the question creation workflow beyond explanation optionality",
-    "Modifying the question data structure beyond the explanation field"
+    "Redesigning the navigation menu layout or styling",
+    "Adding new admin features or dashboard functionality",
+    "Modifying the authentication flow or Internet Identity integration",
+    "Changing how admin roles are assigned to users"
   ],
   "imageRequirements": {
     "required": [],

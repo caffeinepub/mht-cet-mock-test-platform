@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useAllQuestions } from '../hooks/useQueries';
+import { useAllQuestions, useGetCallerUserRole } from '../hooks/useQueries';
 import { useCreateChapterWiseTest, useAssignQuestionsToChapterWiseTest } from '../hooks/useChapterWiseTestMutations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ArrowLeft, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Question } from '../backend';
+import { UserRole__1 } from '../backend';
 
 export default function AdminChapterWiseTestCreate() {
   const { identity, isInitializing } = useInternetIdentity();
@@ -18,6 +20,7 @@ export default function AdminChapterWiseTestCreate() {
   const { data: allQuestions = [], isLoading: questionsLoading } = useAllQuestions();
   const createTest = useCreateChapterWiseTest();
   const assignQuestions = useAssignQuestionsToChapterWiseTest();
+  const { data: userRole, isLoading: roleLoading, isFetched: roleFetched } = useGetCallerUserRole();
 
   const [testName, setTestName] = useState('');
   const [marksPerQuestion, setMarksPerQuestion] = useState(1);
@@ -31,6 +34,13 @@ export default function AdminChapterWiseTestCreate() {
       navigate({ to: '/' });
     }
   }, [identity, isInitializing, navigate]);
+
+  // Redirect non-admin users after role is fetched
+  useEffect(() => {
+    if (roleFetched && userRole !== UserRole__1.admin) {
+      navigate({ to: '/' });
+    }
+  }, [roleFetched, userRole, navigate]);
 
   const handleQuestionToggle = (questionId: string) => {
     setSelectedQuestions(prev => {
@@ -120,7 +130,7 @@ export default function AdminChapterWiseTestCreate() {
     }
   };
 
-  if (isInitializing || questionsLoading) {
+  if (isInitializing || questionsLoading || roleLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
@@ -133,6 +143,27 @@ export default function AdminChapterWiseTestCreate() {
 
   if (!identity) {
     return null;
+  }
+
+  // Show access denied if not admin
+  const isAdmin = userRole === UserRole__1.admin;
+  if (roleFetched && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-background py-8">
+        <div className="container mx-auto max-w-4xl px-4">
+          <Alert variant="destructive" className="mb-6">
+            <ShieldAlert className="h-5 w-5" />
+            <AlertTitle className="text-lg font-semibold">Access Denied</AlertTitle>
+            <AlertDescription className="mt-2">
+              You do not have admin permissions to access this page.
+            </AlertDescription>
+          </Alert>
+          <Button onClick={() => navigate({ to: '/' })} variant="outline">
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -183,10 +214,9 @@ export default function AdminChapterWiseTestCreate() {
                 <Label htmlFor="testName">Test Name *</Label>
                 <Input
                   id="testName"
-                  placeholder="e.g., 11th Physics - Kinematics"
+                  placeholder="e.g., Chapter 1: Kinematics Test"
                   value={testName}
                   onChange={(e) => setTestName(e.target.value)}
-                  required
                 />
               </div>
 
@@ -200,9 +230,7 @@ export default function AdminChapterWiseTestCreate() {
                     max="10"
                     value={marksPerQuestion}
                     onChange={(e) => setMarksPerQuestion(parseInt(e.target.value) || 1)}
-                    required
                   />
-                  <p className="text-xs text-muted-foreground">Between 1 and 10 marks</p>
                 </div>
 
                 <div className="space-y-2">
@@ -214,9 +242,7 @@ export default function AdminChapterWiseTestCreate() {
                     max="180"
                     value={durationMinutes}
                     onChange={(e) => setDurationMinutes(parseInt(e.target.value) || 30)}
-                    required
                   />
-                  <p className="text-xs text-muted-foreground">Between 10 and 180 minutes</p>
                 </div>
               </div>
             </CardContent>
@@ -227,59 +253,54 @@ export default function AdminChapterWiseTestCreate() {
             <CardHeader>
               <CardTitle>Select Questions</CardTitle>
               <CardDescription>
-                Choose questions from any subject or class level ({selectedQuestions.size} selected)
+                Choose questions from the question bank ({selectedQuestions.size} selected)
               </CardDescription>
             </CardHeader>
             <CardContent>
               {allQuestions.length === 0 ? (
-                <div className="py-12 text-center">
-                  <p className="text-muted-foreground">No questions available. Please create questions first.</p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() => navigate({ to: '/admin/questions/create' })}
-                  >
-                    Create Questions
-                  </Button>
+                <div className="py-8 text-center text-muted-foreground">
+                  No questions available. Create questions first.
                 </div>
               ) : (
-                <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
                   {allQuestions.map((question) => (
                     <div
                       key={question.id.toString()}
-                      className="flex items-start gap-3 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
+                      className="flex items-start space-x-3 rounded-lg border p-4 hover:bg-accent/50"
                     >
                       <Checkbox
-                        id={`question-${question.id}`}
+                        id={`question-${question.id.toString()}`}
                         checked={selectedQuestions.has(question.id.toString())}
                         onCheckedChange={() => handleQuestionToggle(question.id.toString())}
                       />
-                      <Label
-                        htmlFor={`question-${question.id}`}
-                        className="flex-1 cursor-pointer space-y-2"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-medium">
-                            {question.questionText || 'Question (with image)'}
-                          </p>
-                          <div className="flex gap-2 shrink-0">
+                      <div className="flex-1 space-y-2">
+                        <Label
+                          htmlFor={`question-${question.id.toString()}`}
+                          className="cursor-pointer font-normal"
+                        >
+                          <div className="mb-2 flex items-center gap-2">
                             <Badge variant="outline">
                               {getSubjectLabel(question.subject)}
                             </Badge>
                             <Badge variant="secondary">
-                              Class {getClassLabel(question.classLevel)}
+                              {getClassLabel(question.classLevel)}
                             </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              ID: {question.id.toString()}
+                            </span>
                           </div>
-                        </div>
-                        {question.questionImage && (
-                          <img
-                            src={question.questionImage}
-                            alt="Question preview"
-                            className="max-w-xs rounded border"
-                          />
-                        )}
-                      </Label>
+                          {question.questionText && (
+                            <p className="text-sm">{question.questionText}</p>
+                          )}
+                          {question.questionImage && (
+                            <img
+                              src={question.questionImage}
+                              alt="Question"
+                              className="mt-2 max-h-32 rounded border"
+                            />
+                          )}
+                        </Label>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -287,7 +308,6 @@ export default function AdminChapterWiseTestCreate() {
             </CardContent>
           </Card>
 
-          {/* Submit Button */}
           <div className="flex justify-end gap-4">
             <Button
               type="button"
@@ -298,11 +318,11 @@ export default function AdminChapterWiseTestCreate() {
             </Button>
             <Button
               type="submit"
-              disabled={createTest.isPending || assignQuestions.isPending || allQuestions.length === 0}
+              disabled={createTest.isPending || assignQuestions.isPending}
             >
               {createTest.isPending || assignQuestions.isPending
                 ? 'Creating Test...'
-                : 'Create Chapter-Wise Test'}
+                : 'Create Test'}
             </Button>
           </div>
         </form>

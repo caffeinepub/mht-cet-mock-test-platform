@@ -1,18 +1,17 @@
+import List "mo:core/List";
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
 import Runtime "mo:core/Runtime";
 import Array "mo:core/Array";
-import List "mo:core/List";
+import Debug "mo:core/Debug";
 import Principal "mo:core/Principal";
 import Time "mo:core/Time";
 import Iter "mo:core/Iter";
-import MixinStorage "blob-storage/Mixin";
+import Order "mo:core/Order";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Order "mo:core/Order";
-import Migration "migration";
+import MixinStorage "blob-storage/Mixin";
 
-(with migration = Migration.run)
 actor {
   // Initialize access control state
   let accessControlState = AccessControl.initState();
@@ -38,7 +37,7 @@ actor {
     questionImage : ?Text;
     options : [Option];
     correctAnswerIndex : Nat;
-    explanation : ?Text; // Changed to ?Text
+    explanation : ?Text;
     subject : Subject;
     classLevel : ClassLevel;
   };
@@ -137,6 +136,28 @@ actor {
   var nextTestAttemptId = 0;
 
   let sectionStatuses = Map.empty<Nat, TestAttemptStatus>();
+
+  public type UserRole = { #admin; #student };
+
+  public query ({ caller }) func getUserRole() : async UserRole {
+    // Authorization: Only authenticated users (not guests) can query their role
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can query their role");
+    };
+
+    let role = AccessControl.getUserRole(accessControlState, caller);
+    switch (role) {
+      case (#admin) {
+        #admin;
+      };
+      case (#user) {
+        #student;
+      };
+      case (#guest) {
+        #student;
+      };
+    };
+  };
 
   public type TestType = {
     #fullSyllabus;
@@ -316,9 +337,23 @@ actor {
     subject : Subject,
     classLevel : ClassLevel
   ) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    // Comprehensive authorization logging
+    let hasAdminPermission = AccessControl.hasPermission(accessControlState, caller, #admin);
+    let isAdminRole = AccessControl.isAdmin(accessControlState, caller);
+    let userRole = AccessControl.getUserRole(accessControlState, caller);
+
+    if (not hasAdminPermission) {
+      // Log comprehensive authorization context for debugging
+      Debug.print("=== AUTHORIZATION FAILURE: createQuestion ===");
+      Debug.print("Caller Principal: " # caller.toText());
+      Debug.print("hasPermission(#admin) result: " # debug_show(hasAdminPermission));
+      Debug.print("isAdmin() result: " # debug_show(isAdminRole));
+      Debug.print("getUserRole() result: " # debug_show(userRole));
+      Debug.print("==========================================");
+
       Runtime.trap("Unauthorized: Only admins can create questions");
     };
+
     if (options.size() != 4) {
       Runtime.trap("Exactly 4 options must be provided");
     };

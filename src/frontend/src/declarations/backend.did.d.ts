@@ -85,6 +85,8 @@ export interface TestSection {
 }
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
+  { 'student' : null };
+export type UserRole__1 = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
 export interface _CaffeineStorageCreateCertificateResult {
@@ -115,7 +117,7 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
   'assignQuestionsToChapterWiseTest' : ActorMethod<
     [bigint, Array<bigint>],
     undefined
@@ -141,7 +143,7 @@ export interface _SERVICE {
   'deleteQuestion' : ActorMethod<[bigint], undefined>,
   'getAllQuestions' : ActorMethod<[], Array<Question>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
-  'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCallerUserRole' : ActorMethod<[], UserRole__1>,
   'getChapterWiseTestById' : ActorMethod<
     [bigint],
     { 'ok' : ChapterWiseTestDetails } |
@@ -156,6 +158,7 @@ export interface _SERVICE {
   'getTestAttempt' : ActorMethod<[bigint], [] | [TestAttempt]>,
   'getTotalQuestions' : ActorMethod<[], bigint>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getUserRole' : ActorMethod<[], UserRole>,
   'getUserTestAttempts' : ActorMethod<[Principal], Array<TestAttempt>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,

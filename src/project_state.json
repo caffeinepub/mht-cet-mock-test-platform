@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 27,
+  "projectStateVersion": 35,
   "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable single section with custom duration, marks per question, and mixed subject support). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
   "architectural_notes": [
     "Motoko backend canister with stable memory for persistence",
@@ -17,9 +17,11 @@
   "known_issues": [
     "Base64 image storage may cause large canister memory usage with 1000+ questions",
     "YouTube subscription verification requires manual admin check (honor system initially)",
-    "Mobile responsiveness critical as 70%+ students use phones"
+    "Mobile responsiveness critical as 70%+ students use phones",
+    "Admin users receiving 'Unauthorized: Only admins can create questions' error even when they have admin role",
+    "Admin users not seeing Admin panel option in menu bar even with admin role assigned"
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-change-all-references-from-coepian-delta-to-concept-delta-throughout-the-application-navbar-footer-pdf-exports-branding-elements",
@@ -506,6 +508,70 @@
       "title": "Update the PDF export utility in frontend/src/utils/pdfExport.ts to handle questions with null/missing explanations by omitting the explanation row in the question breakdown section when no explanation is provided",
       "reqIds": [
         "REQ-95"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-that-the-admin-token-initialization-in-useactor-ts-is-correctly-setting-up-admin-credentials-that-can-be-validated-by-the-backend-authorization-logic",
+      "title": "Verify that the admin token initialization in useActor.ts is correctly setting up admin credentials that can be validated by the backend authorization logic",
+      "reqIds": [
+        "REQ-101"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-admin-authorization-logic-in-the-adminquestioncreate-tsx-component-to-correctly-verify-admin-role-by-checking-the-userrole-from-the-useuserrole-hook-ensuring-that-users-with-admin-role-can-access-the-question-creation-page-without-receiving-access-denied-error-showing-role-user-when-they-should-have-admin-permissions",
+      "title": "Fix the admin authorization logic in the AdminQuestionCreate.tsx component to correctly verify admin role by checking the userRole from the useUserRole hook, ensuring that users with 'admin' role can access the question creation page without receiving 'Access Denied' error showing 'Role: user' when they should have admin permissions",
+      "reqIds": [
+        "REQ-102"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-navbar-tsx-component-to-add-a-home-navigation-link-that-routes-to-the-landing-page-and-is-visible-to-all-users-authenticated-and-unauthenticated-in-the-main-navigation-menu",
+      "title": "Update the Navbar.tsx component to add a 'Home' navigation link that routes to the landing page ('/') and is visible to all users (authenticated and unauthenticated) in the main navigation menu",
+      "reqIds": [
+        "REQ-103"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-navbar-tsx-component-to-conditionally-render-the-admin-navigation-link-only-when-the-authenticated-user-has-admin-role-hiding-it-from-users-with-student-or-no-role-by-checking-the-userrole-from-useuserrole-hook",
+      "title": "Update the Navbar.tsx component to conditionally render the 'Admin' navigation link only when the authenticated user has admin role, hiding it from users with student or no role by checking the userRole from useUserRole hook",
+      "reqIds": [
+        "REQ-104"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-all-admin-related-route-components-admindashboard-tsx-adminquestioncreate-tsx-adminfullsyllabustestcreate-tsx-adminchapterwisetestcreate-tsx-to-fetch-the-user-role-using-useuserrole-hook-on-component-mount-and-redirect-to-the-landing-page-or-show-an-access-denied-message-if-the-user-does-not-have-admin-role",
+      "title": "Update all admin-related route components (AdminDashboard.tsx, AdminQuestionCreate.tsx, AdminFullSyllabusTestCreate.tsx, AdminChapterWiseTestCreate.tsx) to fetch the user role using useUserRole hook on component mount and redirect to the landing page ('/') or show an 'Access Denied' message if the user does not have admin role",
+      "reqIds": [
+        "REQ-105"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-navbar-tsx-component-to-ensure-the-admin-navigation-link-renders-correctly-for-authenticated-users-with-admin-role-by-verifying-the-usegetcalleruserrole-hook-is-properly-invoked-and-its-return-value-is-correctly-checked-against-admin-string-fixing-any-conditional-rendering-logic-that-may-be-preventing-the-admin-link-from-displaying",
+      "title": "Update the Navbar.tsx component to ensure the 'Admin' navigation link renders correctly for authenticated users with admin role by verifying the useGetCallerUserRole hook is properly invoked and its return value is correctly checked against 'admin' string, fixing any conditional rendering logic that may be preventing the Admin link from displaying",
+      "reqIds": [
+        "REQ-107"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-debug-and-fix-the-usegetcalleruserrole-hook-in-frontend-src-hooks-usequeries-ts-to-ensure-it-correctly-fetches-and-returns-the-user-role-from-the-backend-getuserrole-endpoint-handling-the-response-properly-and-returning-admin-for-admin-users-student-for-students-or-null-undefined-for-unauthenticated-users",
+      "title": "Debug and fix the useGetCallerUserRole hook in frontend/src/hooks/useQueries.ts to ensure it correctly fetches and returns the user role from the backend getUserRole endpoint, handling the response properly and returning 'admin' for admin users, 'student' for students, or null/undefined for unauthenticated users",
+      "reqIds": [
+        "REQ-108"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-comprehensive-console-logging-to-the-navbar-tsx-component-that-logs-the-authentication-state-from-useinternetidentity-the-user-role-value-from-usegetcalleruserrole-and-the-conditional-rendering-decision-for-the-admin-link-to-help-diagnose-why-the-admin-link-is-not-appearing-for-admin-users",
+      "title": "Add comprehensive console logging to the Navbar.tsx component that logs the authentication state from useInternetIdentity, the user role value from useGetCallerUserRole, and the conditional rendering decision for the Admin link to help diagnose why the Admin link is not appearing for admin users",
+      "reqIds": [
+        "REQ-110"
       ],
       "version": 1
     }
@@ -996,6 +1062,74 @@
       "summary": "Update the createQuestion backend endpoint in backend/main.mo to accept optional explanation parameter and store null when no explanation is provided",
       "reqIds": [
         "REQ-93"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-88",
+      "summary": "Update the createQuestion endpoint authorization logic in backend/main.mo to correctly verify admin role for authenticated users, ensuring that users with admin role can successfully create questions without receiving 'Unauthorized: Only admins can create questions' error",
+      "reqIds": [
+        "REQ-96"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-89",
+      "summary": "Review and fix the admin role verification logic in backend/main.mo to ensure the isAdmin function or role-checking mechanism correctly identifies authenticated admin users by their Internet Identity principal",
+      "reqIds": [
+        "REQ-97"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-90",
+      "summary": "Add detailed error logging in the createQuestion endpoint to help diagnose authorization failures by logging the caller's principal, the result of the admin check, and any relevant context when authorization is denied",
+      "reqIds": [
+        "REQ-98"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-91",
+      "summary": "Review and fix the isAdmin function or admin role verification logic in backend/main.mo to ensure it correctly identifies authenticated admin users by their Internet Identity principal when the createQuestion endpoint is called",
+      "reqIds": [
+        "REQ-99"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-92",
+      "summary": "Add comprehensive error logging in the createQuestion endpoint in backend/main.mo that logs the caller's principal, the result of the admin role check, the admin principals list (if applicable), and any other relevant authorization context when the authorization check fails",
+      "reqIds": [
+        "REQ-100"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-93",
+      "summary": "Restrict Admin Panel navigation/UI visibility to admin users only, hiding admin routes from non-admin users",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-94",
+      "summary": "Add 'Home' option to the navigation menu bar",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-99",
+      "summary": "Review and verify the backend getUserRole endpoint logic in backend/main.mo to ensure it correctly identifies and returns 'admin' role for authenticated users who have been granted admin permissions, checking against stored admin principals or admin token validation",
+      "reqIds": [
+        "REQ-106"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-102",
+      "summary": "Verify and fix the backend getUserRole endpoint in backend/main.mo to ensure it correctly identifies admin users by checking the caller's principal against the stored admin principals list or admin token validation logic, returning the correct role value ('admin' or 'student') based on the authorization check",
+      "reqIds": [
+        "REQ-109"
       ],
       "status": "pending"
     }

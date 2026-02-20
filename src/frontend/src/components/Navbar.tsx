@@ -1,13 +1,32 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useGetCallerUserRole } from '../hooks/useQueries';
 import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { UserRole__1 } from '../backend';
 
 export default function Navbar() {
   const { identity, login, clear, isLoggingIn } = useInternetIdentity();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Fetch user role to conditionally show Admin link
+  const { data: userRole, isLoading: roleLoading, error: roleError } = useGetCallerUserRole();
+  const isAuthenticated = !!identity;
+  const isAdmin = userRole === UserRole__1.admin;
+
+  // Diagnostic logging for debugging admin link visibility
+  useEffect(() => {
+    console.log('=== Navbar Admin Link Debug ===');
+    console.log('isAuthenticated:', isAuthenticated);
+    console.log('userRole:', userRole);
+    console.log('roleLoading:', roleLoading);
+    console.log('roleError:', roleError);
+    console.log('isAdmin (userRole === UserRole__1.admin):', isAdmin);
+    console.log('Should show Admin link:', isAuthenticated && !roleLoading && isAdmin);
+    console.log('==============================');
+  }, [isAuthenticated, userRole, roleLoading, roleError, isAdmin]);
 
   const handleLogin = () => {
     login();
@@ -30,6 +49,12 @@ export default function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-6 md:flex">
+          <Link
+            to="/"
+            className="text-sm font-medium transition-colors hover:text-white/80"
+          >
+            Home
+          </Link>
           {identity ? (
             <>
               <Link
@@ -38,12 +63,14 @@ export default function Navbar() {
               >
                 Dashboard
               </Link>
-              <Link
-                to="/admin"
-                className="text-sm font-medium transition-colors hover:text-white/80"
-              >
-                Admin
-              </Link>
+              {!roleLoading && isAdmin && (
+                <Link
+                  to="/admin"
+                  className="text-sm font-medium transition-colors hover:text-white/80"
+                >
+                  Admin
+                </Link>
+              )}
               <Button
                 onClick={handleLogout}
                 variant="outline"
@@ -76,6 +103,13 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="border-t border-white/10 bg-[oklch(0.145_0_240)] md:hidden">
           <div className="container mx-auto flex flex-col gap-4 px-4 py-4">
+            <Link
+              to="/"
+              className="text-sm font-medium transition-colors hover:text-white/80"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
             {identity ? (
               <>
                 <Link
@@ -85,13 +119,15 @@ export default function Navbar() {
                 >
                   Dashboard
                 </Link>
-                <Link
-                  to="/admin"
-                  className="text-sm font-medium transition-colors hover:text-white/80"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Admin
-                </Link>
+                {!roleLoading && isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="text-sm font-medium transition-colors hover:text-white/80"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Admin
+                  </Link>
+                )}
                 <Button
                   onClick={() => {
                     handleLogout();

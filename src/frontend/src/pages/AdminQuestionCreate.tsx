@@ -1,47 +1,35 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useGetCallerUserRole } from '../hooks/useQueries';
 import { useCreateQuestion } from '../hooks/useQuestionMutations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Upload, X, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Subject, ClassLevel } from '../backend';
-
-interface OptionData {
-  text: string;
-  image: string | null;
-  imagePreview: string | null;
-}
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ArrowLeft, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Subject, ClassLevel, UserRole__1 } from '../backend';
 
 export default function AdminQuestionCreate() {
   const { identity, isInitializing } = useInternetIdentity();
   const navigate = useNavigate();
-  const createQuestionMutation = useCreateQuestion();
+  const createQuestion = useCreateQuestion();
+  const { data: userRole, isLoading: roleLoading, isFetched: roleFetched } = useGetCallerUserRole();
 
   const [questionText, setQuestionText] = useState('');
-  const [questionImage, setQuestionImage] = useState<string | null>(null);
-  const [questionImagePreview, setQuestionImagePreview] = useState<string | null>(null);
-  
-  const [options, setOptions] = useState<OptionData[]>([
-    { text: '', image: null, imagePreview: null },
-    { text: '', image: null, imagePreview: null },
-    { text: '', image: null, imagePreview: null },
-    { text: '', image: null, imagePreview: null },
-  ]);
-  
-  const [correctAnswerIndex, setCorrectAnswerIndex] = useState<string>('0');
+  const [questionImage, setQuestionImage] = useState('');
+  const [options, setOptions] = useState(['', '', '', '']);
+  const [optionImages, setOptionImages] = useState(['', '', '', '']);
+  const [correctAnswer, setCorrectAnswer] = useState('0');
   const [explanation, setExplanation] = useState('');
   const [subject, setSubject] = useState<Subject>(Subject.physics);
   const [classLevel, setClassLevel] = useState<ClassLevel>(ClassLevel.class11th);
-  
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (!isInitializing && !identity) {
@@ -49,121 +37,81 @@ export default function AdminQuestionCreate() {
     }
   }, [identity, isInitializing, navigate]);
 
-  const handleQuestionImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setQuestionImage(base64);
-        setQuestionImagePreview(base64);
-      };
-      reader.readAsDataURL(file);
+  // Redirect non-admin users after role is fetched
+  useEffect(() => {
+    if (roleFetched && userRole !== UserRole__1.admin) {
+      navigate({ to: '/' });
     }
-  };
+  }, [roleFetched, userRole, navigate]);
 
-  const handleOptionImageUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        const newOptions = [...options];
-        newOptions[index] = {
-          ...newOptions[index],
-          image: base64,
-          imagePreview: base64,
-        };
-        setOptions(newOptions);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleOptionTextChange = (index: number, text: string) => {
+  const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options];
-    newOptions[index] = { ...newOptions[index], text };
+    newOptions[index] = value;
     setOptions(newOptions);
   };
 
-  const removeQuestionImage = () => {
-    setQuestionImage(null);
-    setQuestionImagePreview(null);
-  };
-
-  const removeOptionImage = (index: number) => {
-    const newOptions = [...options];
-    newOptions[index] = { ...newOptions[index], image: null, imagePreview: null };
-    setOptions(newOptions);
-  };
-
-  const validateForm = (): boolean => {
-    setValidationError(null);
-
-    // Check if question has either text or image
-    if (!questionText.trim() && !questionImage) {
-      setValidationError('Question must have either text or an image');
-      return false;
-    }
-
-    // Check if at least one option has content
-    const hasValidOption = options.some(opt => opt.text.trim() || opt.image);
-    if (!hasValidOption) {
-      setValidationError('At least one option must have text or an image');
-      return false;
-    }
-
-    return true;
+  const handleOptionImageChange = (index: number, value: string) => {
+    const newOptionImages = [...optionImages];
+    newOptionImages[index] = value;
+    setOptionImages(newOptionImages);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
+    setValidationError('');
+    setSuccessMessage('');
+
+    // Validation
+    if (!questionText.trim() && !questionImage.trim()) {
+      setValidationError('Question must have either text or an image');
       return;
     }
 
-    setSuccessMessage(null);
+    const hasAllOptions = options.every((opt, idx) => opt.trim() || optionImages[idx].trim());
+    if (!hasAllOptions) {
+      setValidationError('All four options must have either text or an image');
+      return;
+    }
 
     try {
-      const formattedOptions = options.map(opt => ({
-        optionText: opt.text.trim() || undefined,
-        optionImage: opt.image || undefined,
+      const formattedOptions = options.map((opt, idx) => ({
+        optionText: opt.trim() || undefined,
+        optionImage: optionImages[idx].trim() || undefined,
       }));
 
-      const questionId = await createQuestionMutation.mutateAsync({
+      const questionId = await createQuestion.mutateAsync({
         questionText: questionText.trim() || null,
-        questionImage: questionImage,
+        questionImage: questionImage.trim() || null,
         options: formattedOptions,
-        correctAnswerIndex: BigInt(correctAnswerIndex),
+        correctAnswerIndex: BigInt(correctAnswer),
         explanation: explanation.trim() || null,
         subject,
         classLevel,
       });
 
-      setSuccessMessage(`Question created successfully! ID: ${questionId.toString()}`);
+      setSuccessMessage(`Question created successfully! Question ID: ${questionId.toString()}`);
       
       // Reset form
       setQuestionText('');
-      setQuestionImage(null);
-      setQuestionImagePreview(null);
-      setOptions([
-        { text: '', image: null, imagePreview: null },
-        { text: '', image: null, imagePreview: null },
-        { text: '', image: null, imagePreview: null },
-        { text: '', image: null, imagePreview: null },
-      ]);
-      setCorrectAnswerIndex('0');
+      setQuestionImage('');
+      setOptions(['', '', '', '']);
+      setOptionImages(['', '', '', '']);
+      setCorrectAnswer('0');
       setExplanation('');
-      
-      // Scroll to top to show success message
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setSubject(Subject.physics);
+      setClassLevel(ClassLevel.class11th);
+
+      // Navigate back after a short delay
+      setTimeout(() => {
+        navigate({ to: '/admin' });
+      }, 2000);
     } catch (error: any) {
-      setValidationError(error.message || 'Failed to create question');
+      console.error('Error creating question:', error);
+      setValidationError(error.message || 'Failed to create question. Please try again.');
     }
   };
 
-  if (isInitializing) {
+  if (isInitializing || roleLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
@@ -178,201 +126,180 @@ export default function AdminQuestionCreate() {
     return null;
   }
 
+  // Show access denied if not admin
+  const isAdmin = userRole === UserRole__1.admin;
+  if (roleFetched && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-background py-8">
+        <div className="container mx-auto max-w-4xl px-4">
+          <Alert variant="destructive" className="mb-6">
+            <ShieldAlert className="h-5 w-5" />
+            <AlertTitle className="text-lg font-semibold">Access Denied</AlertTitle>
+            <AlertDescription className="mt-2">
+              You do not have admin permissions to access this page.
+            </AlertDescription>
+          </Alert>
+          <Button onClick={() => navigate({ to: '/' })} variant="outline">
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background py-8">
-      <div className="container mx-auto max-w-4xl px-4">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <Button
+          variant="ghost"
+          onClick={() => navigate({ to: '/admin' })}
+          className="mb-6"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Admin Dashboard
+        </Button>
+
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold">Create Question</h1>
           <p className="text-muted-foreground">
-            Add a new question to the question bank
+            Add a new question to the question bank for MHT-CET mock tests
           </p>
         </div>
 
         {successMessage && (
-          <Alert className="mb-6 border-green-500 bg-green-50 dark:bg-green-950">
-            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-            <AlertDescription className="text-green-800 dark:text-green-200">
-              {successMessage}
-            </AlertDescription>
-          </Alert>
+          <Card className="mb-6 border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/20">
+            <CardContent className="flex items-center gap-3 py-4">
+              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <p className="text-green-900 dark:text-green-100">{successMessage}</p>
+            </CardContent>
+          </Card>
         )}
 
         {validationError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{validationError}</AlertDescription>
-          </Alert>
+          <Card className="mb-6 border-destructive/50 bg-destructive/10">
+            <CardContent className="py-4">
+              <p className="text-destructive">{validationError}</p>
+            </CardContent>
+          </Card>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Question Section */}
+          {/* Question Content */}
           <Card>
             <CardHeader>
-              <CardTitle>Question</CardTitle>
-              <CardDescription>Enter question text and/or upload an image</CardDescription>
+              <CardTitle>Question Content</CardTitle>
+              <CardDescription>Enter the question text or provide an image URL</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="questionText">Question Text (Optional)</Label>
+                <Label htmlFor="questionText">Question Text</Label>
                 <Textarea
                   id="questionText"
-                  placeholder="Enter the question text..."
+                  placeholder="Enter the question text (optional if image is provided)"
                   value={questionText}
                   onChange={(e) => setQuestionText(e.target.value)}
-                  rows={4}
+                  rows={3}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="questionImage">Question Image (Optional)</Label>
-                {questionImagePreview ? (
-                  <div className="relative">
-                    <img
-                      src={questionImagePreview}
-                      alt="Question preview"
-                      className="max-h-64 rounded-lg border"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute right-2 top-2"
-                      onClick={removeQuestionImage}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="questionImage"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleQuestionImageUpload}
-                      className="cursor-pointer"
-                    />
-                    <Upload className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                )}
+                <Label htmlFor="questionImage">Question Image URL</Label>
+                <Input
+                  id="questionImage"
+                  placeholder="https://example.com/question-image.png (optional)"
+                  value={questionImage}
+                  onChange={(e) => setQuestionImage(e.target.value)}
+                />
               </div>
             </CardContent>
           </Card>
 
-          {/* Options Section */}
+          {/* Options */}
           <Card>
             <CardHeader>
-              <CardTitle>Options</CardTitle>
-              <CardDescription>Enter text and/or upload images for each option</CardDescription>
+              <CardTitle>Answer Options</CardTitle>
+              <CardDescription>Provide four options with text or image URLs</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {options.map((option, index) => (
-                <div key={index} className="space-y-3 rounded-lg border p-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-semibold">Option {index + 1}</Label>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor={`option-text-${index}`}>Text (Optional)</Label>
-                    <Input
-                      id={`option-text-${index}`}
-                      placeholder={`Enter option ${index + 1} text...`}
-                      value={option.text}
-                      onChange={(e) => handleOptionTextChange(index, e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor={`option-image-${index}`}>Image (Optional)</Label>
-                    {option.imagePreview ? (
-                      <div className="relative">
-                        <img
-                          src={option.imagePreview}
-                          alt={`Option ${index + 1} preview`}
-                          className="max-h-32 rounded-lg border"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute right-2 top-2"
-                          onClick={() => removeOptionImage(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id={`option-image-${index}`}
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleOptionImageUpload(index, e)}
-                          className="cursor-pointer"
-                        />
-                        <Upload className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
+            <CardContent className="space-y-4">
+              {[0, 1, 2, 3].map((index) => (
+                <div key={index} className="space-y-2 rounded-lg border p-4">
+                  <Label>Option {index + 1}</Label>
+                  <Input
+                    placeholder={`Option ${index + 1} text`}
+                    value={options[index]}
+                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                  />
+                  <Input
+                    placeholder={`Option ${index + 1} image URL (optional)`}
+                    value={optionImages[index]}
+                    onChange={(e) => handleOptionImageChange(index, e.target.value)}
+                  />
                 </div>
               ))}
             </CardContent>
           </Card>
 
-          {/* Correct Answer Section */}
+          {/* Correct Answer */}
           <Card>
             <CardHeader>
               <CardTitle>Correct Answer</CardTitle>
               <CardDescription>Select the correct option</CardDescription>
             </CardHeader>
             <CardContent>
-              <RadioGroup value={correctAnswerIndex} onValueChange={setCorrectAnswerIndex}>
-                <div className="space-y-2">
-                  {[0, 1, 2, 3].map((index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <RadioGroupItem value={index.toString()} id={`answer-${index}`} />
-                      <Label htmlFor={`answer-${index}`} className="cursor-pointer">
-                        Option {index + 1}
-                      </Label>
-                    </div>
-                  ))}
+              <RadioGroup value={correctAnswer} onValueChange={setCorrectAnswer}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="0" id="option-0" />
+                  <Label htmlFor="option-0">Option 1</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="1" id="option-1" />
+                  <Label htmlFor="option-1">Option 2</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="2" id="option-2" />
+                  <Label htmlFor="option-2">Option 3</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="3" id="option-3" />
+                  <Label htmlFor="option-3">Option 4</Label>
                 </div>
               </RadioGroup>
             </CardContent>
           </Card>
 
-          {/* Explanation Section */}
+          {/* Explanation */}
           <Card>
             <CardHeader>
-              <CardTitle>Explanation (Optional)</CardTitle>
-              <CardDescription>Provide an explanation for the correct answer</CardDescription>
+              <CardTitle>Explanation</CardTitle>
+              <CardDescription>Provide an explanation for the correct answer (optional)</CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
-                placeholder="Enter the explanation..."
+                placeholder="Explain why this is the correct answer..."
                 value={explanation}
                 onChange={(e) => setExplanation(e.target.value)}
-                rows={4}
+                rows={3}
               />
             </CardContent>
           </Card>
 
-          {/* Metadata Section */}
+          {/* Metadata */}
           <Card>
             <CardHeader>
-              <CardTitle>Metadata</CardTitle>
-              <CardDescription>Select subject and class level</CardDescription>
+              <CardTitle>Question Metadata</CardTitle>
+              <CardDescription>Categorize the question by subject and class level</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
                 <Select value={subject} onValueChange={(value) => setSubject(value as Subject)}>
                   <SelectTrigger id="subject">
-                    <SelectValue placeholder="Select subject" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={Subject.physics}>Physics</SelectItem>
                     <SelectItem value={Subject.chemistry}>Chemistry</SelectItem>
-                    <SelectItem value={Subject.maths}>Mathematics</SelectItem>
+                    <SelectItem value={Subject.maths}>Maths</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -381,39 +308,27 @@ export default function AdminQuestionCreate() {
                 <Label htmlFor="classLevel">Class Level</Label>
                 <Select value={classLevel} onValueChange={(value) => setClassLevel(value as ClassLevel)}>
                   <SelectTrigger id="classLevel">
-                    <SelectValue placeholder="Select class level" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={ClassLevel.class11th}>11th</SelectItem>
-                    <SelectItem value={ClassLevel.class12th}>12th</SelectItem>
+                    <SelectItem value={ClassLevel.class11th}>11th Standard</SelectItem>
+                    <SelectItem value={ClassLevel.class12th}>12th Standard</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </CardContent>
           </Card>
 
-          {/* Submit Button */}
-          <div className="flex gap-4">
-            <Button
-              type="submit"
-              disabled={createQuestionMutation.isPending}
-              className="flex-1"
-            >
-              {createQuestionMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                'Create Question'
-              )}
-            </Button>
+          <div className="flex justify-end gap-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => navigate({ to: '/admin' })}
             >
               Cancel
+            </Button>
+            <Button type="submit" disabled={createQuestion.isPending}>
+              {createQuestion.isPending ? 'Creating Question...' : 'Create Question'}
             </Button>
           </div>
         </form>
