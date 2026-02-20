@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 43,
+  "projectStateVersion": 45,
   "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable single section with custom duration, marks per question, and mixed subject support). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
   "architectural_notes": [
     "Motoko backend canister with stable memory for persistence",
@@ -21,7 +21,7 @@
     "Admin users receiving 'Unauthorized: Only admins can create questions' error even when they have admin role",
     "Admin users not seeing Admin panel option in menu bar even with admin role assigned"
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-change-all-references-from-coepian-delta-to-concept-delta-throughout-the-application-navbar-footer-pdf-exports-branding-elements",
@@ -686,6 +686,22 @@
         "REQ-132"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-an-informational-popup-or-alert-banner-in-the-adminregistration-tsx-component-that-displays-the-message-only-admin-can-assign-user-roles-when-a-user-attempts-to-register-an-admin-principal-explaining-that-admin-registration-requires-existing-admin-authorization-except-for-the-first-admin-setup",
+      "title": "Add an informational popup or alert banner in the AdminRegistration.tsx component that displays the message 'Only admin can assign user roles' when a user attempts to register an admin principal, explaining that admin registration requires existing admin authorization (except for the first admin setup)",
+      "reqIds": [
+        "REQ-133"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-adminregistration-tsx-component-to-display-the-unauthorized-only-admins-can-assign-user-roles-error-message-more-prominently-as-a-modal-popup-or-alert-dialog-instead-of-just-showing-it-in-a-toast-notification-making-it-clear-to-users-that-they-lack-the-required-admin-permissions",
+      "title": "Update the AdminRegistration.tsx component to display the 'Unauthorized: Only admins can assign user roles' error message more prominently as a modal popup or alert dialog instead of just showing it in a toast notification, making it clear to users that they lack the required admin permissions",
+      "reqIds": [
+        "REQ-134"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1313,6 +1329,12 @@
       "reqIds": [
         "REQ-127"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-118",
+      "summary": "Add popup/modal in AdminRegistration.tsx explaining 'Only admin can assign user roles' to clarify that admin registration requires admin privileges",
+      "reqIds": [],
       "status": "pending"
     }
   ],

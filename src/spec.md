@@ -1,16 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Implement an admin registration system with a one-time setup endpoint that allows the first user to register as admin without authorization, and subsequent admin registrations only by existing admins.
+**Goal:** Add a prominent modal popup to inform users about admin role assignment restrictions during admin registration.
 
 **Planned changes:**
-- Add backend `registerAdmin` endpoint that accepts Internet Identity principal, validates authorization (open for first registration, requires admin for subsequent), and adds principal to admin list
-- Implement one-time setup logic using stable variable to track initial setup completion
-- Add comprehensive logging for registration operations including caller, registered principal, setup status, and outcomes
-- Create `useAdminRegistration` React Query mutation hook to call backend registration endpoint
-- Build admin registration page with principal input form, validation, instructions, and success/error displays
-- Add `/admin/register` route accessible to all authenticated users
-- Add navigation link in Navbar for non-admin authenticated users to discover admin setup
-- Display current user's Internet Identity principal on registration page with copy functionality
+- Add a modal dialog that appears when users click "Register as Admin" button, displaying the message "Only admin can assign user roles"
+- Convert the existing toast notification for unauthorized admin registration errors into a prominent modal popup with a dismissible close/OK button
+- Clarify in the popup that the first admin registration is open for initial setup when no admins exist
 
-**User-visible outcome:** Authenticated users can navigate to the admin registration page, see their Internet Identity principal, and register themselves as the first admin or (if already an admin) register additional admins by entering their principals.
+**User-visible outcome:** Users attempting to register as admin will see clear, prominent modal popups explaining that only existing admins can assign admin roles, improving clarity about authorization requirements and reducing confusion about failed registration attempts.

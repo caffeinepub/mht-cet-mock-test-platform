@@ -1,22 +1,41 @@
 import { useState } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useAdminRegistration } from '../hooks/useAdminRegistration';
+import { useGetCallerUserRole } from '../hooks/useQueries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Copy, CheckCircle2, AlertCircle } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Copy, CheckCircle2, AlertCircle, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
+import { UserRole__1 } from '../backend';
 
 export default function AdminRegistration() {
   const { identity } = useInternetIdentity();
   const navigate = useNavigate();
   const [principalInput, setPrincipalInput] = useState('');
   const { mutate: registerAdmin, isPending } = useAdminRegistration();
+  const { data: userRole, isLoading: roleLoading } = useGetCallerUserRole();
+
+  const [showInfoDialog, setShowInfoDialog] = useState(false);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [proceedWithRegistration, setProceedWithRegistration] = useState(false);
 
   const isAuthenticated = !!identity;
   const currentPrincipal = identity?.getPrincipal().toString() || '';
+  const isAdmin = userRole === UserRole__1.admin;
 
   const handleCopyPrincipal = () => {
     if (currentPrincipal) {
@@ -37,6 +56,14 @@ export default function AdminRegistration() {
       return;
     }
 
+    // Show info dialog before proceeding
+    setShowInfoDialog(true);
+  };
+
+  const handleProceedWithRegistration = () => {
+    setShowInfoDialog(false);
+    setProceedWithRegistration(true);
+
     registerAdmin(principalInput.trim(), {
       onSuccess: ({ result }) => {
         if (result.__kind__ === 'success') {
@@ -45,7 +72,23 @@ export default function AdminRegistration() {
           setTimeout(() => {
             navigate({ to: '/admin' });
           }, 2000);
+        } else if (result.__kind__ === 'unauthorized') {
+          setErrorMessage(
+            'Unauthorized: Only admins can assign user roles. After the initial setup, only existing administrators can register new admins.'
+          );
+          setShowErrorDialog(true);
         }
+      },
+      onError: (error: Error) => {
+        if (error.message.includes('Unauthorized')) {
+          setErrorMessage(
+            'Unauthorized: Only admins can assign user roles. You do not have permission to register new administrators.'
+          );
+          setShowErrorDialog(true);
+        }
+      },
+      onSettled: () => {
+        setProceedWithRegistration(false);
       },
     });
   };
@@ -80,6 +123,25 @@ export default function AdminRegistration() {
             Register Internet Identity principals as administrators
           </p>
         </div>
+
+        {/* Admin Status Badge */}
+        {!roleLoading && isAdmin && (
+          <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <div>
+                  <p className="font-semibold text-green-900 dark:text-green-100">
+                    You are an Administrator
+                  </p>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    You have permission to register other users as admins.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Instructions Card */}
         <Card>
@@ -200,6 +262,60 @@ export default function AdminRegistration() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Info Dialog - Shows before registration */}
+      <AlertDialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-amber-500" />
+              Admin Role Assignment
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 text-left">
+              <p className="font-semibold text-gray-900 dark:text-gray-100">
+                Only admin can assign user roles
+              </p>
+              <p>
+                This is an admin-protected operation. After the initial setup, only existing administrators have permission to register new admins.
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>Note:</strong> If this is the first admin registration (no admins exist yet), the registration will proceed without authorization checks for initial system setup.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleProceedWithRegistration}>
+              Proceed with Registration
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Error Dialog - Shows unauthorized errors */}
+      <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Registration Failed
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 text-left">
+              <p className="font-semibold text-gray-900 dark:text-gray-100">
+                {errorMessage}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                If you believe you should have admin access, please contact an existing administrator to register your principal.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowErrorDialog(false)}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

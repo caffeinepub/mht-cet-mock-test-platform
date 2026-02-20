@@ -1,173 +1,60 @@
 {
   "kind": "build_request",
-  "title": "Add admin registration system with one-time setup endpoint",
+  "title": "Add admin role verification popup on registration page",
   "projectName": "Concept Delta",
-  "priority": "high",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-125",
-      "text": "Create a backend API endpoint registerAdmin in backend/main.mo that accepts an Internet Identity principal parameter, validates the caller has permission to register admins (either the first registration is open to anyone, or requires an existing admin), adds the provided principal to the admin principals list in AccessControl stable storage, and returns success confirmation with the registered principal",
-      "target": "backend",
+      "id": "REQ-133",
+      "text": "Add an informational popup or alert banner in the AdminRegistration.tsx component that displays the message 'Only admin can assign user roles' when a user attempts to register an admin principal, explaining that admin registration requires existing admin authorization (except for the first admin setup)",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-option2"
+          "msg-last"
         ],
         "quotes": [
-          "option 2",
-          "I can build an admin registration system where you can add admin principals through a one-time setup endpoint"
+          "at the time of admin registration show pop up only admin can assign user role"
         ]
       },
       "acceptanceCriteria": [
-        "registerAdmin endpoint exists in backend/main.mo",
-        "Endpoint accepts Internet Identity principal as parameter",
-        "First admin registration is permitted without existing admin authorization",
-        "Subsequent admin registrations require caller to be an existing admin",
-        "Successfully adds principal to AccessControl admin principals list",
-        "Returns confirmation message with the registered principal",
-        "Prevents duplicate admin registrations"
+        "A modal dialog or alert banner appears when the user clicks the 'Register as Admin' button",
+        "The popup displays the exact text: 'Only admin can assign user roles'",
+        "The popup clarifies that this is an admin-protected operation",
+        "The popup appears before or after the registration attempt to inform users of the authorization requirement",
+        "For the first admin registration (when no admins exist), the popup should also mention that the first registration is open for initial setup"
       ]
     },
     {
-      "id": "REQ-126",
-      "text": "Implement one-time setup logic in backend/main.mo for the registerAdmin endpoint that allows the first admin registration to proceed without authorization checks, and requires existing admin authorization for all subsequent admin registrations, using a stable variable to track whether initial setup is complete",
-      "target": "backend",
+      "id": "REQ-134",
+      "text": "Update the AdminRegistration.tsx component to display the 'Unauthorized: Only admins can assign user roles' error message more prominently as a modal popup or alert dialog instead of just showing it in a toast notification, making it clear to users that they lack the required admin permissions",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-option2"
+          "msg-last"
         ],
         "quotes": [
-          "one-time setup endpoint"
+          "show pop up only admin can assign user role",
+          "Registration Failed - Unauthorized: Only admins can assign user roles"
         ]
       },
       "acceptanceCriteria": [
-        "Stable variable tracks whether initial admin setup is complete",
-        "First call to registerAdmin succeeds without admin authorization",
-        "After first registration, isInitialSetup flag is set to false",
-        "All subsequent registerAdmin calls require caller to be an existing admin",
-        "Returns clear error message if non-admin tries to register new admin after initial setup"
-      ]
-    },
-    {
-      "id": "REQ-127",
-      "text": "Add comprehensive logging to the registerAdmin endpoint in backend/main.mo that logs the caller's principal, the principal being registered, the initial setup status, the authorization check result, and success/failure of the registration operation with timestamps",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-option2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Logs caller's Internet Identity principal",
-        "Logs principal being registered as admin",
-        "Logs whether this is initial setup or subsequent registration",
-        "Logs authorization check result",
-        "Logs final registration outcome (success/failure)",
-        "All logs include timestamps"
-      ]
-    },
-    {
-      "id": "REQ-128",
-      "text": "Create a React Query mutation hook useAdminRegistration in a new file frontend/src/hooks/useAdminRegistration.ts that provides a registerAdmin function accepting an Internet Identity principal string, calls the backend registerAdmin endpoint, handles success and error responses, and invalidates the user role query on success",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-option2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "useAdminRegistration hook exists in frontend/src/hooks/useAdminRegistration.ts",
-        "Provides registerAdmin mutation function",
-        "Accepts Internet Identity principal string parameter",
-        "Calls backend registerAdmin endpoint via actor",
-        "Handles success response with confirmation message",
-        "Handles error responses with error messages",
-        "Invalidates getUserRole query on successful registration"
-      ]
-    },
-    {
-      "id": "REQ-129",
-      "text": "Create an admin registration page component in frontend/src/pages/AdminRegistration.tsx with a form containing an Internet Identity principal input field (text input with validation), a 'Register as Admin' submit button, instructions explaining this is for initial admin setup or adding new admins by existing admins, and success/error message display areas",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-option2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "AdminRegistration.tsx component exists",
-        "Form includes Internet Identity principal text input field",
-        "Input field validates principal format",
-        "Submit button triggers registerAdmin mutation",
-        "Displays clear instructions for initial setup vs subsequent admin additions",
-        "Shows success message with registered principal on successful registration",
-        "Shows error message if registration fails",
-        "Form clears after successful registration"
-      ]
-    },
-    {
-      "id": "REQ-130",
-      "text": "Add a route for the admin registration page in frontend/src/routeTree.tsx at path '/admin/register', accessible to all authenticated users (no role restriction), allowing anyone to attempt the initial admin registration or existing admins to add new admins",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-option2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Route exists at '/admin/register' in routeTree.tsx",
-        "Route is accessible to all authenticated users",
-        "No admin role check prevents access to this route",
-        "Unauthenticated users are redirected to login"
-      ]
-    },
-    {
-      "id": "REQ-131",
-      "text": "Add a navigation link in Navbar.tsx labeled 'Admin Setup' or 'Register Admin' that navigates to '/admin/register' and is visible only to authenticated users who do not yet have admin role, helping new users discover the admin registration endpoint",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-option2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Navigation link labeled 'Admin Setup' or 'Register Admin' exists in Navbar.tsx",
-        "Link routes to '/admin/register' when clicked",
-        "Link is visible to authenticated users without admin role",
-        "Link is hidden once user has admin role",
-        "Link is hidden for unauthenticated users"
-      ]
-    },
-    {
-      "id": "REQ-132",
-      "text": "Add a helper component or section in AdminRegistration.tsx that displays the current user's Internet Identity principal automatically when the page loads, allowing users to easily copy their own principal for registration without needing to find it in console logs",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-option2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Component displays current authenticated user's principal",
-        "Principal is shown in a copyable format",
-        "Includes a 'Copy' button or click-to-copy functionality",
-        "Displays helpful text like 'Your Internet Identity Principal:'",
-        "Principal is retrieved from Internet Identity context"
+        "When the backend returns an 'Unauthorized' error during admin registration, display it in a modal dialog or prominent alert",
+        "The error popup includes the full error message explaining that only existing admins can assign admin roles",
+        "The user can dismiss the popup with a close button or OK button",
+        "The popup styling matches the existing UI design system",
+        "For users who are already admins, clarify in the UI that they can successfully register other admins"
       ]
     }
   ],
   "constraints": [
-    "Maintain single-actor backend architecture in backend/main.mo",
-    "Do not modify immutable frontend paths: useInternetIdentity.ts, useActor.ts, main.tsx, frontend/src/components/ui",
-    "Use stable variables for admin principals list to persist across canister upgrades",
-    "First admin registration must work without requiring existing admin authorization",
-    "All subsequent admin registrations must require existing admin authorization"
+    "Do not modify the backend authorization logic for admin registration",
+    "Use existing UI component patterns from frontend/src/components/ui for modal/dialog implementation",
+    "Maintain consistency with existing toast notification system"
   ],
   "nonGoals": [
-    "Email-based admin invitation system",
-    "Role hierarchy beyond admin/student",
-    "Admin removal or revocation functionality",
-    "Multi-step verification for admin registration",
-    "Admin approval workflow"
+    "Bypassing or disabling the admin authorization check",
+    "Creating a separate registration flow for non-admin users",
+    "Adding email notifications for failed registration attempts"
   ],
   "imageRequirements": {
     "required": [],

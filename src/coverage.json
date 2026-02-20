@@ -1,107 +1,49 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T08:13:18.708Z",
+  "generatedAt": "2026-02-20T08:23:30.901Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 8,
-    "implemented": 5,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-125",
-        "summary": "Create a backend API endpoint registerAdmin in backend/main.mo that accepts an Internet Identity principal parameter, validates the caller has permission to register admins (either the first registration is open to anyone, or requires an existing admin), adds the provided principal to the admin principals list in AccessControl stable storage, and returns success confirmation with the registered principal",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-126",
-        "summary": "Implement one-time setup logic in backend/main.mo for the registerAdmin endpoint that allows the first admin registration to proceed without authorization checks, and requires existing admin authorization for all subsequent admin registrations, using a stable variable to track whether initial setup is complete",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-127",
-        "summary": "Add comprehensive logging to the registerAdmin endpoint in backend/main.mo that logs the caller's principal, the principal being registered, the initial setup status, the authorization check result, and success/failure of the registration operation with timestamps",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-128",
-        "summary": "Create a React Query mutation hook useAdminRegistration in a new file frontend/src/hooks/useAdminRegistration.ts that provides a registerAdmin function accepting an Internet Identity principal string, calls the backend registerAdmin endpoint, handles success and error responses, and invalidates the user role query on success",
+        "id": "REQ-133",
+        "summary": "Add an informational popup or alert banner in the AdminRegistration.tsx component that displays the message 'Only admin can assign user roles' when a user attempts to register an admin principal, explaining that admin registration requires existing admin authorization (except for the first admin setup)",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/components/ui/alert-dialog.tsx",
+          "frontend/src/pages/AdminRegistration.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminRegistration.tsx"
+        ]
+      },
+      {
+        "id": "REQ-134",
+        "summary": "Update the AdminRegistration.tsx component to display the 'Unauthorized: Only admins can assign user roles' error message more prominently as a modal popup or alert dialog instead of just showing it in a toast notification, making it clear to users that they lack the required admin permissions",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminRegistration.tsx",
           "frontend/src/hooks/useAdminRegistration.ts"
         ],
         "matchedFiles": [
+          "frontend/src/pages/AdminRegistration.tsx",
           "frontend/src/hooks/useAdminRegistration.ts"
-        ]
-      },
-      {
-        "id": "REQ-129",
-        "summary": "Create an admin registration page component in frontend/src/pages/AdminRegistration.tsx with a form containing an Internet Identity principal input field (text input with validation), a 'Register as Admin' submit button, instructions explaining this is for initial admin setup or adding new admins by existing admins, and success/error message display areas",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/AdminRegistration.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/AdminRegistration.tsx"
-        ]
-      },
-      {
-        "id": "REQ-130",
-        "summary": "Add a route for the admin registration page in frontend/src/routeTree.tsx at path '/admin/register', accessible to all authenticated users (no role restriction), allowing anyone to attempt the initial admin registration or existing admins to add new admins",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/routeTree.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/routeTree.tsx"
-        ]
-      },
-      {
-        "id": "REQ-131",
-        "summary": "Add a navigation link in Navbar.tsx labeled 'Admin Setup' or 'Register Admin' that navigates to '/admin/register' and is visible only to authenticated users who do not yet have admin role, helping new users discover the admin registration endpoint",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/Navbar.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/Navbar.tsx"
-        ]
-      },
-      {
-        "id": "REQ-132",
-        "summary": "Add a helper component or section in AdminRegistration.tsx that displays the current user's Internet Identity principal automatically when the page loads, allowing users to easily copy their own principal for registration without needing to find it in console logs",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/AdminRegistration.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/AdminRegistration.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/Navbar.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useAdminRegistration.ts",
     "frontend/src/pages/AdminRegistration.tsx",
-    "frontend/src/routeTree.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

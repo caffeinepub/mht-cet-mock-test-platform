@@ -2,28 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-create-a-react-query-mutation-hook-useadminregistration-in-a-new-file-frontend-src-hooks-useadminregistration-ts-that-provides-a-registeradmin-function-accepting-an-internet-identity-principal-string-calls-the-backend-registeradmin-endpoint-handles-success-and-error-responses-and-invalidates-the-user-role-query-on-success",
-      "featureTitle": "Create a React Query mutation hook useAdminRegistration in a new file frontend/src/hooks/useAdminRegistration.ts that provides a registerAdmin function accepting an Internet Identity principal string, calls the backend registerAdmin endpoint, handles success and error responses, and invalidates the user role query on success",
-      "files": [
-        "frontend/src/hooks/useAdminRegistration.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-128"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-create-an-admin-registration-page-component-in-frontend-src-pages-adminregistration-tsx-with-a-form-containing-an-internet-identity-principal-input-field-text-input-with-validation-a-register-as-admin-submit-button-instructions-explaining-this-is-for-initial-admin-setup-or-adding-new-admins-by-existing-admins-and-success-error-message-display-areas",
-      "featureTitle": "Create an admin registration page component in frontend/src/pages/AdminRegistration.tsx with a form containing an Internet Identity principal input field (text input with validation), a 'Register as Admin' submit button, instructions explaining this is for initial admin setup or adding new admins by existing admins, and success/error message display areas",
+      "featureId": "feature-add-an-informational-popup-or-alert-banner-in-the-adminregistration-tsx-component-that-displays-the-message-only-admin-can-assign-user-roles-when-a-user-attempts-to-register-an-admin-principal-explaining-that-admin-registration-requires-existing-admin-authorization-except-for-the-first-admin-setup",
+      "featureTitle": "Add an informational popup or alert banner in the AdminRegistration.tsx component that displays the message 'Only admin can assign user roles' when a user attempts to register an admin principal, explaining that admin registration requires existing admin authorization (except for the first admin setup)",
       "files": [
         "frontend/src/pages/AdminRegistration.tsx"
       ],
@@ -37,54 +17,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-129"
+        "REQ-133"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-route-for-the-admin-registration-page-in-frontend-src-routetree-tsx-at-path-admin-register-accessible-to-all-authenticated-users-no-role-restriction-allowing-anyone-to-attempt-the-initial-admin-registration-or-existing-admins-to-add-new-admins",
-      "featureTitle": "Add a route for the admin registration page in frontend/src/routeTree.tsx at path '/admin/register', accessible to all authenticated users (no role restriction), allowing anyone to attempt the initial admin registration or existing admins to add new admins",
+      "featureId": "feature-update-the-adminregistration-tsx-component-to-display-the-unauthorized-only-admins-can-assign-user-roles-error-message-more-prominently-as-a-modal-popup-or-alert-dialog-instead-of-just-showing-it-in-a-toast-notification-making-it-clear-to-users-that-they-lack-the-required-admin-permissions",
+      "featureTitle": "Update the AdminRegistration.tsx component to display the 'Unauthorized: Only admins can assign user roles' error message more prominently as a modal popup or alert dialog instead of just showing it in a toast notification, making it clear to users that they lack the required admin permissions",
       "files": [
-        "frontend/src/routeTree.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-130"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-navigation-link-in-navbar-tsx-labeled-admin-setup-or-register-admin-that-navigates-to-admin-register-and-is-visible-only-to-authenticated-users-who-do-not-yet-have-admin-role-helping-new-users-discover-the-admin-registration-endpoint",
-      "featureTitle": "Add a navigation link in Navbar.tsx labeled 'Admin Setup' or 'Register Admin' that navigates to '/admin/register' and is visible only to authenticated users who do not yet have admin role, helping new users discover the admin registration endpoint",
-      "files": [
-        "frontend/src/components/Navbar.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-131"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-helper-component-or-section-in-adminregistration-tsx-that-displays-the-current-user-s-internet-identity-principal-automatically-when-the-page-loads-allowing-users-to-easily-copy-their-own-principal-for-registration-without-needing-to-find-it-in-console-logs",
-      "featureTitle": "Add a helper component or section in AdminRegistration.tsx that displays the current user's Internet Identity principal automatically when the page loads, allowing users to easily copy their own principal for registration without needing to find it in console logs",
-      "files": [
+        "frontend/src/hooks/useAdminRegistration.ts",
         "frontend/src/pages/AdminRegistration.tsx"
       ],
       "components": [
@@ -97,7 +38,7 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-132"
+        "REQ-134"
       ],
       "confidence": "high"
     }

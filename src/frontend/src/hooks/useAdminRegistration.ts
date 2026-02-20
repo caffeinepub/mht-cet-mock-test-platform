@@ -39,20 +39,20 @@ export function useAdminRegistration() {
         toast.info('Already Registered', {
           description: 'This principal is already registered as an admin.',
         });
-      } else if (result.__kind__ === 'unauthorized') {
-        toast.error('Unauthorized', {
-          description: 'Only existing admins can register new admins after initial setup.',
-        });
       } else if (result.__kind__ === 'internalError') {
         toast.error('Internal Error', {
           description: 'An internal error occurred during registration. Please try again.',
         });
       }
+      // Note: 'unauthorized' case is now handled in the component with modal dialog
     },
     onError: (error: Error) => {
-      toast.error('Registration Failed', {
-        description: error.message || 'Failed to register admin. Please try again.',
-      });
+      // Only show toast for non-authorization errors
+      if (!error.message.includes('Unauthorized')) {
+        toast.error('Registration Failed', {
+          description: error.message || 'Failed to register admin. Please try again.',
+        });
+      }
     },
   });
 }
