@@ -2,8 +2,68 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-navbar-tsx-component-to-ensure-the-admin-navigation-link-renders-correctly-for-authenticated-users-with-admin-role-by-verifying-the-usegetcalleruserrole-hook-is-properly-invoked-and-its-return-value-is-correctly-checked-against-admin-string-fixing-any-conditional-rendering-logic-that-may-be-preventing-the-admin-link-from-displaying",
-      "featureTitle": "Update the Navbar.tsx component to ensure the 'Admin' navigation link renders correctly for authenticated users with admin role by verifying the useGetCallerUserRole hook is properly invoked and its return value is correctly checked against 'admin' string, fixing any conditional rendering logic that may be preventing the Admin link from displaying",
+      "featureId": "feature-create-a-react-query-mutation-hook-useadminregistration-in-a-new-file-frontend-src-hooks-useadminregistration-ts-that-provides-a-registeradmin-function-accepting-an-internet-identity-principal-string-calls-the-backend-registeradmin-endpoint-handles-success-and-error-responses-and-invalidates-the-user-role-query-on-success",
+      "featureTitle": "Create a React Query mutation hook useAdminRegistration in a new file frontend/src/hooks/useAdminRegistration.ts that provides a registerAdmin function accepting an Internet Identity principal string, calls the backend registerAdmin endpoint, handles success and error responses, and invalidates the user role query on success",
+      "files": [
+        "frontend/src/hooks/useAdminRegistration.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-128"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-an-admin-registration-page-component-in-frontend-src-pages-adminregistration-tsx-with-a-form-containing-an-internet-identity-principal-input-field-text-input-with-validation-a-register-as-admin-submit-button-instructions-explaining-this-is-for-initial-admin-setup-or-adding-new-admins-by-existing-admins-and-success-error-message-display-areas",
+      "featureTitle": "Create an admin registration page component in frontend/src/pages/AdminRegistration.tsx with a form containing an Internet Identity principal input field (text input with validation), a 'Register as Admin' submit button, instructions explaining this is for initial admin setup or adding new admins by existing admins, and success/error message display areas",
+      "files": [
+        "frontend/src/pages/AdminRegistration.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-129"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-route-for-the-admin-registration-page-in-frontend-src-routetree-tsx-at-path-admin-register-accessible-to-all-authenticated-users-no-role-restriction-allowing-anyone-to-attempt-the-initial-admin-registration-or-existing-admins-to-add-new-admins",
+      "featureTitle": "Add a route for the admin registration page in frontend/src/routeTree.tsx at path '/admin/register', accessible to all authenticated users (no role restriction), allowing anyone to attempt the initial admin registration or existing admins to add new admins",
+      "files": [
+        "frontend/src/routeTree.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-130"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-navigation-link-in-navbar-tsx-labeled-admin-setup-or-register-admin-that-navigates-to-admin-register-and-is-visible-only-to-authenticated-users-who-do-not-yet-have-admin-role-helping-new-users-discover-the-admin-registration-endpoint",
+      "featureTitle": "Add a navigation link in Navbar.tsx labeled 'Admin Setup' or 'Register Admin' that navigates to '/admin/register' and is visible only to authenticated users who do not yet have admin role, helping new users discover the admin registration endpoint",
       "files": [
         "frontend/src/components/Navbar.tsx"
       ],
@@ -17,15 +77,15 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-107"
+        "REQ-131"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-debug-and-fix-the-usegetcalleruserrole-hook-in-frontend-src-hooks-usequeries-ts-to-ensure-it-correctly-fetches-and-returns-the-user-role-from-the-backend-getuserrole-endpoint-handling-the-response-properly-and-returning-admin-for-admin-users-student-for-students-or-null-undefined-for-unauthenticated-users",
-      "featureTitle": "Debug and fix the useGetCallerUserRole hook in frontend/src/hooks/useQueries.ts to ensure it correctly fetches and returns the user role from the backend getUserRole endpoint, handling the response properly and returning 'admin' for admin users, 'student' for students, or null/undefined for unauthenticated users",
+      "featureId": "feature-add-a-helper-component-or-section-in-adminregistration-tsx-that-displays-the-current-user-s-internet-identity-principal-automatically-when-the-page-loads-allowing-users-to-easily-copy-their-own-principal-for-registration-without-needing-to-find-it-in-console-logs",
+      "featureTitle": "Add a helper component or section in AdminRegistration.tsx that displays the current user's Internet Identity principal automatically when the page loads, allowing users to easily copy their own principal for registration without needing to find it in console logs",
       "files": [
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/pages/AdminRegistration.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -37,27 +97,7 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-108"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-comprehensive-console-logging-to-the-navbar-tsx-component-that-logs-the-authentication-state-from-useinternetidentity-the-user-role-value-from-usegetcalleruserrole-and-the-conditional-rendering-decision-for-the-admin-link-to-help-diagnose-why-the-admin-link-is-not-appearing-for-admin-users",
-      "featureTitle": "Add comprehensive console logging to the Navbar.tsx component that logs the authentication state from useInternetIdentity, the user role value from useGetCallerUserRole, and the conditional rendering decision for the Admin link to help diagnose why the Admin link is not appearing for admin users",
-      "files": [
-        "frontend/src/components/Navbar.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-110"
+        "REQ-132"
       ],
       "confidence": "high"
     }

@@ -19,6 +19,8 @@ actor {
 
   include MixinStorage();
 
+  var isInitialSetupComplete = false;
+
   // User Profile Type
   public type UserProfile = {
     name : Text;
@@ -139,23 +141,93 @@ actor {
 
   public type UserRole = { #admin; #student };
 
+  // Registration Result Type for registerAdmin
+  public type RegistrationResult = {
+    #success : { registeredPrincipal : Principal; timestamp : Int };
+    #alreadyRegistered;
+    #unauthorized;
+    #internalError;
+  };
+
+  // New registerAdmin function for backend API
+  public shared ({ caller }) func registerAdmin(newAdmin : Principal) : async RegistrationResult {
+    let timestamp = Time.now().toText();
+    let initialSetupStatus = isInitialSetupComplete;
+
+    // Diagnostic logging - Log request parameters and setup state
+    Debug.print("[" # timestamp # "] registerAdmin called by: " # caller.toText() # ", new admin: " # newAdmin.toText() # ", initial setup complete: " # debug_show(initialSetupStatus));
+
+    // Check if the new admin is already registered
+    let role = AccessControl.getUserRole(accessControlState, newAdmin);
+    switch (role) {
+      case (#admin) {
+        Debug.print("[" # timestamp # "] Admin already registered: " # newAdmin.toText());
+        return #alreadyRegistered;
+      };
+      case (_) {};
+    };
+
+    // Handle initial setup logic
+    if (not initialSetupStatus) {
+      // Comprehensive logging for initial setup
+      Debug.print("[" # timestamp # "] Performing initial admin registration (no checks required)");
+      isInitialSetupComplete := true;
+
+      // Correctly assign admin role instead of initializing
+      AccessControl.assignRole(accessControlState, caller, newAdmin, #admin);
+      Debug.print("[" # timestamp # "] Initial admin registered successfully: " # newAdmin.toText());
+      return #success({
+        registeredPrincipal = newAdmin;
+        timestamp = Time.now();
+      });
+    };
+
+    // Regular registration - require existing admin privileges
+    Debug.print("[" # timestamp # "] Regular admin registration (admin check required)");
+
+    let hasAdminPrivileges = AccessControl.hasPermission(accessControlState, caller, #admin);
+    if (not hasAdminPrivileges) {
+      // Log authorization failure with details
+      Debug.print("[" # timestamp # "] Unauthorized admin registration attempt by: " # caller.toText() # " for principal: " # newAdmin.toText());
+      return #unauthorized;
+    };
+
+    // Register new admin using AccessControl module
+    try {
+      AccessControl.assignRole(accessControlState, caller, newAdmin, #admin);
+      Debug.print("[" # timestamp # "] Admin registration successful: " # newAdmin.toText());
+      return #success({
+        registeredPrincipal = newAdmin;
+        timestamp = Time.now();
+      });
+    } catch (_) {
+      // Remove error.toText() and log generic message
+      Debug.print("[" # timestamp # "] Internal error during admin registration");
+      #internalError;
+    };
+  };
+
+  // Updated getUserRole function with comprehensive diagnostics and fix
   public query ({ caller }) func getUserRole() : async UserRole {
     // Authorization: Only authenticated users (not guests) can query their role
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can query their role");
     };
 
+    // Diagnostic logging - Log caller principal with timestamp
+    let timestamp = Time.now().toText();
+    Debug.print("[" # timestamp # "] getUserRole called by: " # caller.toText());
+
+    // Directly use AccessControl to determine role
     let role = AccessControl.getUserRole(accessControlState, caller);
+
+    // Diagnostic logging - Log determined role with timestamp
+    Debug.print("[" # timestamp # "] getUserRole result for " # caller.toText() # ": " # debug_show(role));
+
     switch (role) {
-      case (#admin) {
-        #admin;
-      };
-      case (#user) {
-        #student;
-      };
-      case (#guest) {
-        #student;
-      };
+      case (#admin) { #admin };
+      case (#user) { #student };
+      case (#guest) { #student };
     };
   };
 
@@ -187,7 +259,6 @@ actor {
     durationMinutes : Nat;
     questions : [Question];
   };
-
   public shared ({ caller }) func createChapterWiseTest(testName : Text, marksPerQuestion : Nat, durationMinutes : Nat) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create chapter-wise tests");

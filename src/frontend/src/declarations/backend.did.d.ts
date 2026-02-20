@@ -50,6 +50,10 @@ export interface Question {
   'classLevel' : ClassLevel,
   'options' : Array<Option>,
 }
+export type RegistrationResult = { 'internalError' : null } |
+  { 'success' : { 'registeredPrincipal' : Principal, 'timestamp' : bigint } } |
+  { 'alreadyRegistered' : null } |
+  { 'unauthorized' : null };
 export type Subject = { 'maths' : null } |
   { 'chemistry' : null } |
   { 'physics' : null };
@@ -161,6 +165,7 @@ export interface _SERVICE {
   'getUserRole' : ActorMethod<[], UserRole>,
   'getUserTestAttempts' : ActorMethod<[Principal], Array<TestAttempt>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'registerAdmin' : ActorMethod<[Principal], RegistrationResult>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'startSection' : ActorMethod<[bigint, bigint], undefined>,
   'startTest' : ActorMethod<[bigint], bigint>,

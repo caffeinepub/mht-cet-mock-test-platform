@@ -104,6 +104,22 @@ export interface ChapterWiseTestDetails {
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
 }
+export type RegistrationResult = {
+    __kind__: "internalError";
+    internalError: null;
+} | {
+    __kind__: "success";
+    success: {
+        registeredPrincipal: Principal;
+        timestamp: bigint;
+    };
+} | {
+    __kind__: "alreadyRegistered";
+    alreadyRegistered: null;
+} | {
+    __kind__: "unauthorized";
+    unauthorized: null;
+};
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
@@ -226,6 +242,7 @@ export interface backendInterface {
     getUserRole(): Promise<UserRole>;
     getUserTestAttempts(userId: Principal): Promise<Array<TestAttempt>>;
     isCallerAdmin(): Promise<boolean>;
+    registerAdmin(newAdmin: Principal): Promise<RegistrationResult>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     startSection(attemptId: bigint, sectionNumber: bigint): Promise<void>;
     startTest(testId: bigint): Promise<bigint>;
@@ -234,7 +251,7 @@ export interface backendInterface {
         correctAnswers: bigint;
     }>;
 }
-import type { Answer as _Answer, ChapterWiseTestDetails as _ChapterWiseTestDetails, ClassLevel as _ClassLevel, FullSyllabusTest as _FullSyllabusTest, Option as _Option, Question as _Question, Subject as _Subject, TestAttempt as _TestAttempt, TestSection as _TestSection, UserProfile as _UserProfile, UserRole as _UserRole, UserRole__1 as _UserRole__1, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { Answer as _Answer, ChapterWiseTestDetails as _ChapterWiseTestDetails, ClassLevel as _ClassLevel, FullSyllabusTest as _FullSyllabusTest, Option as _Option, Question as _Question, RegistrationResult as _RegistrationResult, Subject as _Subject, TestAttempt as _TestAttempt, TestSection as _TestSection, UserProfile as _UserProfile, UserRole as _UserRole, UserRole__1 as _UserRole__1, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -663,6 +680,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async registerAdmin(arg0: Principal): Promise<RegistrationResult> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.registerAdmin(arg0);
+                return from_candid_RegistrationResult_n49(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.registerAdmin(arg0);
+            return from_candid_RegistrationResult_n49(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
@@ -737,6 +768,9 @@ function from_candid_Option_n27(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }
 function from_candid_Question_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Question): Question {
     return from_candid_record_n20(_uploadFile, _downloadFile, value);
+}
+function from_candid_RegistrationResult_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _RegistrationResult): RegistrationResult {
+    return from_candid_variant_n50(_uploadFile, _downloadFile, value);
 }
 function from_candid_Subject_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Subject): Subject {
     return from_candid_variant_n22(_uploadFile, _downloadFile, value);
@@ -1013,6 +1047,47 @@ function from_candid_variant_n47(_uploadFile: (file: ExternalBlob) => Promise<Ui
     student: null;
 }): UserRole {
     return "admin" in value ? UserRole.admin : "student" in value ? UserRole.student : value;
+}
+function from_candid_variant_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    internalError: null;
+} | {
+    success: {
+        registeredPrincipal: Principal;
+        timestamp: bigint;
+    };
+} | {
+    alreadyRegistered: null;
+} | {
+    unauthorized: null;
+}): {
+    __kind__: "internalError";
+    internalError: null;
+} | {
+    __kind__: "success";
+    success: {
+        registeredPrincipal: Principal;
+        timestamp: bigint;
+    };
+} | {
+    __kind__: "alreadyRegistered";
+    alreadyRegistered: null;
+} | {
+    __kind__: "unauthorized";
+    unauthorized: null;
+} {
+    return "internalError" in value ? {
+        __kind__: "internalError",
+        internalError: value.internalError
+    } : "success" in value ? {
+        __kind__: "success",
+        success: value.success
+    } : "alreadyRegistered" in value ? {
+        __kind__: "alreadyRegistered",
+        alreadyRegistered: value.alreadyRegistered
+    } : "unauthorized" in value ? {
+        __kind__: "unauthorized",
+        unauthorized: value.unauthorized
+    } : value;
 }
 function from_candid_vec_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Question>): Array<Question> {
     return value.map((x)=>from_candid_Question_n19(_uploadFile, _downloadFile, x));

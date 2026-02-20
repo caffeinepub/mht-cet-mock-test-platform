@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 35,
+  "projectStateVersion": 43,
   "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable single section with custom duration, marks per question, and mixed subject support). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
   "architectural_notes": [
     "Motoko backend canister with stable memory for persistence",
@@ -574,6 +574,118 @@
         "REQ-110"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-debug-and-fix-the-usegetcalleruserrole-hook-in-frontend-src-hooks-usequeries-ts-to-ensure-it-correctly-handles-the-backend-getuserrole-endpoint-response-properly-parsing-the-returned-variant-type-e-g-admin-null-or-student-null-and-returning-the-string-admin-for-admin-users-student-for-students-or-null-for-unauthenticated-users",
+      "title": "Debug and fix the useGetCallerUserRole hook in frontend/src/hooks/useQueries.ts to ensure it correctly handles the backend getUserRole endpoint response, properly parsing the returned variant type (e.g., { admin: null } or { student: null }) and returning the string 'admin' for admin users, 'student' for students, or null for unauthenticated users",
+      "reqIds": [
+        "REQ-111"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-navbar-tsx-component-to-correctly-check-the-userrole-value-from-usegetcalleruserrole-hook-against-the-string-admin-not-the-enum-variant-object-to-determine-admin-link-visibility-ensuring-the-conditional-rendering-logic-compares-userrole-admin-to-display-the-admin-navigation-link",
+      "title": "Update the Navbar.tsx component to correctly check the userRole value from useGetCallerUserRole hook against the string 'admin' (not the enum variant object) to determine Admin link visibility, ensuring the conditional rendering logic compares userRole === 'admin' to display the Admin navigation link",
+      "reqIds": [
+        "REQ-112"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-enhanced-diagnostic-console-logging-to-the-navbar-tsx-component-that-logs-the-isauthenticated-state-the-raw-userrole-value-returned-from-usegetcalleruserrole-including-its-type-the-conditional-check-result-for-admin-link-visibility-and-timestamps-for-each-log-to-help-identify-the-exact-point-where-the-admin-link-rendering-fails",
+      "title": "Add enhanced diagnostic console logging to the Navbar.tsx component that logs the isAuthenticated state, the raw userRole value returned from useGetCallerUserRole (including its type), the conditional check result for admin link visibility, and timestamps for each log to help identify the exact point where the admin link rendering fails",
+      "reqIds": [
+        "REQ-113"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-comprehensive-diagnostic-logging-throughout-the-admin-role-verification-flow-in-both-frontend-and-backend-log-the-caller-s-internet-identity-principal-in-backend-main-mo-getuserrole-endpoint-log-the-admin-principals-list-being-checked-against-log-the-exact-comparison-result-and-add-timestamps-to-all-logs-to-trace-the-complete-authentication-and-authorization-flow",
+      "title": "Add comprehensive diagnostic logging throughout the admin role verification flow in both frontend and backend: log the caller's Internet Identity principal in backend/main.mo getUserRole endpoint, log the admin principals list being checked against, log the exact comparison result, and add timestamps to all logs to trace the complete authentication and authorization flow",
+      "reqIds": [
+        "REQ-115"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-that-the-usegetcalleruserrole-hook-in-frontend-src-hooks-usequeries-ts-correctly-parses-the-backend-getuserrole-response-variant-admin-or-student-and-extracts-the-role-name-as-a-string-admin-or-student-ensuring-the-hook-returns-the-string-value-that-navbar-tsx-expects-for-the-userrole-admin-comparison",
+      "title": "Verify that the useGetCallerUserRole hook in frontend/src/hooks/useQueries.ts correctly parses the backend getUserRole response variant ({ #admin } or { #student }) and extracts the role name as a string ('admin' or 'student'), ensuring the hook returns the string value that Navbar.tsx expects for the userRole === 'admin' comparison",
+      "reqIds": [
+        "REQ-117"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-temporary-admin-role-verification-bypass-or-fallback-mechanism-in-the-navbar-tsx-component-that-checks-multiple-sources-for-admin-status-the-usegetcalleruserrole-hook-result-a-direct-backend-actor-call-to-getuserrole-and-logs-all-intermediate-values-to-help-identify-where-the-admin-verification-chain-is-breaking",
+      "title": "Add a temporary admin role verification bypass or fallback mechanism in the Navbar.tsx component that checks multiple sources for admin status: the useGetCallerUserRole hook result, a direct backend actor call to getUserRole, and logs all intermediate values to help identify where the admin verification chain is breaking",
+      "reqIds": [
+        "REQ-118"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-usegetcalleruserrole-hook-in-frontend-src-hooks-usequeries-ts-to-correctly-parse-the-userrole-variant-returned-from-the-backend-getuserrole-endpoint-which-returns-admin-or-student-extract-the-variant-tag-name-as-a-string-admin-or-student-add-comprehensive-console-logging-that-shows-the-raw-response-the-parsing-steps-and-the-final-string-value-and-return-admin-for-admin-users-student-for-students-or-null-for-unauthenticated-users",
+      "title": "Update the useGetCallerUserRole hook in frontend/src/hooks/useQueries.ts to correctly parse the UserRole variant returned from the backend getUserRole endpoint (which returns { #admin } or { #student }), extract the variant tag name as a string ('admin' or 'student'), add comprehensive console logging that shows the raw response, the parsing steps, and the final string value, and return 'admin' for admin users, 'student' for students, or null for unauthenticated users",
+      "reqIds": [
+        "REQ-122"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-navbar-tsx-component-to-verify-that-the-admin-link-visibility-logic-correctly-uses-the-string-value-admin-from-usegetcalleruserrole-hook-for-comparison-userrole-admin-add-comprehensive-diagnostic-console-logging-that-displays-isauthenticated-state-the-raw-userrole-value-with-its-javascript-type-the-boolean-result-of-the-admin-check-comparison-and-timestamps-for-all-logs-to-trace-the-complete-rendering-decision-flow",
+      "title": "Update the Navbar.tsx component to verify that the Admin link visibility logic correctly uses the string value 'admin' from useGetCallerUserRole hook for comparison (userRole === 'admin'), add comprehensive diagnostic console logging that displays isAuthenticated state, the raw userRole value with its JavaScript type, the boolean result of the admin check comparison, and timestamps for all logs to trace the complete rendering decision flow",
+      "reqIds": [
+        "REQ-123"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-direct-backend-actor-query-call-in-navbar-tsx-component-that-independently-invokes-getuserrole-using-the-actor-from-useactor-hook-when-the-component-mounts-and-when-authentication-state-changes-logs-the-raw-response-from-this-direct-call-compares-it-with-the-usegetcalleruserrole-hook-result-and-displays-both-values-in-the-console-to-identify-any-discrepancies-in-the-role-verification-chain",
+      "title": "Add a direct backend actor query call in Navbar.tsx component that independently invokes getUserRole using the actor from useActor hook when the component mounts and when authentication state changes, logs the raw response from this direct call, compares it with the useGetCallerUserRole hook result, and displays both values in the console to identify any discrepancies in the role verification chain",
+      "reqIds": [
+        "REQ-124"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-react-query-mutation-hook-useadminregistration-in-a-new-file-frontend-src-hooks-useadminregistration-ts-that-provides-a-registeradmin-function-accepting-an-internet-identity-principal-string-calls-the-backend-registeradmin-endpoint-handles-success-and-error-responses-and-invalidates-the-user-role-query-on-success",
+      "title": "Create a React Query mutation hook useAdminRegistration in a new file frontend/src/hooks/useAdminRegistration.ts that provides a registerAdmin function accepting an Internet Identity principal string, calls the backend registerAdmin endpoint, handles success and error responses, and invalidates the user role query on success",
+      "reqIds": [
+        "REQ-128"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-admin-registration-page-component-in-frontend-src-pages-adminregistration-tsx-with-a-form-containing-an-internet-identity-principal-input-field-text-input-with-validation-a-register-as-admin-submit-button-instructions-explaining-this-is-for-initial-admin-setup-or-adding-new-admins-by-existing-admins-and-success-error-message-display-areas",
+      "title": "Create an admin registration page component in frontend/src/pages/AdminRegistration.tsx with a form containing an Internet Identity principal input field (text input with validation), a 'Register as Admin' submit button, instructions explaining this is for initial admin setup or adding new admins by existing admins, and success/error message display areas",
+      "reqIds": [
+        "REQ-129"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-route-for-the-admin-registration-page-in-frontend-src-routetree-tsx-at-path-admin-register-accessible-to-all-authenticated-users-no-role-restriction-allowing-anyone-to-attempt-the-initial-admin-registration-or-existing-admins-to-add-new-admins",
+      "title": "Add a route for the admin registration page in frontend/src/routeTree.tsx at path '/admin/register', accessible to all authenticated users (no role restriction), allowing anyone to attempt the initial admin registration or existing admins to add new admins",
+      "reqIds": [
+        "REQ-130"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-navigation-link-in-navbar-tsx-labeled-admin-setup-or-register-admin-that-navigates-to-admin-register-and-is-visible-only-to-authenticated-users-who-do-not-yet-have-admin-role-helping-new-users-discover-the-admin-registration-endpoint",
+      "title": "Add a navigation link in Navbar.tsx labeled 'Admin Setup' or 'Register Admin' that navigates to '/admin/register' and is visible only to authenticated users who do not yet have admin role, helping new users discover the admin registration endpoint",
+      "reqIds": [
+        "REQ-131"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-helper-component-or-section-in-adminregistration-tsx-that-displays-the-current-user-s-internet-identity-principal-automatically-when-the-page-loads-allowing-users-to-easily-copy-their-own-principal-for-registration-without-needing-to-find-it-in-console-logs",
+      "title": "Add a helper component or section in AdminRegistration.tsx that displays the current user's Internet Identity principal automatically when the page loads, allowing users to easily copy their own principal for registration without needing to find it in console logs",
+      "reqIds": [
+        "REQ-132"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1130,6 +1242,76 @@
       "summary": "Verify and fix the backend getUserRole endpoint in backend/main.mo to ensure it correctly identifies admin users by checking the caller's principal against the stored admin principals list or admin token validation logic, returning the correct role value ('admin' or 'student') based on the authorization check",
       "reqIds": [
         "REQ-109"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-106",
+      "summary": "Verify and fix the backend getUserRole endpoint in backend/main.mo to ensure it returns the correct UserRole__1 variant format that matches the expected IDL interface definition, properly handling the caller's principal lookup and returning { #admin } for admin users and { #student } for student users",
+      "reqIds": [
+        "REQ-114"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-108",
+      "summary": "Review and fix the admin principal verification logic in backend/main.mo to ensure that the getUserRole endpoint correctly matches the authenticated caller's principal against the stored admin principals, handling any principal format differences (text vs Principal type) and ensuring case-sensitive comparison works properly",
+      "reqIds": [
+        "REQ-116"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-111",
+      "summary": "Review the admin principal initialization in backend/main.mo to ensure admin users are being correctly added to the admin principals list during system initialization or through an admin registration endpoint, and verify that the Internet Identity principal of the admin user attempting to access the panel is actually present in the stored admin list",
+      "reqIds": [
+        "REQ-119"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-112",
+      "summary": "Update the backend getUserRole endpoint in backend/main.mo to add comprehensive diagnostic logging that logs the caller's Internet Identity principal, the complete admin principals list from AccessControl, the exact comparison result for each admin principal check, the final role determination (#admin or #student), and timestamps for each log entry to enable complete tracing of the role verification flow",
+      "reqIds": [
+        "REQ-120"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-113",
+      "summary": "Review and fix the principal comparison logic in backend/main.mo getUserRole endpoint to ensure the caller's Principal is correctly compared against the admin principals list stored in AccessControl, handling any Principal type conversion or formatting issues, and ensuring the comparison returns true when the caller is an admin user",
+      "reqIds": [
+        "REQ-121"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-114",
+      "summary": "Admin registration system with one-time setup endpoint to add Internet Identity principals to admin list",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-115",
+      "summary": "Create a backend API endpoint registerAdmin in backend/main.mo that accepts an Internet Identity principal parameter, validates the caller has permission to register admins (either the first registration is open to anyone, or requires an existing admin), adds the provided principal to the admin principals list in AccessControl stable storage, and returns success confirmation with the registered principal",
+      "reqIds": [
+        "REQ-125"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-116",
+      "summary": "Implement one-time setup logic in backend/main.mo for the registerAdmin endpoint that allows the first admin registration to proceed without authorization checks, and requires existing admin authorization for all subsequent admin registrations, using a stable variable to track whether initial setup is complete",
+      "reqIds": [
+        "REQ-126"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-117",
+      "summary": "Add comprehensive logging to the registerAdmin endpoint in backend/main.mo that logs the caller's principal, the principal being registered, the initial setup status, the authorization check result, and success/failure of the registration operation with timestamps",
+      "reqIds": [
+        "REQ-127"
       ],
       "status": "pending"
     }

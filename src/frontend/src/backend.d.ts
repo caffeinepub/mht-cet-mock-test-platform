@@ -19,6 +19,22 @@ export interface ChapterWiseTestDetails {
     questions: Array<Question>;
     marksPerQuestion: bigint;
 }
+export type RegistrationResult = {
+    __kind__: "internalError";
+    internalError: null;
+} | {
+    __kind__: "success";
+    success: {
+        registeredPrincipal: Principal;
+        timestamp: bigint;
+    };
+} | {
+    __kind__: "alreadyRegistered";
+    alreadyRegistered: null;
+} | {
+    __kind__: "unauthorized";
+    unauthorized: null;
+};
 export interface FullSyllabusTest {
     createdAt: bigint;
     testName: string;
@@ -126,6 +142,7 @@ export interface backendInterface {
     getUserRole(): Promise<UserRole>;
     getUserTestAttempts(userId: Principal): Promise<Array<TestAttempt>>;
     isCallerAdmin(): Promise<boolean>;
+    registerAdmin(newAdmin: Principal): Promise<RegistrationResult>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     startSection(attemptId: bigint, sectionNumber: bigint): Promise<void>;
     startTest(testId: bigint): Promise<bigint>;

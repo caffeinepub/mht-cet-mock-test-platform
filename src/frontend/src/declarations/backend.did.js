@@ -106,6 +106,15 @@ export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'student' : IDL.Null,
 });
+export const RegistrationResult = IDL.Variant({
+  'internalError' : IDL.Null,
+  'success' : IDL.Record({
+    'registeredPrincipal' : IDL.Principal,
+    'timestamp' : IDL.Int,
+  }),
+  'alreadyRegistered' : IDL.Null,
+  'unauthorized' : IDL.Null,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -207,6 +216,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'registerAdmin' : IDL.Func([IDL.Principal], [RegistrationResult], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'startSection' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
   'startTest' : IDL.Func([IDL.Nat], [IDL.Nat], []),
@@ -315,6 +325,15 @@ export const idlFactory = ({ IDL }) => {
     'section2StartTime' : IDL.Opt(IDL.Int),
   });
   const UserRole = IDL.Variant({ 'admin' : IDL.Null, 'student' : IDL.Null });
+  const RegistrationResult = IDL.Variant({
+    'internalError' : IDL.Null,
+    'success' : IDL.Record({
+      'registeredPrincipal' : IDL.Principal,
+      'timestamp' : IDL.Int,
+    }),
+    'alreadyRegistered' : IDL.Null,
+    'unauthorized' : IDL.Null,
+  });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -424,6 +443,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'registerAdmin' : IDL.Func([IDL.Principal], [RegistrationResult], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'startSection' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
     'startTest' : IDL.Func([IDL.Nat], [IDL.Nat], []),

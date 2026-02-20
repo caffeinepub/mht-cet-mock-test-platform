@@ -6,6 +6,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminQuestionCreate from './pages/AdminQuestionCreate';
 import AdminFullSyllabusTestCreate from './pages/AdminFullSyllabusTestCreate';
 import AdminChapterWiseTestCreate from './pages/AdminChapterWiseTestCreate';
+import AdminRegistration from './pages/AdminRegistration';
 import TestInterface from './pages/TestInterface';
 import ResultPage from './pages/ResultPage';
 import Leaderboard from './pages/Leaderboard';
@@ -50,6 +51,12 @@ const adminChapterWiseTestCreateRoute = createRoute({
   component: AdminChapterWiseTestCreate,
 });
 
+const adminRegistrationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/register',
+  component: AdminRegistration,
+});
+
 const testInterfaceRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/test/$testId',
@@ -75,6 +82,7 @@ export const routeTree = rootRoute.addChildren([
   adminQuestionCreateRoute,
   adminFullSyllabusTestCreateRoute,
   adminChapterWiseTestCreateRoute,
+  adminRegistrationRoute,
   testInterfaceRoute,
   resultRoute,
   leaderboardRoute,

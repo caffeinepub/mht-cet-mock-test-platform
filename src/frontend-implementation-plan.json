@@ -1,56 +1,99 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Admin panel visibility in navbar for authenticated admin users",
+  "title": "Add admin registration system with one-time setup endpoint",
   "requirements": [
     {
-      "id": "REQ-107",
-      "summary": "Fix Admin navigation link visibility in Navbar for authenticated admin users",
+      "id": "REQ-128",
+      "summary": "Create React Query mutation hook for admin registration that calls the backend registerAdmin endpoint and invalidates user role queries on success",
       "acceptanceCriteria": [
-        "Admin users can see the 'Admin' navigation link in the menu bar when authenticated",
-        "The Admin link is visible in both desktop and mobile navigation menus for admin role users",
-        "Non-admin users continue to not see the Admin link",
-        "The useGetCallerUserRole hook correctly returns 'admin' for admin users and the conditional rendering logic properly handles this value"
+        "useAdminRegistration hook exists in frontend/src/hooks/useAdminRegistration.ts",
+        "Provides registerAdmin mutation function",
+        "Accepts Internet Identity principal string parameter",
+        "Calls backend registerAdmin endpoint via actor",
+        "Handles success response with confirmation message",
+        "Handles error responses with error messages",
+        "Invalidates getUserRole query on successful registration"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useAdminRegistration.ts",
+          "operation": "create",
+          "description": "Create a React Query mutation hook that provides registerAdmin function accepting an Internet Identity principal string, calls actor.registerAdmin(), handles success/error responses with appropriate toast notifications, and invalidates the 'getUserRole' query key on successful registration to refresh user role state across the application"
+        }
+      ]
+    },
+    {
+      "id": "REQ-129",
+      "summary": "Create admin registration page with Internet Identity principal input form, validation, submit button, instructions, and success/error message display",
+      "acceptanceCriteria": [
+        "AdminRegistration.tsx component exists",
+        "Form includes Internet Identity principal text input field",
+        "Input field validates principal format",
+        "Submit button triggers registerAdmin mutation",
+        "Displays clear instructions for initial setup vs subsequent admin additions",
+        "Shows success message with registered principal on successful registration",
+        "Shows error message if registration fails",
+        "Form clears after successful registration"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminRegistration.tsx",
+          "operation": "create",
+          "description": "Create an admin registration page component with a form containing an Internet Identity principal text input field with format validation (must be valid Principal string), a 'Register as Admin' submit button, clear instructions explaining this is for initial admin setup (first registration works without authorization) or adding new admins by existing admins (subsequent registrations require admin authorization), and success/error message display areas using toast notifications. Form should clear after successful registration and use the useAdminRegistration mutation hook"
+        }
+      ]
+    },
+    {
+      "id": "REQ-130",
+      "summary": "Add route for admin registration page at '/admin/register' accessible to all authenticated users without role restrictions",
+      "acceptanceCriteria": [
+        "Route exists at '/admin/register' in routeTree.tsx",
+        "Route is accessible to all authenticated users",
+        "No admin role check prevents access to this route",
+        "Unauthenticated users are redirected to login"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/routeTree.tsx",
+          "operation": "modify",
+          "description": "Add a new route at '/admin/register' that renders the AdminRegistration component. This route should be accessible to all authenticated users without role restrictions (no admin check), allowing anyone to attempt initial admin registration or existing admins to add new admins. Unauthenticated users should be redirected to the landing page"
+        }
+      ]
+    },
+    {
+      "id": "REQ-131",
+      "summary": "Add navigation link in Navbar for 'Admin Setup' that routes to '/admin/register' and is visible only to authenticated users without admin role",
+      "acceptanceCriteria": [
+        "Navigation link labeled 'Admin Setup' or 'Register Admin' exists in Navbar.tsx",
+        "Link routes to '/admin/register' when clicked",
+        "Link is visible to authenticated users without admin role",
+        "Link is hidden once user has admin role",
+        "Link is hidden for unauthenticated users"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/Navbar.tsx",
           "operation": "modify",
-          "description": "Fix the conditional rendering logic for the Admin link by ensuring useGetCallerUserRole is properly invoked and its return value is correctly compared against the 'admin' string. Update both desktop and mobile navigation sections to check if userRole equals 'admin' (from UserRole__1 enum) rather than checking for undefined/null states. Ensure the hook is called at the component level and the returned role value is used in the JSX conditional expressions for rendering the Admin link."
+          "description": "Add a navigation link labeled 'Admin Setup' in the Navbar that navigates to '/admin/register'. This link should be visible only to authenticated users who do not yet have admin role (check using useGetCallerUserRole or useIsCallerAdmin hooks). Hide the link for users with admin role and for unauthenticated users. Place the link in an appropriate location within the navigation menu to help new users discover the admin registration endpoint"
         }
       ]
     },
     {
-      "id": "REQ-108",
-      "summary": "Debug and fix useGetCallerUserRole hook to correctly fetch and return user role",
+      "id": "REQ-132",
+      "summary": "Add helper component in AdminRegistration page that displays current user's Internet Identity principal with copy functionality",
       "acceptanceCriteria": [
-        "The useGetCallerUserRole hook successfully calls the backend getUserRole endpoint when user is authenticated",
-        "The hook correctly transforms the backend response into a usable role string ('admin' or 'student')",
-        "The hook returns null or undefined when user is not authenticated",
-        "React Query caching and invalidation work correctly for role data"
+        "Component displays current authenticated user's principal",
+        "Principal is shown in a copyable format",
+        "Includes a 'Copy' button or click-to-copy functionality",
+        "Displays helpful text like 'Your Internet Identity Principal:'",
+        "Principal is retrieved from Internet Identity context"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/AdminRegistration.tsx",
           "operation": "modify",
-          "description": "Debug and fix the useGetCallerUserRole hook implementation to ensure it correctly calls actor.getCallerUserRole() and properly handles the UserRole__1 enum response from the backend. Verify the query is enabled only when actor is available and user is authenticated. Ensure the hook returns the role value ('admin', 'user', or 'guest') correctly, with proper error handling for unauthenticated states. Add retry configuration and proper dependency on actor availability similar to other query hooks in this file."
-        }
-      ]
-    },
-    {
-      "id": "REQ-110",
-      "summary": "Add diagnostic console logging to Navbar for debugging admin link visibility",
-      "acceptanceCriteria": [
-        "Console logs show the isAuthenticated value when Navbar renders",
-        "Console logs show the userRole value returned from useGetCallerUserRole hook",
-        "Console logs show whether the Admin link conditional rendering evaluates to true or false",
-        "Logs help identify where in the chain the admin role check is failing"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/Navbar.tsx",
-          "operation": "modify",
-          "description": "Add comprehensive console.log statements in the Navbar component that log: (1) isAuthenticated state from useInternetIdentity, (2) userRole value from useGetCallerUserRole including loading and error states, (3) the boolean result of the conditional check for rendering the Admin link (e.g., isAuthenticated && userRole === 'admin'). Use useEffect to log these values whenever they change to help diagnose the admin panel visibility issue."
+          "description": "Add a helper section within the AdminRegistration component that displays the current authenticated user's Internet Identity principal automatically when the page loads. Show the principal in a copyable format with helpful text like 'Your Internet Identity Principal:' and include a 'Copy' button or click-to-copy functionality. Retrieve the principal from the useInternetIdentity hook's identity object using identity.getPrincipal().toString(). This allows users to easily copy their own principal for registration without needing to find it in console logs"
         }
       ]
     }
