@@ -1,51 +1,39 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add admin role verification popup on registration page",
+  "title": "Remove Admin Setup link from navbar at specified XPath location",
   "requirements": [
     {
-      "id": "REQ-133",
-      "summary": "Add an informational popup that displays 'Only admin can assign user roles' when a user attempts to register an admin principal, explaining the authorization requirement",
+      "id": "REQ-149",
+      "summary": "Remove the 'Admin Setup' navigation link from the Navbar component, ensuring no 'Admin Setup' or 'Register Admin' link appears in the navigation menu for any user",
       "acceptanceCriteria": [
-        "A modal dialog or alert banner appears when the user clicks the 'Register as Admin' button",
-        "The popup displays the exact text: 'Only admin can assign user roles'",
-        "The popup clarifies that this is an admin-protected operation",
-        "The popup appears before or after the registration attempt to inform users of the authorization requirement",
-        "For the first admin registration (when no admins exist), the popup should also mention that the first registration is open for initial setup"
+        "The 'Admin Setup' link is completely removed from the navigation section at XPath /html[1]/body[1]/div[1]/div[1]/nav[1]/div[1]/div[2]",
+        "No 'Admin Setup' or 'Register Admin' link appears in the Navbar for any user role",
+        "The navigation menu displays only Home, Dashboard, and Admin (for admin users) links",
+        "The removal is permanent and does not conditionally re-appear based on authentication or role state"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ui/alert-dialog.tsx",
-          "operation": "create",
-          "description": "Create an AlertDialog component using shadcn/ui patterns for displaying informational popups. This component will be used to show the admin role assignment message. Verify the shadcn/ui component library's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/AdminRegistration.tsx",
+          "path": "frontend/src/components/Navbar.tsx",
           "operation": "modify",
-          "description": "Add an informational alert dialog that appears when the 'Register as Admin' button is clicked. The dialog should display 'Only admin can assign user roles' as the primary message, with additional context explaining that admin registration requires existing admin authorization (except for the first admin setup). The dialog should appear before the registration attempt is made, allowing users to cancel or proceed. Include conditional messaging that mentions first-time admin registration being open when no admins exist yet."
+          "description": "Remove the 'Admin Setup' navigation link and all related conditional rendering logic from the Navbar component. Based on the file summary, this component contains an Admin Setup link for non-admin users that needs to be completely removed. Delete any JSX elements, state checks, or conditional rendering blocks that display the 'Admin Setup' or 'Register Admin' link in the navigation menu. Ensure that only Home, Dashboard, and Admin (for admin users) links remain visible in the navigation bar. Verify that the removal does not affect other navigation links or the responsive mobile menu functionality."
         }
       ]
     },
     {
-      "id": "REQ-134",
-      "summary": "Update the AdminRegistration component to display the 'Unauthorized: Only admins can assign user roles' error message prominently as a modal popup instead of just a toast notification",
+      "id": "REQ-150",
+      "summary": "Verify that the admin registration functionality at route '/admin/register' remains accessible through direct URL navigation even though the navigation link is removed",
       "acceptanceCriteria": [
-        "When the backend returns an 'Unauthorized' error during admin registration, display it in a modal dialog or prominent alert",
-        "The error popup includes the full error message explaining that only existing admins can assign admin roles",
-        "The user can dismiss the popup with a close button or OK button",
-        "The popup styling matches the existing UI design system",
-        "For users who are already admins, clarify in the UI that they can successfully register other admins"
+        "The AdminRegistration page component remains functional at '/admin/register' route",
+        "Users can access the admin registration page by typing the URL directly",
+        "The admin registration form and functionality work correctly when accessed via direct URL",
+        "Only the navigation link is removed, not the underlying functionality"
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/AdminRegistration.tsx",
           "operation": "modify",
-          "description": "Enhance error handling in the admin registration flow to display unauthorized errors in a modal dialog using the AlertDialog component. When the useAdminRegistration mutation returns an error containing 'Unauthorized' or when the backend returns an unauthorized result, open a modal dialog showing 'Unauthorized: Only admins can assign user roles' with a detailed explanation. The dialog should have a dismiss/OK button. Keep the existing toast notification system but add the prominent modal for critical authorization errors. For authenticated admin users, add helper text indicating they have permission to register other admins."
-        },
-        {
-          "path": "frontend/src/hooks/useAdminRegistration.ts",
-          "operation": "modify",
-          "description": "Update the admin registration mutation hook to better expose unauthorized error states to the calling component. Ensure the hook properly propagates the RegistrationResult type including the unauthorized variant so that AdminRegistration.tsx can distinguish between different error types and display appropriate modal dialogs for authorization failures versus other errors."
+          "description": "Add a verification comment at the top of the AdminRegistration component confirming that this page remains fully functional and accessible via direct URL navigation at '/admin/register'. No functional changes are needed - this operation documents that the component continues to work independently of navigation link visibility. The page should continue to handle admin registration with all existing validation, authentication checks, and user interface elements intact."
         }
       ]
     }

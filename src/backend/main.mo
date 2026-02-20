@@ -207,11 +207,11 @@ actor {
     };
   };
 
-  // Updated getUserRole function with comprehensive diagnostics and fix
+  // Updated getUserRole function - allow any authenticated (non-anonymous) caller to query their role
   public query ({ caller }) func getUserRole() : async UserRole {
-    // Authorization: Only authenticated users (not guests) can query their role
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can query their role");
+    // Authorization: Block anonymous principals only
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Anonymous principals cannot query user role");
     };
 
     // Diagnostic logging - Log caller principal with timestamp
@@ -259,6 +259,7 @@ actor {
     durationMinutes : Nat;
     questions : [Question];
   };
+
   public shared ({ caller }) func createChapterWiseTest(testName : Text, marksPerQuestion : Nat, durationMinutes : Nat) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create chapter-wise tests");

@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-an-informational-popup-or-alert-banner-in-the-adminregistration-tsx-component-that-displays-the-message-only-admin-can-assign-user-roles-when-a-user-attempts-to-register-an-admin-principal-explaining-that-admin-registration-requires-existing-admin-authorization-except-for-the-first-admin-setup",
-      "featureTitle": "Add an informational popup or alert banner in the AdminRegistration.tsx component that displays the message 'Only admin can assign user roles' when a user attempts to register an admin principal, explaining that admin registration requires existing admin authorization (except for the first admin setup)",
+      "featureId": "feature-remove-the-admin-setup-navigation-link-from-the-navbar-tsx-component-at-xpath-html-1-body-1-div-1-div-1-nav-1-div-1-div-2-ensuring-no-admin-setup-or-register-admin-link-appears-in-the-navigation-menu-for-any-user-authenticated-or-unauthenticated-admin-or-non-admin-completely-eliminating-this-navigation-option-from-the-menu-bar",
+      "featureTitle": "Remove the 'Admin Setup' navigation link from the Navbar.tsx component at XPath /html[1]/body[1]/div[1]/div[1]/nav[1]/div[1]/div[2], ensuring no 'Admin Setup' or 'Register Admin' link appears in the navigation menu for any user (authenticated or unauthenticated, admin or non-admin), completely eliminating this navigation option from the menu bar",
       "files": [
-        "frontend/src/pages/AdminRegistration.tsx"
+        "frontend/src/components/Navbar.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -17,15 +17,14 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-133"
+        "REQ-149"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-adminregistration-tsx-component-to-display-the-unauthorized-only-admins-can-assign-user-roles-error-message-more-prominently-as-a-modal-popup-or-alert-dialog-instead-of-just-showing-it-in-a-toast-notification-making-it-clear-to-users-that-they-lack-the-required-admin-permissions",
-      "featureTitle": "Update the AdminRegistration.tsx component to display the 'Unauthorized: Only admins can assign user roles' error message more prominently as a modal popup or alert dialog instead of just showing it in a toast notification, making it clear to users that they lack the required admin permissions",
+      "featureId": "feature-verify-that-the-admin-registration-functionality-at-route-admin-register-remains-accessible-through-direct-url-navigation-even-though-the-navigation-link-is-removed-from-the-menu-bar-ensuring-admins-can-still-register-new-admins-by-navigating-directly-to-the-url-when-needed",
+      "featureTitle": "Verify that the admin registration functionality at route '/admin/register' remains accessible through direct URL navigation even though the navigation link is removed from the menu bar, ensuring admins can still register new admins by navigating directly to the URL when needed",
       "files": [
-        "frontend/src/hooks/useAdminRegistration.ts",
         "frontend/src/pages/AdminRegistration.tsx"
       ],
       "components": [
@@ -38,7 +37,7 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-134"
+        "REQ-150"
       ],
       "confidence": "high"
     }

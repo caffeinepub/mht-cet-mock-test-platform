@@ -1,60 +1,55 @@
 {
   "kind": "build_request",
-  "title": "Add admin role verification popup on registration page",
-  "projectName": "Concept Delta",
-  "priority": "normal",
+  "title": "Remove Admin Setup link from navbar at specified XPath location",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-133",
-      "text": "Add an informational popup or alert banner in the AdminRegistration.tsx component that displays the message 'Only admin can assign user roles' when a user attempts to register an admin principal, explaining that admin registration requires existing admin authorization (except for the first admin setup)",
+      "id": "REQ-149",
+      "text": "Remove the 'Admin Setup' navigation link from the Navbar.tsx component at XPath /html[1]/body[1]/div[1]/div[1]/nav[1]/div[1]/div[2], ensuring no 'Admin Setup' or 'Register Admin' link appears in the navigation menu for any user (authenticated or unauthenticated, admin or non-admin), completely eliminating this navigation option from the menu bar",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-latest"
         ],
         "quotes": [
-          "at the time of admin registration show pop up only admin can assign user role"
+          "not show admin setup in manu bar"
         ]
       },
       "acceptanceCriteria": [
-        "A modal dialog or alert banner appears when the user clicks the 'Register as Admin' button",
-        "The popup displays the exact text: 'Only admin can assign user roles'",
-        "The popup clarifies that this is an admin-protected operation",
-        "The popup appears before or after the registration attempt to inform users of the authorization requirement",
-        "For the first admin registration (when no admins exist), the popup should also mention that the first registration is open for initial setup"
+        "The 'Admin Setup' link is completely removed from the navigation section at XPath /html[1]/body[1]/div[1]/div[1]/nav[1]/div[1]/div[2]",
+        "No 'Admin Setup' or 'Register Admin' link appears in the Navbar for any user role",
+        "The navigation menu displays only Home, Dashboard, and Admin (for admin users) links",
+        "The removal is permanent and does not conditionally re-appear based on authentication or role state"
       ]
     },
     {
-      "id": "REQ-134",
-      "text": "Update the AdminRegistration.tsx component to display the 'Unauthorized: Only admins can assign user roles' error message more prominently as a modal popup or alert dialog instead of just showing it in a toast notification, making it clear to users that they lack the required admin permissions",
+      "id": "REQ-150",
+      "text": "Verify that the admin registration functionality at route '/admin/register' remains accessible through direct URL navigation even though the navigation link is removed from the menu bar, ensuring admins can still register new admins by navigating directly to the URL when needed",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "show pop up only admin can assign user role",
-          "Registration Failed - Unauthorized: Only admins can assign user roles"
+          "msg-latest"
         ]
       },
       "acceptanceCriteria": [
-        "When the backend returns an 'Unauthorized' error during admin registration, display it in a modal dialog or prominent alert",
-        "The error popup includes the full error message explaining that only existing admins can assign admin roles",
-        "The user can dismiss the popup with a close button or OK button",
-        "The popup styling matches the existing UI design system",
-        "For users who are already admins, clarify in the UI that they can successfully register other admins"
+        "The AdminRegistration page component remains functional at '/admin/register' route",
+        "Users can access the admin registration page by typing the URL directly",
+        "The admin registration form and functionality work correctly when accessed via direct URL",
+        "Only the navigation link is removed, not the underlying functionality"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the backend authorization logic for admin registration",
-    "Use existing UI component patterns from frontend/src/components/ui for modal/dialog implementation",
-    "Maintain consistency with existing toast notification system"
+    "Do not modify the AdminRegistration.tsx page component or the '/admin/register' route definition",
+    "Do not change any other navigation links (Home, Dashboard, Admin)",
+    "Do not modify the authentication or role verification logic",
+    "Only remove the visual navigation link from the Navbar component"
   ],
   "nonGoals": [
-    "Bypassing or disabling the admin authorization check",
-    "Creating a separate registration flow for non-admin users",
-    "Adding email notifications for failed registration attempts"
+    "Fixing the underlying 'actor not available' error (separate issue)",
+    "Changing the admin registration backend logic",
+    "Modifying the role verification system",
+    "Adding alternative admin setup access methods"
   ],
   "imageRequirements": {
     "required": [],

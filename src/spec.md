@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add a prominent modal popup to inform users about admin role assignment restrictions during admin registration.
+**Goal:** Remove the Admin Setup navigation link from the menu bar while keeping the admin registration page accessible via direct URL.
 
 **Planned changes:**
-- Add a modal dialog that appears when users click "Register as Admin" button, displaying the message "Only admin can assign user roles"
-- Convert the existing toast notification for unauthorized admin registration errors into a prominent modal popup with a dismissible close/OK button
-- Clarify in the popup that the first admin registration is open for initial setup when no admins exist
+- Remove the 'Admin Setup' link from the Navbar component at the specified navigation section
+- Ensure no 'Admin Setup' or 'Register Admin' link appears for any user role
+- Verify the '/admin/register' route remains functional when accessed directly
 
-**User-visible outcome:** Users attempting to register as admin will see clear, prominent modal popups explaining that only existing admins can assign admin roles, improving clarity about authorization requirements and reducing confusion about failed registration attempts.
+**User-visible outcome:** The Admin Setup link no longer appears in the navigation menu, but administrators can still access the admin registration page by navigating directly to the URL when needed.

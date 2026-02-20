@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T08:23:30.901Z",
+  "generatedAt": "2026-02-20T09:22:04.831Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,28 +11,25 @@
     "implemented": 2,
     "items": [
       {
-        "id": "REQ-133",
-        "summary": "Add an informational popup or alert banner in the AdminRegistration.tsx component that displays the message 'Only admin can assign user roles' when a user attempts to register an admin principal, explaining that admin registration requires existing admin authorization (except for the first admin setup)",
+        "id": "REQ-149",
+        "summary": "Remove the 'Admin Setup' navigation link from the Navbar.tsx component at XPath /html[1]/body[1]/div[1]/div[1]/nav[1]/div[1]/div[2], ensuring no 'Admin Setup' or 'Register Admin' link appears in the navigation menu for any user (authenticated or unauthenticated, admin or non-admin), completely eliminating this navigation option from the menu bar",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ui/alert-dialog.tsx",
-          "frontend/src/pages/AdminRegistration.tsx"
+          "frontend/src/components/Navbar.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/AdminRegistration.tsx"
+          "frontend/src/components/Navbar.tsx"
         ]
       },
       {
-        "id": "REQ-134",
-        "summary": "Update the AdminRegistration.tsx component to display the 'Unauthorized: Only admins can assign user roles' error message more prominently as a modal popup or alert dialog instead of just showing it in a toast notification, making it clear to users that they lack the required admin permissions",
+        "id": "REQ-150",
+        "summary": "Verify that the admin registration functionality at route '/admin/register' remains accessible through direct URL navigation even though the navigation link is removed from the menu bar, ensuring admins can still register new admins by navigating directly to the URL when needed",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/AdminRegistration.tsx",
-          "frontend/src/hooks/useAdminRegistration.ts"
+          "frontend/src/pages/AdminRegistration.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/AdminRegistration.tsx",
-          "frontend/src/hooks/useAdminRegistration.ts"
+          "frontend/src/pages/AdminRegistration.tsx"
         ]
       }
     ]
@@ -42,7 +39,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/hooks/useAdminRegistration.ts",
+    "frontend/src/components/Navbar.tsx",
     "frontend/src/pages/AdminRegistration.tsx",
     "project_state.json",
     "scratch/component-selection.json",

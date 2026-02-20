@@ -2,7 +2,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetCallerUserRole, useIsCallerAdmin } from '../hooks/useQueries';
-import { Menu, X, Settings } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useActor } from '../hooks/useActor';
 
@@ -71,63 +71,61 @@ export default function Navbar() {
       
       console.log('═══════════════════════════════════════════════════════════════');
     };
-    
+
     verifyRoleDirectly();
   }, [actor, isAuthenticated, userRole, isAdmin]);
 
-  // Enhanced diagnostic logging for debugging admin link visibility
+  // Comprehensive diagnostic logging
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const timestamp = new Date().toISOString();
     console.log('');
     console.log('╔═══════════════════════════════════════════════════════════════╗');
-    console.log('║         Navbar Admin Link Visibility Diagnostic               ║');
+    console.log('║              Navbar Admin Status Diagnostic                   ║');
     console.log('╚═══════════════════════════════════════════════════════════════╝');
-    console.log(`[${timestamp}] Timestamp:`, timestamp);
+    console.log(`[${timestamp}] Authentication Status: ${isAuthenticated ? '✓ Authenticated' : '✗ Not Authenticated'}`);
+    console.log(`[${timestamp}] Principal: ${identity?.getPrincipal().toString() || 'N/A'}`);
     console.log('');
-    console.log('--- Authentication State ---');
-    console.log(`[${timestamp}] isAuthenticated:`, isAuthenticated);
-    console.log(`[${timestamp}] identity exists:`, !!identity);
-    console.log(`[${timestamp}] identity principal:`, identity?.getPrincipal().toString());
-    console.log(`[${timestamp}] actor available:`, !!actor);
+    console.log('--- Primary Method: useGetCallerUserRole ---');
+    console.log(`[${timestamp}] Loading: ${roleLoading}`);
+    console.log(`[${timestamp}] Fetched: ${roleFetched}`);
+    console.log(`[${timestamp}] Role Value: ${userRole}`);
+    console.log(`[${timestamp}] Role Type: ${typeof userRole}`);
+    console.log(`[${timestamp}] Is Admin (derived): ${isAdmin}`);
+    if (roleError) {
+      console.error(`[${timestamp}] Error:`, roleError);
+    }
     console.log('');
-    console.log('--- Method 1: useGetCallerUserRole ---');
-    console.log(`[${timestamp}] userRole value:`, userRole);
-    console.log(`[${timestamp}] userRole type:`, typeof userRole);
-    console.log(`[${timestamp}] roleLoading:`, roleLoading);
-    console.log(`[${timestamp}] roleFetched:`, roleFetched);
-    console.log(`[${timestamp}] roleError:`, roleError);
-    console.log(`[${timestamp}] Comparison (userRole === "admin"):`, userRole === 'admin');
-    console.log(`[${timestamp}] isAdmin derived:`, isAdmin);
+    console.log('--- Secondary Method: useIsCallerAdmin ---');
+    console.log(`[${timestamp}] Loading: ${adminLoading}`);
+    console.log(`[${timestamp}] Fetched: ${adminFetched}`);
+    console.log(`[${timestamp}] Is Admin (direct): ${isAdminDirect}`);
+    if (adminError) {
+      console.error(`[${timestamp}] Error:`, adminError);
+    }
     console.log('');
-    console.log('--- Method 2: useIsCallerAdmin ---');
-    console.log(`[${timestamp}] isAdminDirect value:`, isAdminDirect);
-    console.log(`[${timestamp}] isAdminDirect type:`, typeof isAdminDirect);
-    console.log(`[${timestamp}] adminLoading:`, adminLoading);
-    console.log(`[${timestamp}] adminFetched:`, adminFetched);
-    console.log(`[${timestamp}] adminError:`, adminError);
-    console.log('');
-    console.log('--- Visibility Logic ---');
-    console.log(`[${timestamp}] Method 1 condition (!roleLoading && isAdmin):`, !roleLoading && isAdmin);
-    console.log(`[${timestamp}] Method 2 condition (!adminLoading && isAdminDirect):`, !adminLoading && isAdminDirect);
-    console.log(`[${timestamp}] Combined condition (Method 1 OR Method 2):`, (!roleLoading && isAdmin) || (!adminLoading && isAdminDirect));
-    console.log('');
-    console.log('--- Final Decision ---');
-    const shouldShowAdminLink = (!roleLoading && isAdmin) || (!adminLoading && isAdminDirect);
-    console.log(`[${timestamp}] Should show Admin Panel link:`, shouldShowAdminLink);
+    console.log('--- Fallback Logic ---');
+    const fallbackIsAdmin = isAdmin || (isAdminDirect === true);
+    console.log(`[${timestamp}] Final Admin Status (with fallback): ${fallbackIsAdmin}`);
     console.log('═══════════════════════════════════════════════════════════════');
-  }, [isAuthenticated, identity, actor, userRole, roleLoading, roleFetched, roleError, isAdmin, isAdminDirect, adminLoading, adminFetched, adminError]);
+  }, [isAuthenticated, identity, userRole, roleLoading, roleFetched, roleError, isAdminDirect, adminLoading, adminFetched, adminError, isAdmin]);
 
-  const handleAuth = async () => {
-    if (isAuthenticated) {
-      await clear();
-      navigate({ to: '/' });
-    } else {
+  const handleLogout = async () => {
+    await clear();
+    navigate({ to: '/' });
+  };
+
+  const handleLogin = async () => {
+    try {
       await login();
+    } catch (error) {
+      console.error('Login error:', error);
     }
   };
 
-  // Show Admin Setup link only for authenticated users who are NOT admins
-  const showAdminSetupLink = isAuthenticated && !roleLoading && !isAdmin;
+  // Use fallback logic: if either method confirms admin, show admin links
+  const showAdminLinks = isAdmin || (isAdminDirect === true);
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-md sticky top-0 z-50">
@@ -135,48 +133,37 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               Concept Delta
-            </div>
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <Link
               to="/"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
             >
               Home
             </Link>
             {isAuthenticated && (
               <Link
                 to="/dashboard"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
               >
                 Dashboard
               </Link>
             )}
-            {/* Admin Panel Link - Using fallback logic with both verification methods */}
-            {((!roleLoading && isAdmin) || (!adminLoading && isAdminDirect)) && (
+            {showAdminLinks && (
               <Link
                 to="/admin"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
               >
-                Admin Panel
-              </Link>
-            )}
-            {/* Admin Setup Link - Only for authenticated non-admin users */}
-            {showAdminSetupLink && (
-              <Link
-                to="/admin/register"
-                className="flex items-center gap-2 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors font-medium"
-              >
-                <Settings className="h-4 w-4" />
-                Admin Setup
+                Admin
               </Link>
             )}
             <Button
-              onClick={handleAuth}
+              onClick={isAuthenticated ? handleLogout : handleLogin}
               disabled={isLoggingIn}
               variant={isAuthenticated ? 'outline' : 'default'}
             >
@@ -186,21 +173,23 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden pb-4 space-y-2">
+          <div className="md:hidden py-4 space-y-3 border-t border-gray-200 dark:border-gray-700">
             <Link
               to="/"
-              className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+              className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >
               Home
@@ -208,46 +197,36 @@ export default function Navbar() {
             {isAuthenticated && (
               <Link
                 to="/dashboard"
-                className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+                className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Dashboard
               </Link>
             )}
-            {/* Admin Panel Link - Mobile */}
-            {((!roleLoading && isAdmin) || (!adminLoading && isAdminDirect)) && (
+            {showAdminLinks && (
               <Link
                 to="/admin"
-                className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+                className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Admin Panel
+                Admin
               </Link>
             )}
-            {/* Admin Setup Link - Mobile */}
-            {showAdminSetupLink && (
-              <Link
-                to="/admin/register"
-                className="flex items-center gap-2 px-4 py-2 text-amber-600 dark:text-amber-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Settings className="h-4 w-4" />
-                Admin Setup
-              </Link>
-            )}
-            <div className="px-4 pt-2">
-              <Button
-                onClick={() => {
-                  handleAuth();
-                  setMobileMenuOpen(false);
-                }}
-                disabled={isLoggingIn}
-                variant={isAuthenticated ? 'outline' : 'default'}
-                className="w-full"
-              >
-                {isLoggingIn ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login'}
-              </Button>
-            </div>
+            <Button
+              onClick={() => {
+                if (isAuthenticated) {
+                  handleLogout();
+                } else {
+                  handleLogin();
+                }
+                setMobileMenuOpen(false);
+              }}
+              disabled={isLoggingIn}
+              variant={isAuthenticated ? 'outline' : 'default'}
+              className="w-full"
+            >
+              {isLoggingIn ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login'}
+            </Button>
           </div>
         )}
       </div>
