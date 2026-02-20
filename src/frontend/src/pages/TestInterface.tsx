@@ -1,6 +1,6 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useTestAttemptById, useFullSyllabusTestById, useAllQuestions } from '../hooks/useQueries';
+import { useTestAttempt, useFullSyllabusTestById, useAllQuestions } from '../hooks/useQueries';
 import { useTestSectionMutations } from '../hooks/useTestSectionMutations';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,7 @@ export default function TestInterface() {
   
   const attemptId = search.attemptId ? BigInt(search.attemptId) : null;
   
-  const { data: attempt, isLoading: attemptLoading, refetch: refetchAttempt } = useTestAttemptById(attemptId);
+  const { data: attempt, isLoading: attemptLoading, refetch: refetchAttempt } = useTestAttempt(attemptId);
   const { data: test } = useFullSyllabusTestById(attempt?.testId || null);
   const { data: allQuestions = [] } = useAllQuestions();
   const { startSection, submitSection } = useTestSectionMutations();

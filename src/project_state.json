@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 55,
+  "projectStateVersion": 61,
   "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable single section with custom duration, marks per question, and mixed subject support). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
   "architectural_notes": [
     "Motoko backend canister with stable memory for persistence",
@@ -23,8 +23,7 @@
     "Admin registration popup showing 'actor is not available' error preventing role assignment",
     "First admin registration failing: user reports not getting admin access despite being first admin",
     "Admin Setup navigation link not appearing in Navbar despite deployment",
-    "Admin Setup navigation link not visible in Navbar despite user requesting it to be added back after removal",
-    "User reports Admin Setup link still not visible in menu bar after multiple attempts over 2 hours"
+    "Admin Setup navigation link not visible in Navbar despite user requesting it to be added back after removal"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -811,6 +810,78 @@
         "REQ-150"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-investigate-and-fix-the-admin-setup-navigation-link-visibility-issue-in-navbar-tsx-by-verifying-the-conditional-rendering-logic-that-checks-userrole-admin-for-authenticated-users-ensuring-the-link-appears-in-the-navigation-menu-at-xpath-html-1-body-1-div-1-div-1-nav-1-div-1-div-2-alongside-existing-navigation-links-like-home-dashboard-and-logout",
+      "title": "Investigate and fix the Admin Setup navigation link visibility issue in Navbar.tsx by verifying the conditional rendering logic that checks userRole !== 'admin' for authenticated users, ensuring the link appears in the navigation menu at XPath /html[1]/body[1]/div[1]/div[1]/nav[1]/div[1]/div[2] alongside existing navigation links like 'Home', 'Dashboard', and 'Logout'",
+      "reqIds": [
+        "REQ-151"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-comprehensive-diagnostic-logging-to-navbar-tsx-that-logs-the-authentication-state-isauthenticated-the-userrole-value-from-usegetcalleruserrole-hook-the-conditional-check-result-for-admin-setup-link-visibility-userrole-admin-the-rendering-decision-and-timestamps-to-trace-why-the-admin-setup-link-is-not-appearing-in-the-menu-bar",
+      "title": "Add comprehensive diagnostic logging to Navbar.tsx that logs the authentication state (isAuthenticated), the userRole value from useGetCallerUserRole hook, the conditional check result for Admin Setup link visibility (userRole !== 'admin'), the rendering decision, and timestamps to trace why the Admin Setup link is not appearing in the menu bar",
+      "reqIds": [
+        "REQ-152"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-usegetcalleruserrole-hook-is-correctly-returning-string-values-admin-student-or-null-and-not-variant-objects-ensuring-the-navbar-tsx-comparison-userrole-admin-works-properly-with-strict-equality-checks",
+      "title": "Verify the useGetCallerUserRole hook is correctly returning string values ('admin', 'student', or null) and not variant objects, ensuring the Navbar.tsx comparison userRole !== 'admin' works properly with strict equality checks",
+      "reqIds": [
+        "REQ-153"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-fallback-rendering-mechanism-in-navbar-tsx-that-checks-multiple-conditions-for-showing-the-admin-setup-link-check-if-isauthenticated-is-true-and-userrole-is-explicitly-student-or-userrole-is-null-providing-an-alternative-path-to-display-the-link-if-the-current-logic-fails",
+      "title": "Add a fallback rendering mechanism in Navbar.tsx that checks multiple conditions for showing the Admin Setup link: check if isAuthenticated is true AND userRole is explicitly 'student' OR userRole is null, providing an alternative path to display the link if the current logic fails",
+      "reqIds": [
+        "REQ-154"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-review-the-navbar-tsx-component-structure-to-ensure-the-admin-setup-link-is-being-rendered-in-the-correct-dom-location-within-the-navigation-menu-container-verifying-it-s-not-being-accidentally-hidden-by-css-styles-z-index-issues-or-parent-container-overflow-properties",
+      "title": "Review the Navbar.tsx component structure to ensure the Admin Setup link is being rendered in the correct DOM location within the navigation menu container, verifying it's not being accidentally hidden by CSS styles, z-index issues, or parent container overflow properties",
+      "reqIds": [
+        "REQ-155"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-temporary-debugging-section-in-navbar-tsx-that-visually-displays-the-current-authentication-state-userrole-value-and-conditional-check-results-directly-in-the-ui-e-g-as-a-small-debug-panel-or-text-overlay-to-help-diagnose-why-the-admin-setup-link-is-not-appearing-without-relying-solely-on-console-logs",
+      "title": "Add a temporary debugging section in Navbar.tsx that visually displays the current authentication state, userRole value, and conditional check results directly in the UI (e.g., as a small debug panel or text overlay) to help diagnose why the Admin Setup link is not appearing without relying solely on console logs",
+      "reqIds": [
+        "REQ-156"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-adminregistration-tsx-component-to-automatically-refetch-the-user-role-query-using-react-query-invalidation-after-successful-first-admin-registration-ensuring-the-ui-updates-immediately-to-reflect-the-new-admin-status-without-requiring-page-refresh-or-manual-navigation",
+      "title": "Update the AdminRegistration.tsx component to automatically refetch the user role query using React Query invalidation after successful first admin registration, ensuring the UI updates immediately to reflect the new admin status without requiring page refresh or manual navigation",
+      "reqIds": [
+        "REQ-160"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-adminregistration-tsx-component-to-automatically-refetch-the-user-role-using-react-query-invalidation-immediately-after-successful-first-admin-registration-then-display-a-prominent-success-message-confirming-first-admin-status-and-automatically-navigate-to-the-admin-dashboard-after-a-2-second-delay",
+      "title": "Update the AdminRegistration.tsx component to automatically refetch the user role using React Query invalidation immediately after successful first admin registration, then display a prominent success message confirming first admin status, and automatically navigate to the Admin Dashboard after a 2-second delay",
+      "reqIds": [
+        "REQ-164"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-visual-indicator-in-the-adminregistration-tsx-component-that-shows-the-current-registration-status-for-the-displayed-principal-id-checking-if-it-s-already-registered-as-admin-before-allowing-registration-submission-to-prevent-duplicate-registration-attempts",
+      "title": "Add a visual indicator in the AdminRegistration.tsx component that shows the current registration status for the displayed principal ID, checking if it's already registered as admin before allowing registration submission to prevent duplicate registration attempts",
+      "reqIds": [
+        "REQ-165"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1480,6 +1551,54 @@
       "id": "AR-124",
       "summary": "Re-add Admin Setup navigation link in Navbar.tsx visible only to authenticated users without admin role, ensuring previous 'actor not available' error is resolved",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-125",
+      "summary": "Update the registerAdmin endpoint in backend/main.mo to fix the authorization logic for first-time admin registration by implementing a proper bootstrapping check that verifies if the admin principals list is empty before requiring admin authorization, allowing the very first registration to proceed without 'Unauthorized: Only admins can assign user roles' error",
+      "reqIds": [
+        "REQ-157"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-126",
+      "summary": "Add comprehensive diagnostic logging to the registerAdmin endpoint in backend/main.mo that logs whether this is a first-time setup attempt (admin list empty or not), the caller's Internet Identity principal, the principal being registered, the authorization check result including why it passed or failed, and the final success or failure outcome with timestamps to enable complete debugging of the bootstrap flow",
+      "reqIds": [
+        "REQ-158"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-127",
+      "summary": "Fix the backend authorization check in the registerAdmin endpoint to ensure the bootstrapping logic properly evaluates the admin principals list state, handling edge cases where the list might be initialized but empty, and correctly allowing first registration to proceed when no admins exist yet",
+      "reqIds": [
+        "REQ-159"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-128",
+      "summary": "Fix the registerAdmin endpoint authorization logic in backend/main.mo to correctly implement first-time admin bootstrapping by properly checking if the admin principals list is empty before enforcing authorization, allowing the very first admin registration to succeed without requiring existing admin permissions",
+      "reqIds": [
+        "REQ-161"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-129",
+      "summary": "Add comprehensive diagnostic logging throughout the registerAdmin endpoint in backend/main.mo that logs the admin principals list state (empty or populated), the count of existing admins, the caller's Internet Identity principal, the principal being registered, the authorization check result with detailed reasoning (first-time setup vs existing admin check), and the registration outcome with timestamps",
+      "reqIds": [
+        "REQ-162"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-130",
+      "summary": "Review and fix the admin principals list initialization in backend/main.mo to ensure it correctly handles empty state during first deployment and properly distinguishes between 'not initialized' and 'initialized but empty' states for the bootstrapping logic",
+      "reqIds": [
+        "REQ-163"
+      ],
       "status": "pending"
     }
   ],

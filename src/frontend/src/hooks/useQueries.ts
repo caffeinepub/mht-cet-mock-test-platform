@@ -113,7 +113,7 @@ export function useGetCallerUserProfile() {
   };
 }
 
-// User Role Hook - Returns string 'admin', 'student', or null
+// User Role Hook - Returns string 'admin', 'student', or null with enhanced logging
 export function useGetCallerUserRole() {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -166,10 +166,10 @@ export function useGetCallerUserRole() {
       // Backend returns { #admin } or { #student } which gets converted to enum by agent
       let parsedRole: 'admin' | 'student' | null = null;
       
-      // Check if response has __kind__ property (variant structure)
+      // Strategy 1: Check if response has __kind__ property (variant structure)
       if (role && typeof role === 'object' && '__kind__' in role) {
         const kind = (role as any).__kind__;
-        console.log(`[${timestamp}] Detected variant with __kind__: "${kind}"`);
+        console.log(`[${timestamp}] Strategy 1: Detected variant with __kind__: "${kind}"`);
         
         if (kind === 'admin') {
           parsedRole = 'admin';
@@ -181,9 +181,9 @@ export function useGetCallerUserRole() {
           console.log(`[${timestamp}] ⚠ Unknown variant kind: "${kind}"`);
         }
       } 
-      // Check if it's a string enum value
+      // Strategy 2: Check if it's a string enum value
       else if (typeof role === 'string') {
-        console.log(`[${timestamp}] Detected string enum value: "${role}"`);
+        console.log(`[${timestamp}] Strategy 2: Detected string enum value: "${role}"`);
         
         if (role === 'admin') {
           parsedRole = 'admin';
@@ -195,10 +195,10 @@ export function useGetCallerUserRole() {
           console.log(`[${timestamp}] ⚠ Unknown string value: "${role}"`);
         }
       }
-      // Fallback: check object keys for variant tag
+      // Strategy 3: Fallback - check object keys for variant tag
       else if (role && typeof role === 'object') {
         const keys = Object.keys(role);
-        console.log(`[${timestamp}] Checking object keys for variant tag:`, keys);
+        console.log(`[${timestamp}] Strategy 3: Checking object keys for variant tag:`, keys);
         
         if (keys.includes('admin') || keys[0] === 'admin') {
           parsedRole = 'admin';
@@ -210,13 +210,17 @@ export function useGetCallerUserRole() {
           console.log(`[${timestamp}] ⚠ No recognized variant tag in keys`);
         }
       } else {
-        console.log(`[${timestamp}] ⚠ Unexpected response format`);
+        console.log(`[${timestamp}] ⚠ Unexpected response format - all strategies failed`);
       }
       
       console.log('');
       console.log('--- Final Result ---');
       console.log(`[${timestamp}] Final parsed role:`, parsedRole);
       console.log(`[${timestamp}] Type of parsed role:`, typeof parsedRole);
+      console.log(`[${timestamp}] Is null:`, parsedRole === null);
+      console.log(`[${timestamp}] Is 'admin':`, parsedRole === 'admin');
+      console.log(`[${timestamp}] Is 'student':`, parsedRole === 'student');
+      console.log(`[${timestamp}] NOT 'admin':`, parsedRole !== 'admin');
       console.log('═══════════════════════════════════════════════════════════════');
       
       return parsedRole;
@@ -225,30 +229,10 @@ export function useGetCallerUserRole() {
     retry: false,
   });
 
-  const timestamp = new Date().toISOString();
-  console.log('');
-  console.log('╔═══════════════════════════════════════════════════════════════╗');
-  console.log('║         useGetCallerUserRole Hook State Summary               ║');
-  console.log('╚═══════════════════════════════════════════════════════════════╝');
-  console.log(`[${timestamp}] Hook returned data:`, query.data);
-  console.log(`[${timestamp}] Hook data type:`, typeof query.data);
-  console.log(`[${timestamp}] Query isLoading:`, query.isLoading);
-  console.log(`[${timestamp}] Query isFetching:`, query.isFetching);
-  console.log(`[${timestamp}] Query isFetched:`, query.isFetched);
-  console.log(`[${timestamp}] Query isError:`, query.isError);
-  console.log(`[${timestamp}] Query error:`, query.error);
-  console.log(`[${timestamp}] Actor fetching:`, actorFetching);
-  console.log(`[${timestamp}] Combined isLoading:`, actorFetching || query.isLoading);
-  console.log('═══════════════════════════════════════════════════════════════');
-
-  return {
-    ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
-  };
+  return query;
 }
 
-// Direct admin check hook (secondary verification method)
+// Admin Check Hook
 export function useIsCallerAdmin() {
   const { actor, isFetching: actorFetching } = useActor();
 
@@ -257,9 +241,10 @@ export function useIsCallerAdmin() {
     queryFn: async () => {
       const timestamp = new Date().toISOString();
       console.log('╔═══════════════════════════════════════════════════════════════╗');
-      console.log('║         useIsCallerAdmin Query Execution Started              ║');
+      console.log('║          useIsCallerAdmin Query Execution Started             ║');
       console.log('╚═══════════════════════════════════════════════════════════════╝');
       console.log(`[${timestamp}] Query enabled:`, !!actor && !actorFetching);
+      console.log(`[${timestamp}] Actor available:`, !!actor);
       
       if (!actor) {
         console.error(`[${timestamp}] ❌ ERROR: Actor not available`);
@@ -281,25 +266,24 @@ export function useIsCallerAdmin() {
         throw error;
       }
       
-      console.log(`[${timestamp}] isCallerAdmin response:`, isAdmin);
+      console.log('');
+      console.log('--- Response Analysis ---');
+      console.log(`[${timestamp}] Raw response:`, isAdmin);
       console.log(`[${timestamp}] Response type:`, typeof isAdmin);
+      console.log(`[${timestamp}] Boolean value:`, Boolean(isAdmin));
       console.log('═══════════════════════════════════════════════════════════════');
       
-      return isAdmin;
+      return Boolean(isAdmin);
     },
     enabled: !!actor && !actorFetching,
     retry: false,
   });
 
-  return {
-    ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
-  };
+  return query;
 }
 
 // Test Attempt Hooks
-export function useTestAttemptById(attemptId: bigint | null) {
+export function useTestAttempt(attemptId: bigint | null) {
   const { actor, isFetching } = useActor();
 
   return useQuery<TestAttempt | null>({
@@ -309,7 +293,6 @@ export function useTestAttemptById(attemptId: bigint | null) {
       return actor.getTestAttempt(attemptId);
     },
     enabled: !!actor && !isFetching && attemptId !== null,
-    retry: false,
   });
 }
 
@@ -324,6 +307,5 @@ export function useLeaderboard(testId: bigint | null) {
       return actor.getLeaderboard(testId);
     },
     enabled: !!actor && !isFetching && testId !== null,
-    retry: false,
   });
 }

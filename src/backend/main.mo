@@ -8,9 +8,12 @@ import Principal "mo:core/Principal";
 import Time "mo:core/Time";
 import Iter "mo:core/Iter";
 import Order "mo:core/Order";
+
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
+
+// Use the migration module for upgrading from previous versions
 
 actor {
   // Initialize access control state
@@ -19,7 +22,7 @@ actor {
 
   include MixinStorage();
 
-  var isInitialSetupComplete = false;
+  let admins = List.empty<Principal>();
 
   // User Profile Type
   public type UserProfile = {
@@ -149,62 +152,78 @@ actor {
     #internalError;
   };
 
-  // New registerAdmin function for backend API
+  // Fixed registerAdmin function with proper bootstrapping logic
   public shared ({ caller }) func registerAdmin(newAdmin : Principal) : async RegistrationResult {
     let timestamp = Time.now().toText();
-    let initialSetupStatus = isInitialSetupComplete;
+    let currentTime = Time.now();
 
-    // Diagnostic logging - Log request parameters and setup state
-    Debug.print("[" # timestamp # "] registerAdmin called by: " # caller.toText() # ", new admin: " # newAdmin.toText() # ", initial setup complete: " # debug_show(initialSetupStatus));
+    Debug.print("[" # timestamp # "] === registerAdmin called ===");
+    Debug.print("[" # timestamp # "] Caller principal: " # caller.toText());
+    Debug.print("[" # timestamp # "] Target principal to register: " # newAdmin.toText());
 
-    // Check if the new admin is already registered
-    let role = AccessControl.getUserRole(accessControlState, newAdmin);
-    switch (role) {
-      case (#admin) {
-        Debug.print("[" # timestamp # "] Admin already registered: " # newAdmin.toText());
-        return #alreadyRegistered;
-      };
-      case (_) {};
+    // Check if the admin list is empty (first-time setup)
+    let isEmpty = admins.isEmpty();
+    Debug.print("[" # timestamp # "] Admin list empty (first-time setup): " # debug_show(isEmpty));
+
+    // Check current role of the target principal
+    let currentRole = AccessControl.getUserRole(accessControlState, newAdmin);
+    Debug.print("[" # timestamp # "] Current role of target principal: " # debug_show(currentRole));
+
+    // If already an admin, return early
+    if (currentRole == #admin) {
+      Debug.print("[" # timestamp # "] Target principal is already an admin, returning #alreadyRegistered");
+      return #alreadyRegistered;
     };
 
-    // Handle initial setup logic
-    if (not initialSetupStatus) {
-      // Comprehensive logging for initial setup
-      Debug.print("[" # timestamp # "] Performing initial admin registration (no checks required)");
-      isInitialSetupComplete := true;
+    // BOOTSTRAPPING: First admin registration
+    if (isEmpty) {
+      Debug.print("[" # timestamp # "] BOOTSTRAPPING: Registering first admin without authorization check");
+      Debug.print("[" # timestamp # "] Using AccessControl.assignRole() for first admin: " # newAdmin.toText());
 
-      // Correctly assign admin role instead of initializing
+      // Use assignRole() for the first admin (no admin check required)
       AccessControl.assignRole(accessControlState, caller, newAdmin, #admin);
-      Debug.print("[" # timestamp # "] Initial admin registered successfully: " # newAdmin.toText());
+      admins.add(newAdmin);
+
+      Debug.print("[" # timestamp # "] First admin successfully registered: " # newAdmin.toText());
+      Debug.print("[" # timestamp # "] Admin list size after registration: " # debug_show(admins.size()));
+
       return #success({
         registeredPrincipal = newAdmin;
-        timestamp = Time.now();
+        timestamp = currentTime;
       });
     };
 
-    // Regular registration - require existing admin privileges
-    Debug.print("[" # timestamp # "] Regular admin registration (admin check required)");
+    // SUBSEQUENT REGISTRATIONS: Require admin authorization
+    Debug.print("[" # timestamp # "] Admin list not empty, checking caller authorization");
+    Debug.print("[" # timestamp # "] Admin list size: " # debug_show(admins.size()));
 
-    let hasAdminPrivileges = AccessControl.hasPermission(accessControlState, caller, #admin);
-    if (not hasAdminPrivileges) {
-      // Log authorization failure with details
-      Debug.print("[" # timestamp # "] Unauthorized admin registration attempt by: " # caller.toText() # " for principal: " # newAdmin.toText());
+    let isCallerAdmin = AccessControl.isAdmin(accessControlState, caller);
+    let callerRole = AccessControl.getUserRole(accessControlState, caller);
+
+    Debug.print("[" # timestamp # "] Caller is admin: " # debug_show(isCallerAdmin));
+    Debug.print("[" # timestamp # "] Caller role: " # debug_show(callerRole));
+
+    if (not isCallerAdmin) {
+      Debug.print("[" # timestamp # "] AUTHORIZATION FAILED: Caller is not an admin");
+      Debug.print("[" # timestamp # "] Rejecting admin registration for: " # newAdmin.toText());
       return #unauthorized;
     };
 
-    // Register new admin using AccessControl module
-    try {
-      AccessControl.assignRole(accessControlState, caller, newAdmin, #admin);
-      Debug.print("[" # timestamp # "] Admin registration successful: " # newAdmin.toText());
-      return #success({
-        registeredPrincipal = newAdmin;
-        timestamp = Time.now();
-      });
-    } catch (_) {
-      // Remove error.toText() and log generic message
-      Debug.print("[" # timestamp # "] Internal error during admin registration");
-      #internalError;
-    };
+    // Caller is authorized, proceed with registration
+    Debug.print("[" # timestamp # "] AUTHORIZATION PASSED: Caller is an admin");
+    Debug.print("[" # timestamp # "] Using AccessControl.assignRole() for subsequent admin: " # newAdmin.toText());
+
+    // Use assignRole() for subsequent admins (includes admin check internally)
+    AccessControl.assignRole(accessControlState, caller, newAdmin, #admin);
+    admins.add(newAdmin);
+
+    Debug.print("[" # timestamp # "] Admin successfully registered: " # newAdmin.toText());
+    Debug.print("[" # timestamp # "] Admin list size after registration: " # debug_show(admins.size()));
+
+    #success({
+      registeredPrincipal = newAdmin;
+      timestamp = currentTime;
+    });
   };
 
   // Updated getUserRole function - allow any authenticated (non-anonymous) caller to query their role

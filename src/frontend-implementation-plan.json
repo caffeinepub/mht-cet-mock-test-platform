@@ -1,39 +1,39 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove Admin Setup link from navbar at specified XPath location",
+  "title": "Fix first admin registration authorization to allow bootstrapping without existing admin",
   "requirements": [
     {
-      "id": "REQ-149",
-      "summary": "Remove the 'Admin Setup' navigation link from the Navbar component, ensuring no 'Admin Setup' or 'Register Admin' link appears in the navigation menu for any user",
+      "id": "REQ-164",
+      "summary": "Update AdminRegistration component to invalidate user role query after successful first admin registration, display success message, and auto-navigate to admin dashboard",
       "acceptanceCriteria": [
-        "The 'Admin Setup' link is completely removed from the navigation section at XPath /html[1]/body[1]/div[1]/div[1]/nav[1]/div[1]/div[2]",
-        "No 'Admin Setup' or 'Register Admin' link appears in the Navbar for any user role",
-        "The navigation menu displays only Home, Dashboard, and Admin (for admin users) links",
-        "The removal is permanent and does not conditionally re-appear based on authentication or role state"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/Navbar.tsx",
-          "operation": "modify",
-          "description": "Remove the 'Admin Setup' navigation link and all related conditional rendering logic from the Navbar component. Based on the file summary, this component contains an Admin Setup link for non-admin users that needs to be completely removed. Delete any JSX elements, state checks, or conditional rendering blocks that display the 'Admin Setup' or 'Register Admin' link in the navigation menu. Ensure that only Home, Dashboard, and Admin (for admin users) links remain visible in the navigation bar. Verify that the removal does not affect other navigation links or the responsive mobile menu functionality."
-        }
-      ]
-    },
-    {
-      "id": "REQ-150",
-      "summary": "Verify that the admin registration functionality at route '/admin/register' remains accessible through direct URL navigation even though the navigation link is removed",
-      "acceptanceCriteria": [
-        "The AdminRegistration page component remains functional at '/admin/register' route",
-        "Users can access the admin registration page by typing the URL directly",
-        "The admin registration form and functionality work correctly when accessed via direct URL",
-        "Only the navigation link is removed, not the underlying functionality"
+        "After successful registration, the user role query is invalidated and refetched",
+        "A success message displays 'Successfully registered as first admin!'",
+        "The Navbar automatically shows the 'Admin' link after role refetch",
+        "User is redirected to /admin/dashboard after 2 seconds"
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/AdminRegistration.tsx",
           "operation": "modify",
-          "description": "Add a verification comment at the top of the AdminRegistration component confirming that this page remains fully functional and accessible via direct URL navigation at '/admin/register'. No functional changes are needed - this operation documents that the component continues to work independently of navigation link visibility. The page should continue to handle admin registration with all existing validation, authentication checks, and user interface elements intact."
+          "description": "After successful registerAdmin mutation, invalidate the ['callerUserRole'] query using queryClient.invalidateQueries to trigger a refetch of the user's role. Display a success toast with message 'Successfully registered as first admin!' using the toast utility. After a 2-second delay using setTimeout, programmatically navigate to '/admin/dashboard' using the router's navigate function. Ensure the success flow only triggers when the mutation returns { __kind__: 'success' }."
+        }
+      ]
+    },
+    {
+      "id": "REQ-165",
+      "summary": "Add visual indicator in AdminRegistration component showing current registration status and preventing duplicate registration attempts",
+      "acceptanceCriteria": [
+        "Component checks if the displayed principal is already an admin on mount",
+        "A status badge shows 'Already Admin' if the principal is registered",
+        "The register button is disabled if the principal is already an admin",
+        "Helpful message explains that this principal already has admin access"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminRegistration.tsx",
+          "operation": "modify",
+          "description": "Add a check on component mount that calls the getUserRole backend method with the principal ID displayed in the input field to determine if it's already registered as admin. Display a status badge component (using shadcn/ui Badge) with text 'Already Admin' and appropriate styling (green background) if getUserRole returns { __kind__: 'admin' }. Disable the 'Register Admin' button when the principal is already an admin. Add an informational alert (using shadcn/ui Alert component) explaining 'This principal already has admin access' when the already-registered state is detected. Store the registration status in local component state to drive the UI conditionally."
         }
       ]
     }

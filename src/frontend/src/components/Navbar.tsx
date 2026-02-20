@@ -21,6 +21,12 @@ export default function Navbar() {
   const isAuthenticated = !!identity;
   const isAdmin = userRole === 'admin';
 
+  // Compute showAdminSetupLink with multiple fallback conditions
+  const showAdminSetupLink = 
+    (isAuthenticated && userRole === 'student') ||
+    (isAuthenticated && userRole === null) ||
+    (isAuthenticated && userRole !== 'admin');
+
   // Direct backend actor query for independent verification
   useEffect(() => {
     const verifyRoleDirectly = async () => {
@@ -75,14 +81,14 @@ export default function Navbar() {
     verifyRoleDirectly();
   }, [actor, isAuthenticated, userRole, isAdmin]);
 
-  // Comprehensive diagnostic logging
+  // Comprehensive diagnostic logging with Admin Setup link visibility
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const timestamp = new Date().toISOString();
     console.log('');
     console.log('╔═══════════════════════════════════════════════════════════════╗');
-    console.log('║              Navbar Admin Status Diagnostic                   ║');
+    console.log('║       Navbar Admin Setup Link Visibility Diagnostic           ║');
     console.log('╚═══════════════════════════════════════════════════════════════╝');
     console.log(`[${timestamp}] Authentication Status: ${isAuthenticated ? '✓ Authenticated' : '✗ Not Authenticated'}`);
     console.log(`[${timestamp}] Principal: ${identity?.getPrincipal().toString() || 'N/A'}`);
@@ -105,11 +111,17 @@ export default function Navbar() {
       console.error(`[${timestamp}] Error:`, adminError);
     }
     console.log('');
+    console.log('--- Admin Setup Link Visibility Logic ---');
+    console.log(`[${timestamp}] Condition 1 (isAuthenticated && userRole === 'student'): ${isAuthenticated && userRole === 'student'}`);
+    console.log(`[${timestamp}] Condition 2 (isAuthenticated && userRole === null): ${isAuthenticated && userRole === null}`);
+    console.log(`[${timestamp}] Condition 3 (isAuthenticated && userRole !== 'admin'): ${isAuthenticated && userRole !== 'admin'}`);
+    console.log(`[${timestamp}] Final showAdminSetupLink: ${showAdminSetupLink}`);
+    console.log('');
     console.log('--- Fallback Logic ---');
     const fallbackIsAdmin = isAdmin || (isAdminDirect === true);
     console.log(`[${timestamp}] Final Admin Status (with fallback): ${fallbackIsAdmin}`);
     console.log('═══════════════════════════════════════════════════════════════');
-  }, [isAuthenticated, identity, userRole, roleLoading, roleFetched, roleError, isAdminDirect, adminLoading, adminFetched, adminError, isAdmin]);
+  }, [isAuthenticated, identity, userRole, roleLoading, roleFetched, roleError, isAdminDirect, adminLoading, adminFetched, adminError, isAdmin, showAdminSetupLink]);
 
   const handleLogout = async () => {
     await clear();
@@ -128,108 +140,174 @@ export default function Navbar() {
   const showAdminLinks = isAdmin || (isAdminDirect === true);
 
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              Concept Delta
-            </span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link
-              to="/"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-            >
-              Home
-            </Link>
-            {isAuthenticated && (
-              <Link
-                to="/dashboard"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-              >
-                Dashboard
-              </Link>
-            )}
-            {showAdminLinks && (
-              <Link
-                to="/admin"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-              >
-                Admin
-              </Link>
-            )}
-            <Button
-              onClick={isAuthenticated ? handleLogout : handleLogin}
-              disabled={isLoggingIn}
-              variant={isAuthenticated ? 'outline' : 'default'}
-            >
-              {isLoggingIn ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login'}
-            </Button>
+    <>
+      {/* Temporary Debug Panel */}
+      {isAuthenticated && (
+        <div 
+          className="fixed top-20 right-4 z-[100] bg-black/90 text-white p-4 rounded-lg shadow-xl text-xs font-mono max-w-sm"
+          style={{ backdropFilter: 'blur(10px)' }}
+        >
+          <div className="font-bold text-yellow-400 mb-2 border-b border-yellow-400/30 pb-2">
+            🔍 Debug Panel - Admin Setup Link
           </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
+          <div className="space-y-1">
+            <div className="flex justify-between">
+              <span className="text-gray-400">isAuthenticated:</span>
+              <span className={isAuthenticated ? 'text-green-400' : 'text-red-400'}>
+                {String(isAuthenticated)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">userRole:</span>
+              <span className="text-blue-400">{String(userRole)} ({typeof userRole})</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">userRole !== 'admin':</span>
+              <span className={userRole !== 'admin' ? 'text-green-400' : 'text-red-400'}>
+                {String(userRole !== 'admin')}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">showAdminSetupLink:</span>
+              <span className={showAdminSetupLink ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}>
+                {String(showAdminSetupLink)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">isAdmin:</span>
+              <span className={isAdmin ? 'text-green-400' : 'text-red-400'}>
+                {String(isAdmin)}
+              </span>
+            </div>
+            <div className="text-gray-500 text-[10px] mt-2 pt-2 border-t border-gray-700">
+              {new Date().toLocaleTimeString()}
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 space-y-3 border-t border-gray-200 dark:border-gray-700">
-            <Link
-              to="/"
-              className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Home
+      <nav className="bg-white dark:bg-gray-900 shadow-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-2">
+              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                Concept Delta
+              </span>
             </Link>
-            {isAuthenticated && (
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-6">
               <Link
-                to="/dashboard"
-                className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                onClick={() => setMobileMenuOpen(false)}
+                to="/"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
               >
-                Dashboard
+                Home
               </Link>
-            )}
-            {showAdminLinks && (
-              <Link
-                to="/admin"
-                className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                onClick={() => setMobileMenuOpen(false)}
+              {isAuthenticated && (
+                <Link
+                  to="/dashboard"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                >
+                  Dashboard
+                </Link>
+              )}
+              {showAdminLinks && (
+                <Link
+                  to="/admin"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                >
+                  Admin
+                </Link>
+              )}
+              {showAdminSetupLink && (
+                <Link
+                  to="/admin/register"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                  data-testid="admin-setup-link"
+                >
+                  Admin Setup
+                </Link>
+              )}
+              <Button
+                onClick={isAuthenticated ? handleLogout : handleLogin}
+                disabled={isLoggingIn}
+                variant={isAuthenticated ? 'outline' : 'default'}
               >
-                Admin
-              </Link>
-            )}
-            <Button
-              onClick={() => {
-                if (isAuthenticated) {
-                  handleLogout();
-                } else {
-                  handleLogin();
-                }
-                setMobileMenuOpen(false);
-              }}
-              disabled={isLoggingIn}
-              variant={isAuthenticated ? 'outline' : 'default'}
-              className="w-full"
-            >
-              {isLoggingIn ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login'}
-            </Button>
+                {isLoggingIn ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login'}
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
+            </div>
           </div>
-        )}
-      </div>
-    </nav>
+
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden py-4 space-y-3 border-t border-gray-200 dark:border-gray-700">
+              <Link
+                to="/"
+                className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              {isAuthenticated && (
+                <Link
+                  to="/dashboard"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+              )}
+              {showAdminLinks && (
+                <Link
+                  to="/admin"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Admin
+                </Link>
+              )}
+              {showAdminSetupLink && (
+                <Link
+                  to="/admin/register"
+                  className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                  data-testid="admin-setup-link-mobile"
+                >
+                  Admin Setup
+                </Link>
+              )}
+              <Button
+                onClick={() => {
+                  if (isAuthenticated) {
+                    handleLogout();
+                  } else {
+                    handleLogin();
+                  }
+                  setMobileMenuOpen(false);
+                }}
+                disabled={isLoggingIn}
+                variant={isAuthenticated ? 'outline' : 'default'}
+                className="w-full"
+              >
+                {isLoggingIn ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login'}
+              </Button>
+            </div>
+          )}
+        </div>
+      </nav>
+    </>
   );
 }

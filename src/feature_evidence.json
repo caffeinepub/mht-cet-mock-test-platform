@@ -2,28 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-admin-setup-navigation-link-from-the-navbar-tsx-component-at-xpath-html-1-body-1-div-1-div-1-nav-1-div-1-div-2-ensuring-no-admin-setup-or-register-admin-link-appears-in-the-navigation-menu-for-any-user-authenticated-or-unauthenticated-admin-or-non-admin-completely-eliminating-this-navigation-option-from-the-menu-bar",
-      "featureTitle": "Remove the 'Admin Setup' navigation link from the Navbar.tsx component at XPath /html[1]/body[1]/div[1]/div[1]/nav[1]/div[1]/div[2], ensuring no 'Admin Setup' or 'Register Admin' link appears in the navigation menu for any user (authenticated or unauthenticated, admin or non-admin), completely eliminating this navigation option from the menu bar",
-      "files": [
-        "frontend/src/components/Navbar.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-149"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-verify-that-the-admin-registration-functionality-at-route-admin-register-remains-accessible-through-direct-url-navigation-even-though-the-navigation-link-is-removed-from-the-menu-bar-ensuring-admins-can-still-register-new-admins-by-navigating-directly-to-the-url-when-needed",
-      "featureTitle": "Verify that the admin registration functionality at route '/admin/register' remains accessible through direct URL navigation even though the navigation link is removed from the menu bar, ensuring admins can still register new admins by navigating directly to the URL when needed",
+      "featureId": "feature-update-the-adminregistration-tsx-component-to-automatically-refetch-the-user-role-using-react-query-invalidation-immediately-after-successful-first-admin-registration-then-display-a-prominent-success-message-confirming-first-admin-status-and-automatically-navigate-to-the-admin-dashboard-after-a-2-second-delay",
+      "featureTitle": "Update the AdminRegistration.tsx component to automatically refetch the user role using React Query invalidation immediately after successful first admin registration, then display a prominent success message confirming first admin status, and automatically navigate to the Admin Dashboard after a 2-second delay",
       "files": [
         "frontend/src/pages/AdminRegistration.tsx"
       ],
@@ -37,7 +17,27 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-150"
+        "REQ-164"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-visual-indicator-in-the-adminregistration-tsx-component-that-shows-the-current-registration-status-for-the-displayed-principal-id-checking-if-it-s-already-registered-as-admin-before-allowing-registration-submission-to-prevent-duplicate-registration-attempts",
+      "featureTitle": "Add a visual indicator in the AdminRegistration.tsx component that shows the current registration status for the displayed principal ID, checking if it's already registered as admin before allowing registration submission to prevent duplicate registration attempts",
+      "files": [
+        "frontend/src/pages/AdminRegistration.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-165"
       ],
       "confidence": "high"
     }

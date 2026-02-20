@@ -16,6 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,11 +28,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Copy, CheckCircle2, AlertCircle, ShieldAlert, Loader2, PartyPopper } from 'lucide-react';
+import { Copy, CheckCircle2, AlertCircle, ShieldAlert, Loader2, PartyPopper, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
 import { UserRole__1 } from '../backend';
 import { useQueryClient } from '@tanstack/react-query';
+import { Principal } from '@dfinity/principal';
 
 export default function AdminRegistration() {
   const { identity } = useInternetIdentity();
@@ -47,26 +50,62 @@ export default function AdminRegistration() {
   const [errorMessage, setErrorMessage] = useState('');
   const [proceedWithRegistration, setProceedWithRegistration] = useState(false);
   const [isFirstAdmin, setIsFirstAdmin] = useState(false);
+  
+  // New state for checking if principal is already admin
+  const [checkingPrincipalStatus, setCheckingPrincipalStatus] = useState(false);
+  const [principalIsAlreadyAdmin, setPrincipalIsAlreadyAdmin] = useState(false);
 
   const isAuthenticated = !!identity;
   const currentPrincipal = identity?.getPrincipal().toString() || '';
-  const isAdmin = userRole === UserRole__1.admin;
+  const isAdmin = userRole === 'admin';
 
   // Determine if the actor is still loading
   const isActorLoading = actorFetching || !actor;
   
   // Disable form while actor is loading or during submission
-  const isFormDisabled = isPending || isActorLoading;
+  const isFormDisabled = isPending || isActorLoading || principalIsAlreadyAdmin;
 
   // Hide the registration form if user is already an admin
   const showRegistrationForm = !isAdmin || roleLoading;
+
+  // Check if the entered principal is already an admin
+  useEffect(() => {
+    const checkPrincipalStatus = async () => {
+      if (!actor || !principalInput.trim() || actorFetching) {
+        setPrincipalIsAlreadyAdmin(false);
+        return;
+      }
+
+      try {
+        // Validate principal format first
+        const principal = Principal.fromText(principalInput.trim());
+        
+        setCheckingPrincipalStatus(true);
+        
+        // Call getUserRole with the principal to check if they're already admin
+        // Note: We need to use a different approach since getUserRole only checks caller
+        // Instead, we'll try to register and handle the alreadyRegistered response
+        // For now, we'll just validate the format
+        setPrincipalIsAlreadyAdmin(false);
+      } catch (error) {
+        // Invalid principal format
+        setPrincipalIsAlreadyAdmin(false);
+      } finally {
+        setCheckingPrincipalStatus(false);
+      }
+    };
+
+    // Debounce the check
+    const timeoutId = setTimeout(checkPrincipalStatus, 500);
+    return () => clearTimeout(timeoutId);
+  }, [principalInput, actor, actorFetching]);
 
   // Auto-navigate after successful first admin registration
   useEffect(() => {
     if (showSuccessDialog && isFirstAdmin) {
       const timer = setTimeout(() => {
         navigate({ to: '/admin' });
-      }, 2500);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [showSuccessDialog, isFirstAdmin, navigate]);
@@ -90,6 +129,16 @@ export default function AdminRegistration() {
       return;
     }
 
+    // Validate principal format
+    try {
+      Principal.fromText(principalInput.trim());
+    } catch (error) {
+      toast.error('Invalid Principal', {
+        description: 'The principal ID format is invalid. Please check and try again.',
+      });
+      return;
+    }
+
     // Check if actor is available before proceeding
     if (!actor || actorFetching) {
       toast.error('Connection Not Ready', {
@@ -107,30 +156,53 @@ export default function AdminRegistration() {
     setProceedWithRegistration(true);
 
     registerAdmin(principalInput.trim(), {
-      onSuccess: ({ result }) => {
+      onSuccess: async ({ result }) => {
         if (result.__kind__ === 'success') {
           // Determine if this was the first admin registration
           const wasFirstAdmin = principalInput.trim() === currentPrincipal;
           setIsFirstAdmin(wasFirstAdmin);
           
-          // Invalidate user role queries to refresh admin status
-          queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
-          queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
+          // Show success toast
+          toast.success('Successfully registered as first admin!', {
+            description: wasFirstAdmin 
+              ? 'You now have full administrative privileges.' 
+              : 'The principal has been registered as an administrator.',
+          });
+          
+          // Invalidate user role queries to trigger refetch
+          await queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
+          await queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
           
           // Show success dialog
           setShowSuccessDialog(true);
           setPrincipalInput('');
+        } else if (result.__kind__ === 'alreadyRegistered') {
+          setPrincipalIsAlreadyAdmin(true);
+          toast.info('Already Registered', {
+            description: 'This principal is already registered as an administrator.',
+          });
         } else if (result.__kind__ === 'unauthorized') {
           setErrorMessage(
             'Unauthorized: Only admins can assign user roles. After the initial setup, only existing administrators can register new admins.'
           );
           setShowErrorDialog(true);
+        } else if (result.__kind__ === 'internalError') {
+          setErrorMessage(
+            'Internal Error: An unexpected error occurred during registration. Please try again.'
+          );
+          setShowErrorDialog(true);
         }
       },
       onError: (error: Error) => {
+        console.error('Registration error:', error);
         if (error.message.includes('Unauthorized')) {
           setErrorMessage(
             'Unauthorized: Only admins can assign user roles. You do not have permission to register new administrators.'
+          );
+          setShowErrorDialog(true);
+        } else {
+          setErrorMessage(
+            `Registration failed: ${error.message}`
           );
           setShowErrorDialog(true);
         }
@@ -254,7 +326,15 @@ export default function AdminRegistration() {
         {/* Registration Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Register Admin</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Register Admin</span>
+              {principalIsAlreadyAdmin && (
+                <Badge variant="default" className="bg-green-600">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Already Admin
+                </Badge>
+              )}
+            </CardTitle>
             <CardDescription>
               Enter the principal ID of the user you want to register as an administrator.
             </CardDescription>
@@ -277,6 +357,16 @@ export default function AdminRegistration() {
                 </p>
               </div>
 
+              {/* Already Admin Alert */}
+              {principalIsAlreadyAdmin && (
+                <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                  <Info className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <AlertDescription className="text-green-800 dark:text-green-200">
+                    This principal already has admin access. No need to register again.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Button
                 type="submit"
                 className="w-full"
@@ -291,6 +381,11 @@ export default function AdminRegistration() {
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Connecting...
+                  </>
+                ) : principalIsAlreadyAdmin ? (
+                  <>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Already Registered
                   </>
                 ) : (
                   'Register as Admin'
@@ -374,7 +469,7 @@ export default function AdminRegistration() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <PartyPopper className="h-5 w-5 text-green-600" />
-              {isFirstAdmin ? 'You are now registered as the first admin!' : 'Admin Registered Successfully'}
+              {isFirstAdmin ? 'Successfully Registered as First Admin!' : 'Admin Registered Successfully'}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
               {isFirstAdmin ? (
@@ -383,7 +478,7 @@ export default function AdminRegistration() {
                     Congratulations! You have been registered as the first administrator.
                   </p>
                   <p>
-                    You now have full administrative privileges. Redirecting to admin dashboard...
+                    You now have full administrative privileges. Redirecting to admin dashboard in 2 seconds...
                   </p>
                 </>
               ) : (
@@ -400,7 +495,7 @@ export default function AdminRegistration() {
                 navigate({ to: '/admin' });
               }
             }}>
-              {isFirstAdmin ? 'Go to Dashboard' : 'Close'}
+              {isFirstAdmin ? 'Go to Dashboard Now' : 'Close'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

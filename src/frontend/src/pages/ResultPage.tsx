@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useTestAttemptById, useFullSyllabusTestById, useAllQuestions, useChapterWiseTestById, useGetCallerUserProfile } from '../hooks/useQueries';
+import { useTestAttempt, useFullSyllabusTestById, useAllQuestions, useChapterWiseTestById, useGetCallerUserProfile } from '../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +18,7 @@ export default function ResultPage() {
   
   const attemptId = params.resultId ? BigInt(params.resultId) : null;
   
-  const { data: attempt, isLoading: attemptLoading } = useTestAttemptById(attemptId);
+  const { data: attempt, isLoading: attemptLoading } = useTestAttempt(attemptId);
   const { data: fullSyllabusTest } = useFullSyllabusTestById(attempt?.testId || null);
   const { data: chapterWiseTestResult } = useChapterWiseTestById(attempt?.testId || BigInt(0));
   const { data: allQuestions = [] } = useAllQuestions();
@@ -435,10 +435,10 @@ export default function ResultPage() {
                               )}
                             </div>
                             {isCorrectOption && (
-                              <Badge className="bg-green-600">Correct Answer</Badge>
+                              <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />
                             )}
                             {isSelected && !isCorrect && (
-                              <Badge variant="destructive">Your Answer</Badge>
+                              <XCircle className="h-5 w-5 shrink-0 text-red-600" />
                             )}
                           </div>
                         </div>
@@ -453,7 +453,9 @@ export default function ResultPage() {
                         <p className="mb-2 font-semibold text-blue-900 dark:text-blue-100">
                           Explanation:
                         </p>
-                        <p className="text-blue-800 dark:text-blue-200">{question.explanation}</p>
+                        <p className="text-sm text-blue-800 dark:text-blue-200">
+                          {question.explanation}
+                        </p>
                       </div>
                     </>
                   )}
