@@ -1,163 +1,64 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Step 6: PDF Export with Concept Delta Branding",
+  "title": "Make explanation field optional in question creation",
   "requirements": [
     {
-      "id": "REQ-82",
-      "summary": "Install and configure PDF generation library in frontend",
+      "id": "REQ-91",
+      "summary": "Make explanation field optional in AdminQuestionCreate form by removing required validation and updating UI to indicate optional status",
       "acceptanceCriteria": [
-        "PDF generation library is added to frontend dependencies",
-        "Library is properly configured and importable in React components"
+        "The explanation field in the question creation form is marked as optional",
+        "Form validation does not require explanation text to be provided",
+        "Questions can be successfully created without providing an explanation",
+        "The form UI indicates that explanation is optional (e.g., with '(optional)' label)"
       ],
       "file_operations": [
         {
-          "path": "frontend/package.json",
+          "path": "frontend/src/pages/AdminQuestionCreate.tsx",
           "operation": "modify",
-          "description": "Add jsPDF library to dependencies to enable client-side PDF generation from test result data"
-        }
-      ]
-    },
-    {
-      "id": "REQ-83",
-      "summary": "Create PDF generation utility module accepting test data and generating branded PDFs",
-      "acceptanceCriteria": [
-        "Utility function accepts required parameters (attempt, test, profile, questions)",
-        "Function returns a downloadable PDF blob or triggers browser download",
-        "PDF generation handles both full syllabus and chapter-wise test types"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/pdfExport.ts",
-          "operation": "create",
-          "description": "Create utility module exporting generateResultPDF function that accepts TestAttempt, test details (FullSyllabusTest or ChapterWiseTestDetails), UserProfile, and Question array, then generates and downloads a formatted PDF with Concept Delta branding. Function must handle both test types, format dates as readable strings, and return the PDF blob or trigger browser download"
-        }
-      ]
-    },
-    {
-      "id": "REQ-84",
-      "summary": "Design PDF header with Concept Delta logo, test details, and overall score",
-      "acceptanceCriteria": [
-        "Header displays Concept Delta branding consistently",
-        "Student name is pulled from the user profile",
-        "Test name and date are clearly visible",
-        "Overall score is prominently featured in the header"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/pdfExport.ts",
-          "operation": "modify",
-          "description": "Implement PDF header section within generateResultPDF function including Concept Delta logo (using text-based branding with delta symbol Δ), test name from test details, student name from UserProfile.name, attempt date formatted from TestAttempt.createdAt as readable date string (e.g., 'January 15, 2024'), and overall score displayed prominently using TestAttempt.totalScore and calculated total possible marks"
-        }
-      ]
-    },
-    {
-      "id": "REQ-85",
-      "summary": "Add score summary section with marks, percentage, section breakdown, time, and performance indicator",
-      "acceptanceCriteria": [
-        "Total score displays with proper unit labels",
-        "Percentage is calculated and displayed accurately",
-        "Section breakdown shows for full syllabus tests only",
-        "Time taken is formatted as HH:MM:SS",
-        "Performance indicator thresholds are correctly applied"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/pdfExport.ts",
-          "operation": "modify",
-          "description": "Add score summary section to PDF showing total score with unit labels (e.g., '85/200 marks'), percentage calculated from total score and total possible marks, section-wise breakdown (Section 1 score using TestAttempt.section1Score, Section 2 score using TestAttempt.section2Score) only for FullSyllabusTest type, total time taken formatted as HH:MM:SS from TestAttempt.totalTimeTaken, and performance indicator text based on percentage thresholds (Excellent for 80%+, Good for 60-79%, Needs Improvement for below 60%)"
-        }
-      ]
-    },
-    {
-      "id": "REQ-86",
-      "summary": "Add question-by-question breakdown with answers, correctness, and marks",
-      "acceptanceCriteria": [
-        "All questions are listed with sequential numbering",
-        "Question text is included with length handling for long questions",
-        "User's answer and correct answer are clearly labeled",
-        "Correct/incorrect status is visually indicated",
-        "Marks awarded per question are displayed"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/pdfExport.ts",
-          "operation": "modify",
-          "description": "Add question-by-question breakdown section listing all questions with sequential numbering, question text (use Question.questionText with truncation for long text, ignoring Question.questionImage), user's selected answer from TestAttempt answers array mapped to Question.options array by selectedOptionIndex (showing option text only), correct answer from Question.options[Question.correctAnswerIndex] (showing option text only), correctness indicator using ✓ for correct and ✗ for incorrect by comparing selectedOptionIndex with correctAnswerIndex, and marks awarded per question based on test type's marksPerQuestion"
-        }
-      ]
-    },
-    {
-      "id": "REQ-87",
-      "summary": "Add statistics summary with question counts and accuracy percentage",
-      "acceptanceCriteria": [
-        "All statistics are calculated accurately from attempt data",
-        "Counts are displayed with clear labels",
-        "Accuracy percentage is formatted to 2 decimal places",
-        "Statistics section is visually distinct from other sections"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/pdfExport.ts",
-          "operation": "modify",
-          "description": "Add statistics summary section calculating and displaying total questions count from questions array length, questions attempted count from non-zero selectedOptionIndex in answers, correct answers count by comparing selectedOptionIndex with correctAnswerIndex for each answer, incorrect answers count (attempted minus correct), unanswered questions count (total minus attempted), and accuracy percentage calculated as (correct/attempted * 100) formatted to 2 decimal places with clear labels for each statistic"
-        }
-      ]
-    },
-    {
-      "id": "REQ-88",
-      "summary": "Add footer with Concept Delta branding and page numbers",
-      "acceptanceCriteria": [
-        "Footer appears on every page of multi-page PDFs",
-        "Concept Delta branding is consistent with application",
-        "Social media handle matches @coep_conceptdelta2031",
-        "Page numbers are accurate and properly formatted"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/pdfExport.ts",
-          "operation": "modify",
-          "description": "Add footer to each PDF page containing Concept Delta branding text with delta symbol, social media handle @coep_conceptdelta2031, and page numbers in 'Page X of Y' format using jsPDF's page numbering functionality to ensure footer appears on every page of multi-page PDFs"
-        }
-      ]
-    },
-    {
-      "id": "REQ-89",
-      "summary": "Add Export PDF button in ResultPage that triggers PDF generation and download",
-      "acceptanceCriteria": [
-        "Button is prominently displayed on the result page",
-        "Button click triggers PDF generation without errors",
-        "PDF downloads automatically to user's device",
-        "Filename follows the specified format with proper sanitization",
-        "Button shows loading state during PDF generation if needed"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ResultPage.tsx",
-          "operation": "modify",
-          "description": "Add Export PDF button prominently displayed on the result page that imports and calls generateResultPDF from frontend/src/utils/pdfExport.ts with TestAttempt from useQuery result, test details from fullSyllabusTest or chapterWiseTest data, UserProfile from useGetCallerUserProfile hook, and Question array from test details, triggering browser download with sanitized filename format 'ConceptDelta_TestName_StudentName_Date.pdf' (removing special characters invalid in filenames), and include loading state during PDF generation using React state"
-        }
-      ]
-    },
-    {
-      "id": "REQ-90",
-      "summary": "Handle PDF generation errors gracefully with user feedback",
-      "acceptanceCriteria": [
-        "Error message is user-friendly and actionable",
-        "Error details are logged to console for debugging",
-        "PDF generation failure does not crash the application",
-        "User can retry PDF generation after an error"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/pdfExport.ts",
-          "operation": "modify",
-          "description": "Wrap PDF generation logic in try-catch block to handle errors gracefully, logging error details to console for debugging while returning error status to caller, ensuring PDF generation failure does not crash the utility function"
+          "description": "Remove required validation from the explanation textarea field. Update the field label to indicate it is optional by adding '(optional)' text. Allow form submission when explanation is empty by removing any validation rules that enforce its presence. The explanation field should accept null or empty string values and pass them to the backend createQuestion mutation."
         },
         {
+          "path": "frontend/src/hooks/useQuestionMutations.ts",
+          "operation": "modify",
+          "description": "Update the createQuestion mutation to accept explanation as an optional parameter (string | null). Ensure the mutation correctly passes null or empty explanation values to the backend actor's createQuestion method without throwing validation errors."
+        }
+      ]
+    },
+    {
+      "id": "REQ-94",
+      "summary": "Handle questions with null/missing explanations gracefully in ResultPage and TestInterface by hiding explanation sections when no explanation exists",
+      "acceptanceCriteria": [
+        "Questions without explanations display properly in the result review section",
+        "No explanation text is shown when the field is null or empty",
+        "The UI remains visually consistent whether explanation exists or not"
+      ],
+      "file_operations": [
+        {
           "path": "frontend/src/pages/ResultPage.tsx",
           "operation": "modify",
-          "description": "Add error handling in Export PDF button click handler to catch errors from generateResultPDF, display user-friendly error message using alert or toast notification indicating PDF generation failed and user should try again, and ensure button remains clickable for retry after error"
+          "description": "Add conditional rendering logic to hide the explanation section when question.explanation is null, undefined, or empty string. Ensure the question breakdown display remains properly formatted and visually consistent when explanations are missing. Use optional chaining and nullish checks to safely access the explanation field."
+        },
+        {
+          "path": "frontend/src/pages/TestInterface.tsx",
+          "operation": "modify",
+          "description": "Add conditional rendering to hide or omit explanation display when question.explanation is null, undefined, or empty. Ensure the test interface handles optional explanations gracefully without breaking the UI layout or causing rendering errors."
+        }
+      ]
+    },
+    {
+      "id": "REQ-95",
+      "summary": "Update PDF export utility to handle questions with null/missing explanations by omitting explanation rows when no explanation is provided",
+      "acceptanceCriteria": [
+        "PDF generation succeeds for tests containing questions without explanations",
+        "The explanation section is omitted from the PDF for questions with null explanation",
+        "PDF layout remains properly formatted when explanations are missing"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/pdfExport.ts",
+          "operation": "modify",
+          "description": "Add conditional logic to skip rendering the explanation row in the question breakdown section when question.explanation is null, undefined, or empty string. Ensure the PDF HTML generation handles missing explanations gracefully and maintains proper formatting. Use optional chaining and nullish checks when accessing the explanation field to prevent errors during PDF generation."
         }
       ]
     }

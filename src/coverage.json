@@ -1,122 +1,81 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-19T22:16:56.979Z",
+  "generatedAt": "2026-02-20T06:18:32.074Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 9,
-    "implemented": 8,
+    "total": 5,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-82",
-        "summary": "Install and configure a PDF generation library (e.g., jsPDF or react-pdf) in the frontend package.json to enable client-side PDF creation from test result data",
-        "status": "missing",
+        "id": "REQ-91",
+        "summary": "Update the AdminQuestionCreate.tsx form to make the explanation textarea field optional instead of required, removing any validation that enforces explanation text presence",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/package.json"
+          "frontend/src/pages/AdminQuestionCreate.tsx",
+          "frontend/src/hooks/useQuestionMutations.ts"
         ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminQuestionCreate.tsx",
+          "frontend/src/hooks/useQuestionMutations.ts"
+        ]
+      },
+      {
+        "id": "REQ-92",
+        "summary": "Update the Question data type in backend/main.mo to make the explanation field optional by changing its type from Text to ?Text",
+        "status": "unknown",
+        "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-83",
-        "summary": "Create a utility module in frontend/src/utils/pdfExport.ts that provides a function generateResultPDF accepting test attempt data, test details, user profile, and question details, and generates a formatted PDF document with Concept Delta branding",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ]
+        "id": "REQ-93",
+        "summary": "Update the createQuestion backend endpoint in backend/main.mo to accept optional explanation parameter and store null when no explanation is provided",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-84",
-        "summary": "Design the PDF layout to include a header section with the Concept Delta logo, test name, student name from user profile, attempt date formatted as readable date string, and overall score prominently displayed",
+        "id": "REQ-94",
+        "summary": "Update ResultPage.tsx and TestInterface.tsx to handle questions with null/missing explanations gracefully by hiding the explanation section or displaying a placeholder message when no explanation exists",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ]
-      },
-      {
-        "id": "REQ-85",
-        "summary": "Include a score summary section in the PDF showing total score with unit label (e.g., '85/200 marks'), percentage score, section-wise breakdown for full syllabus tests (Section 1 score, Section 2 score), total time taken formatted as HH:MM:SS, and performance indicator based on percentage (e.g., 'Excellent' for 80%+, 'Good' for 60-79%, 'Needs Improvement' for below 60%)",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ]
-      },
-      {
-        "id": "REQ-86",
-        "summary": "Add a question-by-question breakdown section in the PDF that lists all questions with their question number, question text (truncated if too long), the user's selected answer option text, correct answer option text, whether the answer was correct or incorrect with visual indicator (✓ or ✗), and marks awarded for that question",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ]
-      },
-      {
-        "id": "REQ-87",
-        "summary": "Add a statistics summary section in the PDF showing total questions, questions attempted, correct answers count, incorrect answers count, unanswered questions count, and accuracy percentage calculated as (correct/attempted * 100)",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ]
-      },
-      {
-        "id": "REQ-88",
-        "summary": "Add a footer to each PDF page with the Concept Delta branding text, website URL or social media handle @coep_conceptdelta2031, and page numbers in 'Page X of Y' format",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/pdfExport.ts"
-        ]
-      },
-      {
-        "id": "REQ-89",
-        "summary": "Add an 'Export PDF' button in the ResultPage.tsx component that calls the generateResultPDF utility function with the current test attempt data, test details, user profile, and question data, and triggers a browser download of the generated PDF with filename format 'ConceptDelta_TestName_StudentName_Date.pdf'",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/ResultPage.tsx"
+          "frontend/src/pages/ResultPage.tsx",
+          "frontend/src/pages/TestInterface.tsx"
         ],
         "matchedFiles": [
           "frontend/src/pages/ResultPage.tsx"
         ]
       },
       {
-        "id": "REQ-90",
-        "summary": "Handle PDF generation errors gracefully by displaying an error message to the user if PDF generation fails, and log the error details for debugging purposes",
+        "id": "REQ-95",
+        "summary": "Update the PDF export utility in frontend/src/utils/pdfExport.ts to handle questions with null/missing explanations by omitting the explanation row in the question breakdown section when no explanation is provided",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/pdfExport.ts",
-          "frontend/src/pages/ResultPage.tsx"
+          "frontend/src/utils/pdfExport.ts"
         ],
         "matchedFiles": [
-          "frontend/src/utils/pdfExport.ts",
-          "frontend/src/pages/ResultPage.tsx"
+          "frontend/src/utils/pdfExport.ts"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useQuestionMutations.ts",
+    "frontend/src/pages/AdminQuestionCreate.tsx",
     "frontend/src/pages/ResultPage.tsx",
     "frontend/src/utils/pdfExport.ts",
     "project_state.json",

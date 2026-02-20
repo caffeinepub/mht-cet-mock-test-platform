@@ -192,6 +192,18 @@ export function generateResultPDF(params: PDFGenerationParams): { success: boole
             background: #f8d7da;
             border: 2px solid #dc3545;
           }
+          .explanation {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            border-radius: 4px;
+          }
+          .explanation-label {
+            font-weight: bold;
+            color: #0066cc;
+            margin-bottom: 5px;
+          }
           .footer {
             margin-top: 30px;
             padding-top: 20px;
@@ -341,6 +353,12 @@ export function generateResultPDF(params: PDFGenerationParams): { success: boole
                 <div style="margin: 10px 0;">
                   <strong>Marks:</strong> ${marksAwarded} / ${marksPerQuestion}
                 </div>
+                ${question.explanation ? `
+                <div class="explanation">
+                  <div class="explanation-label">Explanation:</div>
+                  <div>${question.explanation}</div>
+                </div>
+                ` : ''}
               </div>
             `;
           }).join('')}

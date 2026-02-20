@@ -1,169 +1,109 @@
 {
   "kind": "build_request",
-  "title": "Step 6: PDF Export with Concept Delta Branding",
-  "projectName": "Concept Delta",
+  "title": "Make explanation field optional in question creation",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-82",
-      "text": "Install and configure a PDF generation library (e.g., jsPDF or react-pdf) in the frontend package.json to enable client-side PDF creation from test result data",
+      "id": "REQ-91",
+      "text": "Update the AdminQuestionCreate.tsx form to make the explanation textarea field optional instead of required, removing any validation that enforces explanation text presence",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-6"
+          "msg-7"
+        ],
+        "quotes": [
+          "explanation not comepalsary"
         ]
       },
       "acceptanceCriteria": [
-        "PDF generation library is added to frontend dependencies",
-        "Library is properly configured and importable in React components"
+        "The explanation field in the question creation form is marked as optional",
+        "Form validation does not require explanation text to be provided",
+        "Questions can be successfully created without providing an explanation",
+        "The form UI indicates that explanation is optional (e.g., with '(optional)' label)"
       ]
     },
     {
-      "id": "REQ-83",
-      "text": "Create a utility module in frontend/src/utils/pdfExport.ts that provides a function generateResultPDF accepting test attempt data, test details, user profile, and question details, and generates a formatted PDF document with Concept Delta branding",
-      "target": "frontend",
+      "id": "REQ-92",
+      "text": "Update the Question data type in backend/main.mo to make the explanation field optional by changing its type from Text to ?Text",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-6"
+          "msg-7"
+        ],
+        "quotes": [
+          "explanation not comepalsary"
         ]
       },
       "acceptanceCriteria": [
-        "Utility function accepts required parameters (attempt, test, profile, questions)",
-        "Function returns a downloadable PDF blob or triggers browser download",
-        "PDF generation handles both full syllabus and chapter-wise test types"
+        "The Question type's explanation field is defined as ?Text instead of Text",
+        "The backend accepts null/empty explanation values when creating questions",
+        "Existing questions with explanations remain unaffected"
       ]
     },
     {
-      "id": "REQ-84",
-      "text": "Design the PDF layout to include a header section with the Concept Delta logo, test name, student name from user profile, attempt date formatted as readable date string, and overall score prominently displayed",
-      "target": "frontend",
+      "id": "REQ-93",
+      "text": "Update the createQuestion backend endpoint in backend/main.mo to accept optional explanation parameter and store null when no explanation is provided",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-6"
+          "msg-7"
+        ],
+        "quotes": [
+          "explanation not comepalsary"
         ]
       },
       "acceptanceCriteria": [
-        "Header displays Concept Delta branding consistently",
-        "Student name is pulled from the user profile",
-        "Test name and date are clearly visible",
-        "Overall score is prominently featured in the header"
+        "The createQuestion endpoint accepts explanation as an optional parameter",
+        "Questions are successfully created when explanation is null or empty",
+        "The stored question has null explanation when none is provided"
       ]
     },
     {
-      "id": "REQ-85",
-      "text": "Include a score summary section in the PDF showing total score with unit label (e.g., '85/200 marks'), percentage score, section-wise breakdown for full syllabus tests (Section 1 score, Section 2 score), total time taken formatted as HH:MM:SS, and performance indicator based on percentage (e.g., 'Excellent' for 80%+, 'Good' for 60-79%, 'Needs Improvement' for below 60%)",
+      "id": "REQ-94",
+      "text": "Update ResultPage.tsx and TestInterface.tsx to handle questions with null/missing explanations gracefully by hiding the explanation section or displaying a placeholder message when no explanation exists",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-6"
+          "msg-7"
+        ],
+        "quotes": [
+          "explanation not comepalsary"
         ]
       },
       "acceptanceCriteria": [
-        "Total score displays with proper unit labels",
-        "Percentage is calculated and displayed accurately",
-        "Section breakdown shows for full syllabus tests only",
-        "Time taken is formatted as HH:MM:SS",
-        "Performance indicator thresholds are correctly applied"
+        "Questions without explanations display properly in the result review section",
+        "No explanation text is shown when the field is null or empty",
+        "The UI remains visually consistent whether explanation exists or not"
       ]
     },
     {
-      "id": "REQ-86",
-      "text": "Add a question-by-question breakdown section in the PDF that lists all questions with their question number, question text (truncated if too long), the user's selected answer option text, correct answer option text, whether the answer was correct or incorrect with visual indicator (✓ or ✗), and marks awarded for that question",
+      "id": "REQ-95",
+      "text": "Update the PDF export utility in frontend/src/utils/pdfExport.ts to handle questions with null/missing explanations by omitting the explanation row in the question breakdown section when no explanation is provided",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-start-step-6"
+          "msg-7"
+        ],
+        "quotes": [
+          "explanation not comepalsary"
         ]
       },
       "acceptanceCriteria": [
-        "All questions are listed with sequential numbering",
-        "Question text is included with length handling for long questions",
-        "User's answer and correct answer are clearly labeled",
-        "Correct/incorrect status is visually indicated",
-        "Marks awarded per question are displayed"
-      ]
-    },
-    {
-      "id": "REQ-87",
-      "text": "Add a statistics summary section in the PDF showing total questions, questions attempted, correct answers count, incorrect answers count, unanswered questions count, and accuracy percentage calculated as (correct/attempted * 100)",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-start-step-6"
-        ]
-      },
-      "acceptanceCriteria": [
-        "All statistics are calculated accurately from attempt data",
-        "Counts are displayed with clear labels",
-        "Accuracy percentage is formatted to 2 decimal places",
-        "Statistics section is visually distinct from other sections"
-      ]
-    },
-    {
-      "id": "REQ-88",
-      "text": "Add a footer to each PDF page with the Concept Delta branding text, website URL or social media handle @coep_conceptdelta2031, and page numbers in 'Page X of Y' format",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-start-step-6"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Footer appears on every page of multi-page PDFs",
-        "Concept Delta branding is consistent with application",
-        "Social media handle matches @coep_conceptdelta2031",
-        "Page numbers are accurate and properly formatted"
-      ]
-    },
-    {
-      "id": "REQ-89",
-      "text": "Add an 'Export PDF' button in the ResultPage.tsx component that calls the generateResultPDF utility function with the current test attempt data, test details, user profile, and question data, and triggers a browser download of the generated PDF with filename format 'ConceptDelta_TestName_StudentName_Date.pdf'",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-start-step-6"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Button is prominently displayed on the result page",
-        "Button click triggers PDF generation without errors",
-        "PDF downloads automatically to user's device",
-        "Filename follows the specified format with proper sanitization",
-        "Button shows loading state during PDF generation if needed"
-      ]
-    },
-    {
-      "id": "REQ-90",
-      "text": "Handle PDF generation errors gracefully by displaying an error message to the user if PDF generation fails, and log the error details for debugging purposes",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-start-step-6"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Error message is user-friendly and actionable",
-        "Error details are logged to console for debugging",
-        "PDF generation failure does not crash the application",
-        "User can retry PDF generation after an error"
+        "PDF generation succeeds for tests containing questions without explanations",
+        "The explanation section is omitted from the PDF for questions with null explanation",
+        "PDF layout remains properly formatted when explanations are missing"
       ]
     }
   ],
   "constraints": [
-    "PDF generation must be performed client-side in the browser, not on the backend",
-    "PDF must use Concept Delta branding consistently with the rest of the application",
-    "Generated PDFs should handle both full syllabus (2-section) and chapter-wise (1-section) test formats",
-    "Do not include question images or option images in the PDF to keep file size manageable",
-    "PDF filename must be sanitized to remove special characters that are invalid in filenames"
+    "Maintain backward compatibility with existing questions that have explanations",
+    "Do not modify the single-actor backend architecture",
+    "Do not edit immutable frontend paths (useInternetIdentity, useActor, main.tsx, components/ui)"
   ],
   "nonGoals": [
-    "Server-side PDF generation or storage",
-    "Email delivery of PDF reports",
-    "Batch PDF generation for multiple students",
-    "PDF customization options or templates",
-    "Including detailed explanations text in the PDF (only show correct/incorrect status)",
-    "Generating PDFs for incomplete test attempts",
-    "PDF encryption or password protection"
+    "Making other question fields optional",
+    "Changing the question creation workflow beyond explanation optionality",
+    "Modifying the question data structure beyond the explanation field"
   ],
   "imageRequirements": {
     "required": [],

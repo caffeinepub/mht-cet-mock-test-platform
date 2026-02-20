@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 25,
+  "projectStateVersion": 27,
   "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable single section with custom duration, marks per question, and mixed subject support). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
   "architectural_notes": [
     "Motoko backend canister with stable memory for persistence",
@@ -484,6 +484,30 @@
         "REQ-90"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-adminquestioncreate-tsx-form-to-make-the-explanation-textarea-field-optional-instead-of-required-removing-any-validation-that-enforces-explanation-text-presence",
+      "title": "Update the AdminQuestionCreate.tsx form to make the explanation textarea field optional instead of required, removing any validation that enforces explanation text presence",
+      "reqIds": [
+        "REQ-91"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-resultpage-tsx-and-testinterface-tsx-to-handle-questions-with-null-missing-explanations-gracefully-by-hiding-the-explanation-section-or-displaying-a-placeholder-message-when-no-explanation-exists",
+      "title": "Update ResultPage.tsx and TestInterface.tsx to handle questions with null/missing explanations gracefully by hiding the explanation section or displaying a placeholder message when no explanation exists",
+      "reqIds": [
+        "REQ-94"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-pdf-export-utility-in-frontend-src-utils-pdfexport-ts-to-handle-questions-with-null-missing-explanations-by-omitting-the-explanation-row-in-the-question-breakdown-section-when-no-explanation-is-provided",
+      "title": "Update the PDF export utility in frontend/src/utils/pdfExport.ts to handle questions with null/missing explanations by omitting the explanation row in the question breakdown section when no explanation is provided",
+      "reqIds": [
+        "REQ-95"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -950,6 +974,28 @@
       "summary": "Install and configure a PDF generation library (e.g., jsPDF or react-pdf) in the frontend package.json to enable client-side PDF creation from test result data",
       "reqIds": [
         "REQ-82"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-84",
+      "summary": "Make explanation field optional (not compulsory) in question creation form",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-86",
+      "summary": "Update the Question data type in backend/main.mo to make the explanation field optional by changing its type from Text to ?Text",
+      "reqIds": [
+        "REQ-92"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-87",
+      "summary": "Update the createQuestion backend endpoint in backend/main.mo to accept optional explanation parameter and store null when no explanation is provided",
+      "reqIds": [
+        "REQ-93"
       ],
       "status": "pending"
     }

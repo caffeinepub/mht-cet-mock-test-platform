@@ -43,7 +43,7 @@ export interface Option {
 export interface Question {
   'id' : bigint,
   'subject' : Subject,
-  'explanation' : string,
+  'explanation' : [] | [string],
   'questionImage' : [] | [string],
   'questionText' : [] | [string],
   'correctAnswerIndex' : bigint,
@@ -132,7 +132,7 @@ export interface _SERVICE {
       [] | [string],
       Array<Option>,
       bigint,
-      string,
+      [] | [string],
       Subject,
       ClassLevel,
     ],

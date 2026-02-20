@@ -59,20 +59,20 @@ export function useChapterWiseTests() {
   });
 }
 
-export function useChapterWiseTestById(testId: bigint) {
+export function useChapterWiseTestById(testId: bigint | null) {
   const { actor, isFetching } = useActor();
 
   return useQuery<ChapterWiseTestDetails | null>({
-    queryKey: ['chapterWiseTestDetails', testId.toString()],
+    queryKey: ['chapterWiseTestDetails', testId?.toString()],
     queryFn: async () => {
-      if (!actor) return null;
+      if (!actor || testId === null) return null;
       const result = await actor.getChapterWiseTestById(testId);
       if (result.__kind__ === 'ok') {
         return result.ok;
       }
       return null;
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !isFetching && testId !== null,
     retry: false,
   });
 }

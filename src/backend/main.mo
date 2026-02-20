@@ -10,9 +10,9 @@ import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Order "mo:core/Order";
+import Migration "migration";
 
-
-
+(with migration = Migration.run)
 actor {
   // Initialize access control state
   let accessControlState = AccessControl.initState();
@@ -38,7 +38,7 @@ actor {
     questionImage : ?Text;
     options : [Option];
     correctAnswerIndex : Nat;
-    explanation : Text;
+    explanation : ?Text; // Changed to ?Text
     subject : Subject;
     classLevel : ClassLevel;
   };
@@ -312,7 +312,7 @@ actor {
     questionImage : ?Text,
     options : [Option],
     correctAnswerIndex : Nat,
-    explanation : Text,
+    explanation : ?Text,
     subject : Subject,
     classLevel : ClassLevel
   ) : async Nat {

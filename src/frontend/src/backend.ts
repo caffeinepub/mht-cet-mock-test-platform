@@ -157,7 +157,7 @@ export interface Answer {
 export interface Question {
     id: bigint;
     subject: Subject;
-    explanation: string;
+    explanation?: string;
     questionImage?: string;
     questionText?: string;
     correctAnswerIndex: bigint;
@@ -198,7 +198,7 @@ export interface backendInterface {
     assignQuestionsToTest(testId: bigint, section1QuestionIds: Array<bigint>, section2QuestionIds: Array<bigint>): Promise<void>;
     createChapterWiseTest(testName: string, marksPerQuestion: bigint, durationMinutes: bigint): Promise<bigint>;
     createFullSyllabusTest(testName: string): Promise<bigint>;
-    createQuestion(questionText: string | null, questionImage: string | null, options: Array<Option>, correctAnswerIndex: bigint, explanation: string, subject: Subject, classLevel: ClassLevel): Promise<bigint>;
+    createQuestion(questionText: string | null, questionImage: string | null, options: Array<Option>, correctAnswerIndex: bigint, explanation: string | null, subject: Subject, classLevel: ClassLevel): Promise<bigint>;
     deleteQuestion(id: bigint): Promise<void>;
     getAllQuestions(): Promise<Array<Question>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
@@ -400,17 +400,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createQuestion(arg0: string | null, arg1: string | null, arg2: Array<Option>, arg3: bigint, arg4: string, arg5: Subject, arg6: ClassLevel): Promise<bigint> {
+    async createQuestion(arg0: string | null, arg1: string | null, arg2: Array<Option>, arg3: bigint, arg4: string | null, arg5: Subject, arg6: ClassLevel): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.createQuestion(to_candid_opt_n10(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n10(this._uploadFile, this._downloadFile, arg1), to_candid_vec_n11(this._uploadFile, this._downloadFile, arg2), arg3, arg4, to_candid_Subject_n14(this._uploadFile, this._downloadFile, arg5), to_candid_ClassLevel_n16(this._uploadFile, this._downloadFile, arg6));
+                const result = await this.actor.createQuestion(to_candid_opt_n10(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n10(this._uploadFile, this._downloadFile, arg1), to_candid_vec_n11(this._uploadFile, this._downloadFile, arg2), arg3, to_candid_opt_n10(this._uploadFile, this._downloadFile, arg4), to_candid_Subject_n14(this._uploadFile, this._downloadFile, arg5), to_candid_ClassLevel_n16(this._uploadFile, this._downloadFile, arg6));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createQuestion(to_candid_opt_n10(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n10(this._uploadFile, this._downloadFile, arg1), to_candid_vec_n11(this._uploadFile, this._downloadFile, arg2), arg3, arg4, to_candid_Subject_n14(this._uploadFile, this._downloadFile, arg5), to_candid_ClassLevel_n16(this._uploadFile, this._downloadFile, arg6));
+            const result = await this.actor.createQuestion(to_candid_opt_n10(this._uploadFile, this._downloadFile, arg0), to_candid_opt_n10(this._uploadFile, this._downloadFile, arg1), to_candid_vec_n11(this._uploadFile, this._downloadFile, arg2), arg3, to_candid_opt_n10(this._uploadFile, this._downloadFile, arg4), to_candid_Subject_n14(this._uploadFile, this._downloadFile, arg5), to_candid_ClassLevel_n16(this._uploadFile, this._downloadFile, arg6));
             return result;
         }
     }
@@ -758,7 +758,7 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     subject: _Subject;
-    explanation: string;
+    explanation: [] | [string];
     questionImage: [] | [string];
     questionText: [] | [string];
     correctAnswerIndex: bigint;
@@ -767,7 +767,7 @@ function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }): {
     id: bigint;
     subject: Subject;
-    explanation: string;
+    explanation?: string;
     questionImage?: string;
     questionText?: string;
     correctAnswerIndex: bigint;
@@ -777,7 +777,7 @@ function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uin
     return {
         id: value.id,
         subject: from_candid_Subject_n21(_uploadFile, _downloadFile, value.subject),
-        explanation: value.explanation,
+        explanation: record_opt_to_undefined(from_candid_opt_n23(_uploadFile, _downloadFile, value.explanation)),
         questionImage: record_opt_to_undefined(from_candid_opt_n23(_uploadFile, _downloadFile, value.questionImage)),
         questionText: record_opt_to_undefined(from_candid_opt_n23(_uploadFile, _downloadFile, value.questionText)),
         correctAnswerIndex: value.correctAnswerIndex,

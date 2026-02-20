@@ -16,7 +16,7 @@ interface CreateQuestionInput {
   questionImage: string | null;
   options: QuestionOption[];
   correctAnswerIndex: bigint;
-  explanation: string;
+  explanation: string | null;
   subject: Subject;
   classLevel: ClassLevel;
 }

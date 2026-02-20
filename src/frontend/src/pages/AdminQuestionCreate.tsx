@@ -113,12 +113,6 @@ export default function AdminQuestionCreate() {
       return false;
     }
 
-    // Check if explanation is provided
-    if (!explanation.trim()) {
-      setValidationError('Explanation is required');
-      return false;
-    }
-
     return true;
   };
 
@@ -142,7 +136,7 @@ export default function AdminQuestionCreate() {
         questionImage: questionImage,
         options: formattedOptions,
         correctAnswerIndex: BigInt(correctAnswerIndex),
-        explanation: explanation.trim(),
+        explanation: explanation.trim() || null,
         subject,
         classLevel,
       });
@@ -349,7 +343,7 @@ export default function AdminQuestionCreate() {
           {/* Explanation Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Explanation</CardTitle>
+              <CardTitle>Explanation (Optional)</CardTitle>
               <CardDescription>Provide an explanation for the correct answer</CardDescription>
             </CardHeader>
             <CardContent>

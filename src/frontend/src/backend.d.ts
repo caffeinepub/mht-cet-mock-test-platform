@@ -68,7 +68,7 @@ export interface Answer {
 export interface Question {
     id: bigint;
     subject: Subject;
-    explanation: string;
+    explanation?: string;
     questionImage?: string;
     questionText?: string;
     correctAnswerIndex: bigint;
@@ -98,7 +98,7 @@ export interface backendInterface {
     assignQuestionsToTest(testId: bigint, section1QuestionIds: Array<bigint>, section2QuestionIds: Array<bigint>): Promise<void>;
     createChapterWiseTest(testName: string, marksPerQuestion: bigint, durationMinutes: bigint): Promise<bigint>;
     createFullSyllabusTest(testName: string): Promise<bigint>;
-    createQuestion(questionText: string | null, questionImage: string | null, options: Array<Option>, correctAnswerIndex: bigint, explanation: string, subject: Subject, classLevel: ClassLevel): Promise<bigint>;
+    createQuestion(questionText: string | null, questionImage: string | null, options: Array<Option>, correctAnswerIndex: bigint, explanation: string | null, subject: Subject, classLevel: ClassLevel): Promise<bigint>;
     deleteQuestion(id: bigint): Promise<void>;
     getAllQuestions(): Promise<Array<Question>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
