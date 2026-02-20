@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-adminregistration-tsx-component-to-automatically-refetch-the-user-role-query-using-react-query-invalidation-immediately-after-successful-first-admin-registration-display-a-prominent-success-message-confirming-first-admin-status-and-automatically-navigate-to-the-admin-dashboard-after-a-2-second-delay",
-      "featureTitle": "Update the AdminRegistration.tsx component to automatically refetch the user role query using React Query invalidation immediately after successful first admin registration, display a prominent success message confirming first admin status, and automatically navigate to the Admin Dashboard after a 2-second delay",
+      "featureId": "feature-investigate-and-fix-the-connection-timeout-error-displaying-22s-elapsed-time-on-the-admin-registration-page-at-admin-register-which-shows-unable-to-establish-connection-to-the-backend-service-this-may-be-due-to-network-issues-or-the-canister-being-stopped-after-the-page-has-been-attempting-to-connect-for-22-seconds",
+      "featureTitle": "Investigate and fix the 'Connection Timeout' error displaying '22s' elapsed time on the Admin Registration page at /admin/register, which shows 'Unable to establish connection to the backend service. This may be due to network issues or the canister being stopped.' after the page has been attempting to connect for 22+ seconds",
       "files": [
         "frontend/src/pages/AdminRegistration.tsx"
       ],
@@ -17,7 +17,67 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-172"
+        "REQ-196"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-reduce-the-connection-timeout-threshold-in-adminregistration-tsx-from-22-seconds-to-a-more-reasonable-15-seconds-maximum-ensuring-users-receive-timeout-feedback-faster-and-are-not-left-waiting-indefinitely-for-backend-connection-to-establish",
+      "featureTitle": "Reduce the connection timeout threshold in AdminRegistration.tsx from 22+ seconds to a more reasonable 15 seconds maximum, ensuring users receive timeout feedback faster and are not left waiting indefinitely for backend connection to establish",
+      "files": [
+        "frontend/src/pages/AdminRegistration.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-199"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-connection-health-check-in-the-adminregistration-tsx-component-that-performs-a-lightweight-backend-query-test-before-displaying-the-registration-form-showing-a-clear-error-message-if-the-health-check-fails-within-5-seconds-and-preventing-the-extended-22-second-timeout-wait",
+      "featureTitle": "Implement a connection health check in the AdminRegistration.tsx component that performs a lightweight backend query test before displaying the registration form, showing a clear error message if the health check fails within 5 seconds and preventing the extended 22+ second timeout wait",
+      "files": [
+        "frontend/src/pages/AdminRegistration.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-201"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-fix-the-internet-identity-authentication-delegation-that-may-be-causing-the-extended-connection-delay-ensuring-the-identity-delegation-is-valid-and-not-requiring-re-authentication-during-the-actor-initialization-process-on-the-adminregistration-page",
+      "featureTitle": "Fix the Internet Identity authentication delegation that may be causing the extended connection delay, ensuring the identity delegation is valid and not requiring re-authentication during the actor initialization process on the AdminRegistration page",
+      "files": [
+        "frontend/src/pages/AdminRegistration.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-202"
       ],
       "confidence": "high"
     }

@@ -1,34 +1,81 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T11:24:13.025Z",
+  "generatedAt": "2026-02-20T13:52:58.569Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 1,
+    "total": 7,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-170",
-        "summary": "Update the registerAdmin endpoint in backend/main.mo to fix the authorization flow by checking if the admin principals list is empty (AdminState.adminPrincipals.size() == 0) BEFORE running any authorization checks, allowing the first admin registration to succeed without 'User is not registered' or 'Unauthorized' errors when no admins exist yet",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-171",
-        "summary": "Add comprehensive diagnostic logging to the registerAdmin endpoint in backend/main.mo that logs the admin principals list size (AdminState.adminPrincipals.size()), whether this is first-time setup (size == 0), the caller's Internet Identity principal, the principal being registered, each step of the authorization check with pass/fail reasoning, and the final registration outcome with timestamps",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-172",
-        "summary": "Update the AdminRegistration.tsx component to automatically refetch the user role query using React Query invalidation immediately after successful first admin registration, display a prominent success message confirming first admin status, and automatically navigate to the Admin Dashboard after a 2-second delay",
+        "id": "REQ-196",
+        "summary": "Investigate and fix the 'Connection Timeout' error displaying '22s' elapsed time on the Admin Registration page at /admin/register, which shows 'Unable to establish connection to the backend service. This may be due to network issues or the canister being stopped.' after the page has been attempting to connect for 22+ seconds",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/pages/AdminRegistration.tsx",
+          "frontend/src/hooks/useActor.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminRegistration.tsx"
+        ]
+      },
+      {
+        "id": "REQ-197",
+        "summary": "Fix the backend actor initialization timeout in useActor.ts hook that is causing the 22+ second connection delay on AdminRegistration.tsx, ensuring the actor connection completes successfully within a reasonable timeframe (under 5 seconds) or fails with a clear error message",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/hooks/useActor.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-198",
+        "summary": "Verify the backend canister at canister ID 7xdrr-pqaaa-aaaae-qgzda-cai is running and responding to queries, investigating any canister stopped or unavailable states that would cause the connection timeout error shown in the AdminRegistration page",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-199",
+        "summary": "Reduce the connection timeout threshold in AdminRegistration.tsx from 22+ seconds to a more reasonable 15 seconds maximum, ensuring users receive timeout feedback faster and are not left waiting indefinitely for backend connection to establish",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminRegistration.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminRegistration.tsx"
+        ]
+      },
+      {
+        "id": "REQ-200",
+        "summary": "Add enhanced error logging to the useActor.ts hook actor initialization process that captures and logs the exact failure point causing the connection timeout, including authentication state, identity delegation status, canister reachability checks, and any network errors during the 22+ second connection attempt",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/hooks/useActor.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-201",
+        "summary": "Implement a connection health check in the AdminRegistration.tsx component that performs a lightweight backend query test before displaying the registration form, showing a clear error message if the health check fails within 5 seconds and preventing the extended 22+ second timeout wait",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/AdminRegistration.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/AdminRegistration.tsx"
+        ]
+      },
+      {
+        "id": "REQ-202",
+        "summary": "Fix the Internet Identity authentication delegation that may be causing the extended connection delay, ensuring the identity delegation is valid and not requiring re-authentication during the actor initialization process on the AdminRegistration page",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useActor.ts",
+          "frontend/src/hooks/useInternetIdentity.ts",
           "frontend/src/pages/AdminRegistration.tsx"
         ],
         "matchedFiles": [
@@ -39,23 +86,11 @@
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useTestSectionMutations.ts",
     "frontend/src/pages/AdminRegistration.tsx",
-    "frontend/src/pages/Leaderboard.tsx",
-    "frontend/src/pages/ResultPage.tsx",
-    "frontend/src/pages/StudentDashboard.tsx",
-    "frontend/src/pages/TestInterface.tsx",
-    "frontend/src/utils/pdfExport.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

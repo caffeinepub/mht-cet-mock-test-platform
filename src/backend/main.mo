@@ -8,13 +8,11 @@ import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
-import Migration "migration";
 
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -228,12 +226,10 @@ actor {
     });
   };
 
-  // Updated getUserRole function - allow any authenticated (non-anonymous) caller to query their role
+  // Fixed getUserRole function - allow any caller including anonymous (guests) to query their role
   public query ({ caller }) func getUserRole() : async UserRole {
-    // Authorization: Block anonymous principals only
-    if (caller.isAnonymous()) {
-      Runtime.trap("Unauthorized: Anonymous principals cannot query user role");
-    };
+    // Authorization: Allow all callers including anonymous (guests)
+    // No authorization check needed - this is a public endpoint
 
     // Diagnostic logging - Log caller principal with timestamp
     let timestamp = Time.now().toText();
@@ -429,20 +425,7 @@ actor {
     subject : Subject,
     classLevel : ClassLevel
   ) : async Nat {
-    // Comprehensive authorization logging
-    let hasAdminPermission = AccessControl.hasPermission(accessControlState, caller, #admin);
-    let isAdminRole = AccessControl.isAdmin(accessControlState, caller);
-    let userRole = AccessControl.getUserRole(accessControlState, caller);
-
-    if (not hasAdminPermission) {
-      // Log comprehensive authorization context for debugging
-      Debug.print("=== AUTHORIZATION FAILURE: createQuestion ===");
-      Debug.print("Caller Principal: " # caller.toText());
-      Debug.print("hasPermission(#admin) result: " # debug_show(hasAdminPermission));
-      Debug.print("isAdmin() result: " # debug_show(isAdminRole));
-      Debug.print("getUserRole() result: " # debug_show(userRole));
-      Debug.print("==========================================");
-
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can create questions");
     };
 

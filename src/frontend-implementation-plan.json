@@ -1,22 +1,116 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix admin registration bootstrapping logic - Frontend changes",
+  "title": "Fix Connection Timeout Error on Admin Registration Page",
   "requirements": [
     {
-      "id": "REQ-172",
-      "summary": "Update AdminRegistration component to invalidate user role query after successful first admin registration, display success message, and auto-navigate to Admin Dashboard",
+      "id": "REQ-197",
+      "summary": "Fix backend actor initialization timeout in useActor.ts hook causing 22+ second connection delay",
       "acceptanceCriteria": [
-        "User role query is invalidated and refetched after successful registration",
-        "Success message clearly indicates first admin registration succeeded",
-        "User is automatically redirected to Admin Dashboard after 2 seconds",
-        "UI updates immediately to reflect new admin status without manual page refresh"
+        "Backend actor initialization completes within 5 seconds or provides clear failure reason",
+        "AdminRegistration page transitions from loading to ready state promptly",
+        "Connection failures are caught and reported with actionable error messages"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Add timeout mechanism to actor initialization with 5-second limit. Implement early failure detection that catches authentication, identity delegation, and canister reachability issues before the extended timeout occurs. Add error state management that provides clear failure reasons (authentication failure, delegation expiry, canister unavailable, network error) instead of generic timeout messages."
+        }
+      ]
+    },
+    {
+      "id": "REQ-199",
+      "summary": "Reduce connection timeout threshold from 22+ seconds to 15 seconds maximum",
+      "acceptanceCriteria": [
+        "Connection timeout is detected and displayed within 15 seconds if connection fails",
+        "Timeout error message appears with elapsed time indicator",
+        "Retry Connection button is functional and attempts new connection"
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/AdminRegistration.tsx",
           "operation": "modify",
-          "description": "Update the success handler in the AdminRegistration component to: (1) use queryClient.invalidateQueries() to refetch the 'callerUserRole' query immediately after successful registration, (2) display a prominent success message that explicitly confirms 'You are now registered as the first admin', (3) implement automatic navigation to '/admin/dashboard' after a 2-second delay using useNavigate from TanStack Router, and (4) ensure the success state clearly indicates first-admin status. Add React Query's useQueryClient hook import and TanStack Router's useNavigate hook. Update the success toast notification to reflect first-admin registration status."
+          "description": "Reduce the timeout detection threshold from 22+ seconds to 15 seconds maximum. Update the timeout monitoring logic to display the timeout error message faster when actor initialization exceeds 15 seconds. Ensure the elapsed time indicator updates correctly and the Retry Connection button triggers a fresh actor initialization attempt."
+        }
+      ]
+    },
+    {
+      "id": "REQ-200",
+      "summary": "Add enhanced error logging to useActor.ts actor initialization process",
+      "acceptanceCriteria": [
+        "Detailed error logs show each step of actor initialization with timestamps",
+        "Logs identify whether timeout is due to authentication, network, or canister issues",
+        "Error logs are accessible via browser console for debugging"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Add comprehensive diagnostic logging throughout the actor initialization process with timestamps for each phase: identity check start/end, delegation validation start/end, actor creation start/end, and admin initialization start/end. Log the authentication state, identity delegation status (expiry time, remaining validity), canister ID being contacted, and any network errors. Include error categorization (authentication failure, delegation expired, canister unreachable, network timeout) in logs. Ensure all logs are written to browser console with clear prefixes for easy filtering."
+        }
+      ]
+    },
+    {
+      "id": "REQ-201",
+      "summary": "Implement connection health check in AdminRegistration.tsx before displaying registration form",
+      "acceptanceCriteria": [
+        "Health check query executes within 5 seconds on page mount",
+        "Registration form only displays after successful health check",
+        "Failed health check shows clear error with troubleshooting steps"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminRegistration.tsx",
+          "operation": "modify",
+          "description": "Add a lightweight health check query on component mount that calls a simple backend query method (such as getTotalQuestions or getCallerUserRole) to verify backend connectivity within 5 seconds. Display a loading state during the health check. Only render the registration form after the health check succeeds. If the health check fails within 5 seconds, display a clear error message with troubleshooting steps (check network connection, verify canister status, try refreshing, clear cache). Include a manual retry button that re-runs the health check."
+        }
+      ]
+    },
+    {
+      "id": "REQ-202",
+      "summary": "Fix Internet Identity authentication delegation causing extended connection delay",
+      "acceptanceCriteria": [
+        "Identity delegation is validated before actor initialization",
+        "Expired delegations trigger immediate re-authentication prompt",
+        "Valid delegations allow actor connection within 3 seconds"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Add delegation validity check at the start of actor initialization that examines the delegation expiry timestamp before attempting to create the actor. If the delegation is expired or expires within 60 seconds, immediately clear the authentication state and trigger a re-authentication flow instead of attempting actor creation. Log the delegation validity status (valid, expiring soon, expired) with remaining time. Ensure valid delegations proceed directly to actor creation without unnecessary delays."
+        },
+        {
+          "path": "frontend/src/hooks/useInternetIdentity.ts",
+          "operation": "modify",
+          "description": "Add delegation expiry validation in the identity restoration flow during app initialization. Check if the stored delegation is still valid before restoring the identity. If expired, clear the stored identity and set login status to 'logged-out' immediately. Add a helper function that checks delegation validity and returns remaining time. Expose delegation status through the hook return value so consuming components can detect expiry proactively."
+        },
+        {
+          "path": "frontend/src/pages/AdminRegistration.tsx",
+          "operation": "modify",
+          "description": "Add delegation expiry detection that monitors the identity delegation status from useInternetIdentity. If delegation expires or becomes invalid while the user is on the admin registration page, display a clear message prompting re-authentication. Prevent registration attempts when delegation is invalid. Show a login prompt with explanatory text when delegation issues are detected."
+        }
+      ]
+    },
+    {
+      "id": "REQ-196",
+      "summary": "Investigate and fix Connection Timeout error showing 22s elapsed time on Admin Registration page",
+      "acceptanceCriteria": [
+        "Admin Registration page successfully establishes backend connection within 5 seconds",
+        "Connection timeout error no longer appears on page load",
+        "User can proceed with admin registration form without connection errors"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/AdminRegistration.tsx",
+          "operation": "modify",
+          "description": "Integrate all connection timeout fixes: apply the 15-second timeout threshold, use the health check before form display, validate delegation status, and handle actor initialization errors gracefully. Update the connection phase tracking to reflect health check, delegation validation, and actor initialization stages. Ensure the error display shows specific failure reasons (delegation expired, canister unreachable, network error) instead of generic timeout messages. Wire the Retry Connection button to re-run the full connection flow including health check and delegation validation."
+        },
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Apply all actor initialization improvements: add 5-second timeout mechanism, implement early failure detection, add comprehensive diagnostic logging with timestamps, validate delegation before actor creation, and provide clear error categorization. Ensure the hook returns detailed error states that AdminRegistration can use to display specific troubleshooting guidance. Test actor initialization with both valid and invalid delegations to ensure proper error handling."
         }
       ]
     }

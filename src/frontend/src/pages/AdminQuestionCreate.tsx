@@ -1,35 +1,37 @@
+import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetCallerUserRole } from '../hooks/useQueries';
 import { useCreateQuestion } from '../hooks/useQuestionMutations';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ArrowLeft, CheckCircle2, ShieldAlert } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Subject, ClassLevel, UserRole__1 } from '../backend';
+import { ShieldAlert, Loader2, Plus, X } from 'lucide-react';
+import { Subject, ClassLevel } from '../backend';
+import { useEffect } from 'react';
 
 export default function AdminQuestionCreate() {
   const { identity, isInitializing } = useInternetIdentity();
   const navigate = useNavigate();
-  const createQuestion = useCreateQuestion();
   const { data: userRole, isLoading: roleLoading, isFetched: roleFetched } = useGetCallerUserRole();
+  const { mutate: createQuestion, isPending } = useCreateQuestion();
 
   const [questionText, setQuestionText] = useState('');
   const [questionImage, setQuestionImage] = useState('');
-  const [options, setOptions] = useState(['', '', '', '']);
-  const [optionImages, setOptionImages] = useState(['', '', '', '']);
-  const [correctAnswer, setCorrectAnswer] = useState('0');
+  const [options, setOptions] = useState<Array<{ text: string; image: string }>>([
+    { text: '', image: '' },
+    { text: '', image: '' },
+    { text: '', image: '' },
+    { text: '', image: '' },
+  ]);
+  const [correctAnswerIndex, setCorrectAnswerIndex] = useState<number>(0);
   const [explanation, setExplanation] = useState('');
   const [subject, setSubject] = useState<Subject>(Subject.physics);
   const [classLevel, setClassLevel] = useState<ClassLevel>(ClassLevel.class11th);
-  const [validationError, setValidationError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (!isInitializing && !identity) {
@@ -39,76 +41,47 @@ export default function AdminQuestionCreate() {
 
   // Redirect non-admin users after role is fetched
   useEffect(() => {
-    if (roleFetched && userRole !== UserRole__1.admin) {
+    if (roleFetched && userRole !== 'admin') {
       navigate({ to: '/' });
     }
   }, [roleFetched, userRole, navigate]);
 
-  const handleOptionChange = (index: number, value: string) => {
+  const handleOptionChange = (index: number, field: 'text' | 'image', value: string) => {
     const newOptions = [...options];
-    newOptions[index] = value;
+    newOptions[index][field] = value;
     setOptions(newOptions);
   };
 
-  const handleOptionImageChange = (index: number, value: string) => {
-    const newOptionImages = [...optionImages];
-    newOptionImages[index] = value;
-    setOptionImages(newOptionImages);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setValidationError('');
-    setSuccessMessage('');
 
     // Validation
     if (!questionText.trim() && !questionImage.trim()) {
-      setValidationError('Question must have either text or an image');
+      alert('Please provide either question text or question image');
       return;
     }
 
-    const hasAllOptions = options.every((opt, idx) => opt.trim() || optionImages[idx].trim());
-    if (!hasAllOptions) {
-      setValidationError('All four options must have either text or an image');
+    const hasValidOptions = options.every(opt => opt.text.trim() || opt.image.trim());
+    if (!hasValidOptions) {
+      alert('All options must have either text or image');
       return;
     }
 
-    try {
-      const formattedOptions = options.map((opt, idx) => ({
-        optionText: opt.trim() || undefined,
-        optionImage: optionImages[idx].trim() || undefined,
-      }));
+    // Prepare options for backend
+    const backendOptions = options.map(opt => ({
+      optionText: opt.text.trim() || undefined,
+      optionImage: opt.image.trim() || undefined,
+    }));
 
-      const questionId = await createQuestion.mutateAsync({
-        questionText: questionText.trim() || null,
-        questionImage: questionImage.trim() || null,
-        options: formattedOptions,
-        correctAnswerIndex: BigInt(correctAnswer),
-        explanation: explanation.trim() || null,
-        subject,
-        classLevel,
-      });
-
-      setSuccessMessage(`Question created successfully! Question ID: ${questionId.toString()}`);
-      
-      // Reset form
-      setQuestionText('');
-      setQuestionImage('');
-      setOptions(['', '', '', '']);
-      setOptionImages(['', '', '', '']);
-      setCorrectAnswer('0');
-      setExplanation('');
-      setSubject(Subject.physics);
-      setClassLevel(ClassLevel.class11th);
-
-      // Navigate back after a short delay
-      setTimeout(() => {
-        navigate({ to: '/admin' });
-      }, 2000);
-    } catch (error: any) {
-      console.error('Error creating question:', error);
-      setValidationError(error.message || 'Failed to create question. Please try again.');
-    }
+    createQuestion({
+      questionText: questionText.trim() || null,
+      questionImage: questionImage.trim() || null,
+      options: backendOptions,
+      correctAnswerIndex: BigInt(correctAnswerIndex),
+      explanation: explanation.trim() || null,
+      subject,
+      classLevel,
+    });
   };
 
   if (isInitializing || roleLoading) {
@@ -127,7 +100,7 @@ export default function AdminQuestionCreate() {
   }
 
   // Show access denied if not admin
-  const isAdmin = userRole === UserRole__1.admin;
+  const isAdmin = userRole === 'admin';
   if (roleFetched && !isAdmin) {
     return (
       <div className="min-h-screen bg-background py-8">
@@ -136,7 +109,7 @@ export default function AdminQuestionCreate() {
             <ShieldAlert className="h-5 w-5" />
             <AlertTitle className="text-lg font-semibold">Access Denied</AlertTitle>
             <AlertDescription className="mt-2">
-              You do not have admin permissions to access this page.
+              You do not have admin permissions to create questions.
             </AlertDescription>
           </Alert>
           <Button onClick={() => navigate({ to: '/' })} variant="outline">
@@ -149,186 +122,175 @@ export default function AdminQuestionCreate() {
 
   return (
     <div className="min-h-screen bg-background py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <Button
-          variant="ghost"
-          onClick={() => navigate({ to: '/admin' })}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Admin Dashboard
-        </Button>
-
+      <div className="container mx-auto max-w-4xl px-4">
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold">Create Question</h1>
           <p className="text-muted-foreground">
-            Add a new question to the question bank for MHT-CET mock tests
+            Add a new question to the question bank
           </p>
         </div>
 
-        {successMessage && (
-          <Card className="mb-6 border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950/20">
-            <CardContent className="flex items-center gap-3 py-4">
-              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-              <p className="text-green-900 dark:text-green-100">{successMessage}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {validationError && (
-          <Card className="mb-6 border-destructive/50 bg-destructive/10">
-            <CardContent className="py-4">
-              <p className="text-destructive">{validationError}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Question Content */}
-          <Card>
+        <form onSubmit={handleSubmit}>
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Question Content</CardTitle>
-              <CardDescription>Enter the question text or provide an image URL</CardDescription>
+              <CardTitle>Question Details</CardTitle>
+              <CardDescription>
+                Provide the question text or image, and select the subject and class level
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="questionText">Question Text</Label>
+                <Label htmlFor="questionText">Question Text (Optional)</Label>
                 <Textarea
                   id="questionText"
-                  placeholder="Enter the question text (optional if image is provided)"
+                  placeholder="Enter the question text..."
                   value={questionText}
                   onChange={(e) => setQuestionText(e.target.value)}
-                  rows={3}
+                  rows={4}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="questionImage">Question Image URL</Label>
+                <Label htmlFor="questionImage">Question Image URL (Optional)</Label>
                 <Input
                   id="questionImage"
-                  placeholder="https://example.com/question-image.png (optional)"
+                  type="text"
+                  placeholder="https://example.com/question-image.jpg"
                   value={questionImage}
                   onChange={(e) => setQuestionImage(e.target.value)}
                 />
               </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="subject">Subject</Label>
+                  <Select
+                    value={subject}
+                    onValueChange={(value) => setSubject(value as Subject)}
+                  >
+                    <SelectTrigger id="subject">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={Subject.physics}>Physics</SelectItem>
+                      <SelectItem value={Subject.chemistry}>Chemistry</SelectItem>
+                      <SelectItem value={Subject.maths}>Maths</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="classLevel">Class Level</Label>
+                  <Select
+                    value={classLevel}
+                    onValueChange={(value) => setClassLevel(value as ClassLevel)}
+                  >
+                    <SelectTrigger id="classLevel">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={ClassLevel.class11th}>Class 11th</SelectItem>
+                      <SelectItem value={ClassLevel.class12th}>Class 12th</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Options */}
-          <Card>
+          <Card className="mb-6">
             <CardHeader>
               <CardTitle>Answer Options</CardTitle>
-              <CardDescription>Provide four options with text or image URLs</CardDescription>
+              <CardDescription>
+                Provide 4 options and select the correct answer
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {[0, 1, 2, 3].map((index) => (
+              {options.map((option, index) => (
                 <div key={index} className="space-y-2 rounded-lg border p-4">
-                  <Label>Option {index + 1}</Label>
-                  <Input
-                    placeholder={`Option ${index + 1} text`}
-                    value={options[index]}
-                    onChange={(e) => handleOptionChange(index, e.target.value)}
-                  />
-                  <Input
-                    placeholder={`Option ${index + 1} image URL (optional)`}
-                    value={optionImages[index]}
-                    onChange={(e) => handleOptionImageChange(index, e.target.value)}
-                  />
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-semibold">
+                      Option {index + 1}
+                      {correctAnswerIndex === index && (
+                        <span className="ml-2 text-sm font-normal text-green-600">
+                          (Correct Answer)
+                        </span>
+                      )}
+                    </Label>
+                    <Button
+                      type="button"
+                      variant={correctAnswerIndex === index ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCorrectAnswerIndex(index)}
+                    >
+                      {correctAnswerIndex === index ? 'Correct' : 'Mark as Correct'}
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`option-text-${index}`}>Option Text</Label>
+                    <Input
+                      id={`option-text-${index}`}
+                      type="text"
+                      placeholder="Enter option text..."
+                      value={option.text}
+                      onChange={(e) => handleOptionChange(index, 'text', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`option-image-${index}`}>Option Image URL (Optional)</Label>
+                    <Input
+                      id={`option-image-${index}`}
+                      type="text"
+                      placeholder="https://example.com/option-image.jpg"
+                      value={option.image}
+                      onChange={(e) => handleOptionChange(index, 'image', e.target.value)}
+                    />
+                  </div>
                 </div>
               ))}
             </CardContent>
           </Card>
 
-          {/* Correct Answer */}
-          <Card>
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Correct Answer</CardTitle>
-              <CardDescription>Select the correct option</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup value={correctAnswer} onValueChange={setCorrectAnswer}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="0" id="option-0" />
-                  <Label htmlFor="option-0">Option 1</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="1" id="option-1" />
-                  <Label htmlFor="option-1">Option 2</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="2" id="option-2" />
-                  <Label htmlFor="option-2">Option 3</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="3" id="option-3" />
-                  <Label htmlFor="option-3">Option 4</Label>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-
-          {/* Explanation */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Explanation</CardTitle>
-              <CardDescription>Provide an explanation for the correct answer (optional)</CardDescription>
+              <CardTitle>Explanation (Optional)</CardTitle>
+              <CardDescription>
+                Provide an explanation for the correct answer
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
+                id="explanation"
                 placeholder="Explain why this is the correct answer..."
                 value={explanation}
                 onChange={(e) => setExplanation(e.target.value)}
-                rows={3}
+                rows={4}
               />
             </CardContent>
           </Card>
 
-          {/* Metadata */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Question Metadata</CardTitle>
-              <CardDescription>Categorize the question by subject and class level</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="subject">Subject</Label>
-                <Select value={subject} onValueChange={(value) => setSubject(value as Subject)}>
-                  <SelectTrigger id="subject">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={Subject.physics}>Physics</SelectItem>
-                    <SelectItem value={Subject.chemistry}>Chemistry</SelectItem>
-                    <SelectItem value={Subject.maths}>Maths</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="classLevel">Class Level</Label>
-                <Select value={classLevel} onValueChange={(value) => setClassLevel(value as ClassLevel)}>
-                  <SelectTrigger id="classLevel">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={ClassLevel.class11th}>11th Standard</SelectItem>
-                    <SelectItem value={ClassLevel.class12th}>12th Standard</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-end gap-4">
+          <div className="flex gap-4">
+            <Button type="submit" disabled={isPending} className="flex-1">
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Question...
+                </>
+              ) : (
+                <>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Question
+                </>
+              )}
+            </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => navigate({ to: '/admin' })}
             >
               Cancel
-            </Button>
-            <Button type="submit" disabled={createQuestion.isPending}>
-              {createQuestion.isPending ? 'Creating Question...' : 'Create Question'}
             </Button>
           </div>
         </form>

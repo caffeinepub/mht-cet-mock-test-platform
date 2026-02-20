@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useFullSyllabusTests, useChapterWiseTests, useChapterWiseTestById, useGetCallerUserRole } from '../hooks/useQueries';
+import { useGetFullSyllabusTests, useChapterWiseTests, useGetCallerUserRole } from '../hooks/useQueries';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,7 +9,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BarChart3, BookOpen, Users, FileText, Plus, Clock, Award, ShieldAlert } from 'lucide-react';
 import { useEffect } from 'react';
 import type { ChapterWiseTestDetails, ClassLevel, Subject } from '../backend';
-import { UserRole__1 } from '../backend';
 
 interface TestWithDetails {
   testId: bigint;
@@ -21,7 +20,7 @@ interface TestWithDetails {
 export default function AdminDashboard() {
   const { identity, isInitializing } = useInternetIdentity();
   const navigate = useNavigate();
-  const { data: fullSyllabusTests = [], isLoading: testsLoading } = useFullSyllabusTests();
+  const { data: fullSyllabusTests = [], isLoading: testsLoading } = useGetFullSyllabusTests();
   const { data: chapterWiseTests = [], isLoading: chapterWiseTestsLoading } = useChapterWiseTests();
   const { data: userRole, isLoading: roleLoading, isFetched: roleFetched } = useGetCallerUserRole();
 
@@ -33,7 +32,7 @@ export default function AdminDashboard() {
 
   // Redirect non-admin users after role is fetched
   useEffect(() => {
-    if (roleFetched && userRole !== UserRole__1.admin) {
+    if (roleFetched && userRole !== 'admin') {
       navigate({ to: '/' });
     }
   }, [roleFetched, userRole, navigate]);
@@ -54,7 +53,7 @@ export default function AdminDashboard() {
   }
 
   // Show access denied if not admin
-  const isAdmin = userRole === UserRole__1.admin;
+  const isAdmin = userRole === 'admin';
   if (roleFetched && !isAdmin) {
     return (
       <div className="min-h-screen bg-background py-8">
@@ -244,13 +243,11 @@ export default function AdminDashboard() {
                       <CardContent className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span>Duration: {test.durationMinutes?.toString() || 'N/A'} min</span>
+                          <span>Duration: N/A</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Award className="h-4 w-4 text-muted-foreground" />
-                          <span>
-                            {test.questionIds.length} questions ({test.marksPerQuestion?.toString() || 'N/A'} marks each)
-                          </span>
+                          <span>Questions: N/A</span>
                         </div>
                       </CardContent>
                     </Card>

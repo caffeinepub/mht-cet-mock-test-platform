@@ -1,72 +1,156 @@
 {
   "kind": "build_request",
-  "title": "Fix admin registration bootstrapping logic to allow first admin registration",
+  "title": "Fix connection timeout error on Admin Registration page",
+  "projectName": "Concept Delta",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-170",
-      "text": "Update the registerAdmin endpoint in backend/main.mo to fix the authorization flow by checking if the admin principals list is empty (AdminState.adminPrincipals.size() == 0) BEFORE running any authorization checks, allowing the first admin registration to succeed without 'User is not registered' or 'Unauthorized' errors when no admins exist yet",
-      "target": "backend",
+      "id": "REQ-196",
+      "text": "Investigate and fix the 'Connection Timeout' error displaying '22s' elapsed time on the Admin Registration page at /admin/register, which shows 'Unable to establish connection to the backend service. This may be due to network issues or the canister being stopped.' after the page has been attempting to connect for 22+ seconds",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-user-final"
+          "msg-latest"
         ],
         "quotes": [
-          "Registration failed: User is not registered",
-          "Debug Panel shows: isAuthenticated: true, userRole: undefined, isAdmin: false"
+          "Connection Timeout",
+          "Unable to establish connection to the backend service. This may be due to network issues or the canister being stopped.",
+          "22s"
         ]
       },
       "acceptanceCriteria": [
-        "The registerAdmin endpoint checks admin list size first before any authorization logic",
-        "When admin list is empty (size == 0), registration proceeds immediately without authorization checks",
-        "The first user can successfully register as admin without 'User is not registered' error",
-        "Subsequent registrations require existing admin authorization after the first admin is registered"
+        "Admin Registration page successfully establishes backend connection within 5 seconds",
+        "Connection timeout error no longer appears on page load",
+        "User can proceed with admin registration form without connection errors"
       ]
     },
     {
-      "id": "REQ-171",
-      "text": "Add comprehensive diagnostic logging to the registerAdmin endpoint in backend/main.mo that logs the admin principals list size (AdminState.adminPrincipals.size()), whether this is first-time setup (size == 0), the caller's Internet Identity principal, the principal being registered, each step of the authorization check with pass/fail reasoning, and the final registration outcome with timestamps",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-final"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Logs show admin list size before authorization checks",
-        "Logs clearly indicate if this is first-time setup (bootstrapping)",
-        "Logs show the exact authorization decision path taken",
-        "All logs include timestamps for debugging the registration flow"
-      ]
-    },
-    {
-      "id": "REQ-172",
-      "text": "Update the AdminRegistration.tsx component to automatically refetch the user role query using React Query invalidation immediately after successful first admin registration, display a prominent success message confirming first admin status, and automatically navigate to the Admin Dashboard after a 2-second delay",
+      "id": "REQ-197",
+      "text": "Fix the backend actor initialization timeout in useActor.ts hook that is causing the 22+ second connection delay on AdminRegistration.tsx, ensuring the actor connection completes successfully within a reasonable timeframe (under 5 seconds) or fails with a clear error message",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-final"
+          "msg-latest"
+        ],
+        "quotes": [
+          "Connection Timeout",
+          "22s"
         ]
       },
       "acceptanceCriteria": [
-        "User role query is invalidated and refetched after successful registration",
-        "Success message clearly indicates first admin registration succeeded",
-        "User is automatically redirected to Admin Dashboard after 2 seconds",
-        "UI updates immediately to reflect new admin status without manual page refresh"
+        "Backend actor initialization completes within 5 seconds or provides clear failure reason",
+        "AdminRegistration page transitions from loading to ready state promptly",
+        "Connection failures are caught and reported with actionable error messages"
+      ]
+    },
+    {
+      "id": "REQ-198",
+      "text": "Verify the backend canister at canister ID 7xdrr-pqaaa-aaaae-qgzda-cai is running and responding to queries, investigating any canister stopped or unavailable states that would cause the connection timeout error shown in the AdminRegistration page",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Unable to establish connection to the backend service",
+          "the canister being stopped"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend canister is confirmed to be in running state",
+        "Canister responds to health check queries within 2 seconds",
+        "Actor creation succeeds without canister unavailability errors"
+      ]
+    },
+    {
+      "id": "REQ-199",
+      "text": "Reduce the connection timeout threshold in AdminRegistration.tsx from 22+ seconds to a more reasonable 15 seconds maximum, ensuring users receive timeout feedback faster and are not left waiting indefinitely for backend connection to establish",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "22s",
+          "Connection Timeout"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Connection timeout is detected and displayed within 15 seconds if connection fails",
+        "Timeout error message appears with elapsed time indicator",
+        "Retry Connection button is functional and attempts new connection"
+      ]
+    },
+    {
+      "id": "REQ-200",
+      "text": "Add enhanced error logging to the useActor.ts hook actor initialization process that captures and logs the exact failure point causing the connection timeout, including authentication state, identity delegation status, canister reachability checks, and any network errors during the 22+ second connection attempt",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Connection Timeout",
+          "Unable to establish connection to the backend service"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Detailed error logs show each step of actor initialization with timestamps",
+        "Logs identify whether timeout is due to authentication, network, or canister issues",
+        "Error logs are accessible via browser console for debugging"
+      ]
+    },
+    {
+      "id": "REQ-201",
+      "text": "Implement a connection health check in the AdminRegistration.tsx component that performs a lightweight backend query test before displaying the registration form, showing a clear error message if the health check fails within 5 seconds and preventing the extended 22+ second timeout wait",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Connection Timeout",
+          "22s",
+          "Verify the backend canister is running"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Health check query executes within 5 seconds on page mount",
+        "Registration form only displays after successful health check",
+        "Failed health check shows clear error with troubleshooting steps"
+      ]
+    },
+    {
+      "id": "REQ-202",
+      "text": "Fix the Internet Identity authentication delegation that may be causing the extended connection delay, ensuring the identity delegation is valid and not requiring re-authentication during the actor initialization process on the AdminRegistration page",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Connection Timeout",
+          "Unable to establish connection to the backend service"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Identity delegation is validated before actor initialization",
+        "Expired delegations trigger immediate re-authentication prompt",
+        "Valid delegations allow actor connection within 3 seconds"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the single-actor backend architecture",
-    "Preserve all existing admin authorization checks for subsequent registrations after first admin",
-    "Do not change the Internet Identity authentication flow",
-    "Maintain all existing stable storage structures for admin principals"
+    "Do not change the core actor initialization logic in useActor.ts that handles authentication token setup",
+    "Maintain backward compatibility with existing admin registration flow",
+    "Do not modify the registerAdmin backend endpoint authorization logic",
+    "Preserve existing diagnostic logging and timeout detection mechanisms"
   ],
   "nonGoals": [
-    "Adding multi-admin registration workflows beyond first-time setup",
-    "Implementing admin role revocation or removal",
-    "Creating admin permission levels or granular access control",
-    "Adding email or notification system for admin registration"
+    "Redesigning the Admin Registration UI layout",
+    "Implementing new retry strategies beyond the existing Retry Connection button",
+    "Adding new authentication methods beyond Internet Identity",
+    "Modifying the backend canister deployment configuration"
   ],
   "imageRequirements": {
     "required": [],

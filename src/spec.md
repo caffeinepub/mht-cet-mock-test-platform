@@ -1,11 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the admin registration bootstrapping logic to allow the first admin to register successfully without authorization errors.
+**Goal:** Fix the connection timeout error preventing admin registration by resolving the 22+ second backend connection delay.
 
 **Planned changes:**
-- Update registerAdmin endpoint to check if admin list is empty BEFORE running authorization checks, allowing first admin registration to proceed without "User is not registered" error
-- Add comprehensive diagnostic logging to registerAdmin showing admin list size, first-time setup status, caller principal, authorization decision path, and registration outcome with timestamps
-- Update AdminRegistration.tsx to automatically refetch user role query after successful registration, display success message, and redirect to Admin Dashboard after 2 seconds
+- Investigate and fix the actor initialization timeout in useActor.ts hook causing 22+ second delays
+- Verify backend canister (7xdrr-pqaaa-aaaae-qgzda-cai) is running and responding to queries
+- Reduce connection timeout threshold from 22+ seconds to 15 seconds maximum
+- Add enhanced error logging to capture exact failure points during actor initialization
+- Implement connection health check before displaying registration form (5 second timeout)
+- Fix Internet Identity delegation validation to prevent re-authentication delays during actor initialization
 
-**User-visible outcome:** The first user can successfully register as an admin without encountering "User is not registered" errors, and will be automatically redirected to the Admin Dashboard with their admin status properly recognized.
+**User-visible outcome:** Admin registration page connects to backend within 5 seconds and allows users to register administrators without connection timeout errors.

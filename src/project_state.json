@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 65,
+  "projectStateVersion": 77,
   "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable single section with custom duration, marks per question, and mixed subject support). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
   "architectural_notes": [
     "Motoko backend canister with stable memory for persistence",
@@ -23,7 +23,8 @@
     "Admin registration popup showing 'actor is not available' error preventing role assignment",
     "Admin Setup navigation link not appearing in Navbar despite deployment",
     "Admin Setup navigation link not visible in Navbar despite user requesting it to be added back after removal",
-    "First admin registration blocked by authorization check running before empty-list check (bootstrapping issue)"
+    "First admin registration blocked by authorization check running before empty-list check (bootstrapping issue)",
+    "First admin completes registration successfully but cannot access admin panel - potential role update or navbar refresh issue after registration"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -890,6 +891,126 @@
         "REQ-172"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-verify-the-authorization-flow-fix-by-testing-the-complete-first-admin-registration-sequence-authenticate-with-internet-identity-navigate-to-admin-register-submit-registration-with-the-authenticated-user-s-principal-and-confirm-the-registration-succeeds-without-authorization-errors",
+      "title": "Verify the authorization flow fix by testing the complete first admin registration sequence: authenticate with Internet Identity, navigate to /admin/register, submit registration with the authenticated user's principal, and confirm the registration succeeds without authorization errors",
+      "reqIds": [
+        "REQ-177"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-adminregistration-tsx-error-handling-to-display-user-friendly-messages-when-ic0508-canister-stopped-errors-occur-guiding-users-to-refresh-the-page-or-contact-administrators",
+      "title": "Update the AdminRegistration.tsx error handling to display user-friendly messages when IC0508 'canister stopped' errors occur, guiding users to refresh the page or contact administrators",
+      "reqIds": [
+        "REQ-180"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-adminregistration-tsx-component-to-automatically-invalidate-all-relevant-react-query-caches-user-role-query-admin-status-query-and-force-an-immediate-refetch-after-successful-first-admin-registration-ensuring-the-ui-updates-to-reflect-the-new-admin-status",
+      "title": "Update the AdminRegistration.tsx component to automatically invalidate all relevant React Query caches (user role query, admin status query) and force an immediate refetch after successful first admin registration, ensuring the UI updates to reflect the new admin status",
+      "reqIds": [
+        "REQ-184"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-navbar-tsx-component-to-add-a-react-query-refetch-trigger-that-listens-for-changes-in-the-user-role-state-and-automatically-re-renders-the-admin-navigation-link-when-the-role-changes-from-non-admin-to-admin-ensuring-the-admin-link-appears-immediately-after-first-admin-registration-without-requiring-page-refresh",
+      "title": "Update the Navbar.tsx component to add a React Query refetch trigger that listens for changes in the user role state and automatically re-renders the Admin navigation link when the role changes from non-admin to admin, ensuring the Admin link appears immediately after first admin registration without requiring page refresh",
+      "reqIds": [
+        "REQ-185"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-adminregistration-tsx-success-flow-to-display-a-prominent-success-modal-or-banner-that-confirms-you-are-now-registered-as-the-first-admin-and-provides-a-direct-navigation-link-to-the-admin-dashboard-automatically-redirecting-after-3-seconds",
+      "title": "Update the AdminRegistration.tsx success flow to display a prominent success modal or banner that confirms 'You are now registered as the first admin!' and provides a direct navigation link to the Admin Dashboard, automatically redirecting after 3 seconds",
+      "reqIds": [
+        "REQ-186"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-visual-debugging-panel-in-the-adminregistration-tsx-component-only-visible-in-development-mode-that-displays-real-time-state-information-including-actor-connection-status-current-user-role-admin-status-check-result-registration-button-enabled-disabled-state-and-recent-error-messages-to-help-diagnose-post-registration-access-issues",
+      "title": "Add a visual debugging panel in the AdminRegistration.tsx component (only visible in development mode) that displays real-time state information including: actor connection status, current user role, admin status check result, registration button enabled/disabled state, and recent error messages, to help diagnose post-registration access issues",
+      "reqIds": [
+        "REQ-187"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-step-by-step-verification-sequence-in-the-adminregistration-tsx-component-that-1-waits-2-seconds-after-successful-registration-2-manually-calls-the-backend-getuserrole-endpoint-to-verify-admin-status-3-logs-the-result-4-if-admin-role-is-confirmed-invalidates-queries-and-navigates-to-dashboard-5-if-admin-role-is-not-confirmed-displays-troubleshooting-instructions-with-the-user-s-principal-and-suggests-contacting-support",
+      "title": "Create a step-by-step verification sequence in the AdminRegistration.tsx component that: (1) waits 2 seconds after successful registration, (2) manually calls the backend getUserRole endpoint to verify admin status, (3) logs the result, (4) if admin role is confirmed, invalidates queries and navigates to dashboard, (5) if admin role is not confirmed, displays troubleshooting instructions with the user's principal and suggests contacting support",
+      "reqIds": [
+        "REQ-189"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-investigate-and-fix-the-infinite-connecting-to-backend-loading-state-that-persists-for-over-10-minutes-on-the-adminregistration-tsx-page-at-admin-register-preventing-users-from-completing-admin-registration-by-blocking-access-to-the-registration-form",
+      "title": "Investigate and fix the infinite 'Connecting to backend...' loading state that persists for over 10 minutes on the AdminRegistration.tsx page at /admin/register, preventing users from completing admin registration by blocking access to the registration form",
+      "reqIds": [
+        "REQ-190"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-comprehensive-diagnostic-logging-to-the-adminregistration-tsx-component-and-useactor-ts-hook-to-track-actor-initialization-progress-including-1-actor-creation-start-timestamp-2-authentication-state-changes-3-actor-availability-checks-4-connection-success-failure-events-5-time-elapsed-during-initialization-and-6-any-errors-encountered-during-the-connection-process",
+      "title": "Add comprehensive diagnostic logging to the AdminRegistration.tsx component and useActor.ts hook to track actor initialization progress, including: (1) actor creation start timestamp, (2) authentication state changes, (3) actor availability checks, (4) connection success/failure events, (5) time elapsed during initialization, and (6) any errors encountered during the connection process",
+      "reqIds": [
+        "REQ-191"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-timeout-mechanism-in-the-adminregistration-tsx-component-that-detects-when-actor-initialization-exceeds-15-seconds-automatically-displays-an-error-message-explaining-the-connection-failure-and-provides-retry-and-troubleshooting-options-refresh-page-check-network-contact-support",
+      "title": "Add a timeout mechanism in the AdminRegistration.tsx component that detects when actor initialization exceeds 15 seconds, automatically displays an error message explaining the connection failure, and provides retry and troubleshooting options (refresh page, check network, contact support)",
+      "reqIds": [
+        "REQ-192"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-visual-progress-indicator-in-the-adminregistration-tsx-loading-state-that-shows-connection-attempt-status-updates-e-g-initializing-authentication-connecting-to-canister-establishing-secure-connection-with-elapsed-time-display-to-provide-transparency-during-the-connection-process",
+      "title": "Add a visual progress indicator in the AdminRegistration.tsx loading state that shows connection attempt status updates (e.g., 'Initializing authentication...', 'Connecting to canister...', 'Establishing secure connection...') with elapsed time display to provide transparency during the connection process",
+      "reqIds": [
+        "REQ-195"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-investigate-and-fix-the-connection-timeout-error-displaying-22s-elapsed-time-on-the-admin-registration-page-at-admin-register-which-shows-unable-to-establish-connection-to-the-backend-service-this-may-be-due-to-network-issues-or-the-canister-being-stopped-after-the-page-has-been-attempting-to-connect-for-22-seconds",
+      "title": "Investigate and fix the 'Connection Timeout' error displaying '22s' elapsed time on the Admin Registration page at /admin/register, which shows 'Unable to establish connection to the backend service. This may be due to network issues or the canister being stopped.' after the page has been attempting to connect for 22+ seconds",
+      "reqIds": [
+        "REQ-196"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-reduce-the-connection-timeout-threshold-in-adminregistration-tsx-from-22-seconds-to-a-more-reasonable-15-seconds-maximum-ensuring-users-receive-timeout-feedback-faster-and-are-not-left-waiting-indefinitely-for-backend-connection-to-establish",
+      "title": "Reduce the connection timeout threshold in AdminRegistration.tsx from 22+ seconds to a more reasonable 15 seconds maximum, ensuring users receive timeout feedback faster and are not left waiting indefinitely for backend connection to establish",
+      "reqIds": [
+        "REQ-199"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-connection-health-check-in-the-adminregistration-tsx-component-that-performs-a-lightweight-backend-query-test-before-displaying-the-registration-form-showing-a-clear-error-message-if-the-health-check-fails-within-5-seconds-and-preventing-the-extended-22-second-timeout-wait",
+      "title": "Implement a connection health check in the AdminRegistration.tsx component that performs a lightweight backend query test before displaying the registration form, showing a clear error message if the health check fails within 5 seconds and preventing the extended 22+ second timeout wait",
+      "reqIds": [
+        "REQ-201"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-internet-identity-authentication-delegation-that-may-be-causing-the-extended-connection-delay-ensuring-the-identity-delegation-is-valid-and-not-requiring-re-authentication-during-the-actor-initialization-process-on-the-adminregistration-page",
+      "title": "Fix the Internet Identity authentication delegation that may be causing the extended connection delay, ensuring the identity delegation is valid and not requiring re-authentication during the actor initialization process on the AdminRegistration page",
+      "reqIds": [
+        "REQ-202"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1660,6 +1781,132 @@
       "summary": "Add comprehensive diagnostic logging to the registerAdmin endpoint in backend/main.mo that logs the admin principals list size (AdminState.adminPrincipals.size()), whether this is first-time setup (size == 0), the caller's Internet Identity principal, the principal being registered, each step of the authorization check with pass/fail reasoning, and the final registration outcome with timestamps",
       "reqIds": [
         "REQ-171"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-138",
+      "summary": "Update the registerAdmin endpoint in backend/main.mo to reorder the authorization logic by checking if AdminState.adminPrincipals.size() == 0 FIRST before running any other authorization checks, immediately allowing the registration to proceed when the admin list is empty (first-time admin bootstrapping), then checking isAdmin(caller) only if admins already exist, and returning 'Unauthorized: Only admins can assign user roles' error only if both conditions fail",
+      "reqIds": [
+        "REQ-173"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-139",
+      "summary": "Add comprehensive diagnostic logging to the registerAdmin endpoint in backend/main.mo that logs the admin principals list size using AdminState.adminPrincipals.size(), a boolean flag indicating first-time setup (size == 0), the caller's Internet Identity principal, the principal being registered, the authorization flow decision path (bootstrapping allowed / existing admin check / unauthorized), and the final registration outcome with timestamps",
+      "reqIds": [
+        "REQ-174"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-140",
+      "summary": "Update the registerAdmin endpoint in backend/main.mo to reorder the authorization logic by checking if AdminState.adminPrincipals.size() == 0 as the FIRST condition before any other authorization checks, immediately allowing the registration to proceed when the admin list is empty (first-time admin bootstrapping), then checking isAdmin(caller) only if admins already exist, and returning 'Unauthorized: Only admins can assign user roles' error only when both conditions fail",
+      "reqIds": [
+        "REQ-175"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-141",
+      "summary": "Add comprehensive diagnostic logging to the registerAdmin endpoint in backend/main.mo that logs the admin principals list size using AdminState.adminPrincipals.size(), a boolean flag indicating first-time setup (size == 0), the caller's Internet Identity principal, the principal being registered, the authorization flow decision path (bootstrapping allowed / existing admin check / unauthorized), and the final registration outcome with timestamps",
+      "reqIds": [
+        "REQ-176"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-142",
+      "summary": "Investigate and fix the 'Canister 7xdrr-pqaaa-aaaae-qgzda-cai is stopped' error that occurs during admin registration, which is preventing the registerAdmin endpoint from executing successfully with IC0508 error code",
+      "reqIds": [
+        "REQ-178"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-143",
+      "summary": "Add backend canister health check and automatic restart mechanism to prevent IC0508 'canister is stopped' errors during critical operations like admin registration",
+      "reqIds": [
+        "REQ-179"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-145",
+      "summary": "Add comprehensive logging in backend/main.mo registerAdmin endpoint to track canister state, execution flow, and any errors that might cause the canister to stop during admin registration",
+      "reqIds": [
+        "REQ-181"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-146",
+      "summary": "Add step-by-step diagnostic flow for first admin registration and admin panel access: check admin principals list size, verify user is registered as admin after first registration, ensure getUserRole returns admin role, confirm navbar displays admin link, and test admin panel route access",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-147",
+      "summary": "Update the registerAdmin endpoint in backend/main.mo to fix the authorization check order by implementing proper bootstrapping logic that checks if the admin principals list is empty (AdminState.adminPrincipals.size() == 0) as the VERY FIRST condition before ANY other checks, immediately returning success and adding the principal when empty, and only checking isAdmin(caller) if the list is not empty",
+      "reqIds": [
+        "REQ-182"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-148",
+      "summary": "Add comprehensive diagnostic logging to the registerAdmin endpoint in backend/main.mo that logs: (1) admin principals list size before registration, (2) whether bootstrapping is triggered (size == 0), (3) the caller's Internet Identity principal, (4) the principal being registered, (5) the authorization flow path taken (bootstrap vs existing admin check), (6) the registration outcome (success/failure with reason), and (7) the updated admin principals list size after registration",
+      "reqIds": [
+        "REQ-183"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-153",
+      "summary": "Update the backend getUserRole endpoint in backend/main.mo to add comprehensive logging that logs: (1) the caller's Internet Identity principal, (2) the admin principals list contents, (3) the result of checking if caller is in admin list, (4) the UserRole variant being returned, and (5) timestamps, to enable complete debugging of role verification after first admin registration",
+      "reqIds": [
+        "REQ-188"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-157",
+      "summary": "Verify the backend canister status and health by checking if the canister at 7xdrr-pqaaa-aaaae-qgzda-cai is running and responding to queries, investigating any IC0508 'canister stopped' errors or other canister state issues that prevent actor connection from completing",
+      "reqIds": [
+        "REQ-193"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-158",
+      "summary": "Update the useActor.ts hook to implement robust error handling for actor initialization failures, catching and logging specific error types (network errors, authentication failures, canister unavailable), and exposing an error state that frontend components can use to display user-friendly messages",
+      "reqIds": [
+        "REQ-194"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-160",
+      "summary": "Fix the backend actor initialization timeout in useActor.ts hook that is causing the 22+ second connection delay on AdminRegistration.tsx, ensuring the actor connection completes successfully within a reasonable timeframe (under 5 seconds) or fails with a clear error message",
+      "reqIds": [
+        "REQ-197"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-161",
+      "summary": "Verify the backend canister at canister ID 7xdrr-pqaaa-aaaae-qgzda-cai is running and responding to queries, investigating any canister stopped or unavailable states that would cause the connection timeout error shown in the AdminRegistration page",
+      "reqIds": [
+        "REQ-198"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-163",
+      "summary": "Add enhanced error logging to the useActor.ts hook actor initialization process that captures and logs the exact failure point causing the connection timeout, including authentication state, identity delegation status, canister reachability checks, and any network errors during the 22+ second connection attempt",
+      "reqIds": [
+        "REQ-200"
       ],
       "status": "pending"
     }

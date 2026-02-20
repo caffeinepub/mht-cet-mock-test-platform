@@ -1,16 +1,14 @@
 /**
  * AdminRegistration Component
  * 
- * This page remains fully functional and accessible via direct URL navigation at '/admin/register'.
- * Users can access this page by typing the URL directly in their browser, even though the navigation
- * link has been removed from the Navbar component. All admin registration functionality, including
- * validation, authentication checks, and user interface elements, remain intact and operational.
+ * This page allows authenticated users to register Internet Identity principals as administrators.
+ * Includes comprehensive diagnostic logging, timeout detection, progressive status indicators, retry functionality, and development debug panel.
  */
 
 import { useState, useEffect } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useAdminRegistration } from '../hooks/useAdminRegistration';
-import { useGetCallerUserRole } from '../hooks/useQueries';
+import { useGetCallerUserRole, useIsCallerAdmin } from '../hooks/useQueries';
 import { useActor } from '../hooks/useActor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,235 +26,406 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Copy, CheckCircle2, AlertCircle, ShieldAlert, Loader2, PartyPopper, Info } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Copy, CheckCircle2, AlertCircle, ShieldAlert, Loader2, PartyPopper, Info, RefreshCw, Clock, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
 import { UserRole__1 } from '../backend';
 import { useQueryClient } from '@tanstack/react-query';
 import { Principal } from '@dfinity/principal';
 
+// Connection phases for progressive status display
+type ConnectionPhase = 'initializing' | 'authenticating' | 'connecting' | 'verifying' | 'ready' | 'timeout' | 'error';
+
 export default function AdminRegistration() {
-  const { identity } = useInternetIdentity();
+  const { identity, loginStatus } = useInternetIdentity();
   const { actor, isFetching: actorFetching } = useActor();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [principalInput, setPrincipalInput] = useState('');
   const { mutate: registerAdmin, isPending } = useAdminRegistration();
   const { data: userRole, isLoading: roleLoading, isFetched: roleFetched } = useGetCallerUserRole();
+  const { data: isAdminCheck, isLoading: adminCheckLoading } = useIsCallerAdmin();
 
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showTroubleshootingDialog, setShowTroubleshootingDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [errorDetails, setErrorDetails] = useState('');
+  const [isCanisterStoppedError, setIsCanisterStoppedError] = useState(false);
   const [proceedWithRegistration, setProceedWithRegistration] = useState(false);
   const [isFirstAdmin, setIsFirstAdmin] = useState(false);
+  const [countdown, setCountdown] = useState(3);
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'failed'>('idle');
   
   // New state for checking if principal is already admin
   const [checkingPrincipalStatus, setCheckingPrincipalStatus] = useState(false);
   const [principalIsAlreadyAdmin, setPrincipalIsAlreadyAdmin] = useState(false);
 
+  // New state for connection timeout and retry
+  const [connectionPhase, setConnectionPhase] = useState<ConnectionPhase>('initializing');
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [connectionStartTime, setConnectionStartTime] = useState<number>(Date.now());
+  const [hasTimedOut, setHasTimedOut] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+
+  // Health check state
+  const [healthCheckStatus, setHealthCheckStatus] = useState<'idle' | 'checking' | 'success' | 'failed'>('idle');
+  const [healthCheckError, setHealthCheckError] = useState<string>('');
+
   const isAuthenticated = !!identity;
   const currentPrincipal = identity?.getPrincipal().toString() || '';
   const isAdmin = userRole === 'admin';
 
-  // Determine if the actor is still loading
-  const isActorLoading = actorFetching || !actor;
-  
-  // Disable form while actor is loading or during submission
-  const isFormDisabled = isPending || isActorLoading || principalIsAlreadyAdmin;
-
-  // Hide the registration form if user is already an admin
-  const showRegistrationForm = !isAdmin || roleLoading;
-
-  // Check if the entered principal is already an admin
+  // Comprehensive diagnostic logging with timestamps
   useEffect(() => {
-    const checkPrincipalStatus = async () => {
-      if (!actor || !principalInput.trim() || actorFetching) {
-        setPrincipalIsAlreadyAdmin(false);
-        return;
-      }
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] === AdminRegistration Component State ===`);
+    console.log(`[${timestamp}] isAuthenticated: ${isAuthenticated}`);
+    console.log(`[${timestamp}] loginStatus: ${loginStatus}`);
+    console.log(`[${timestamp}] currentPrincipal: ${currentPrincipal}`);
+    console.log(`[${timestamp}] actor available: ${!!actor}`);
+    console.log(`[${timestamp}] actorFetching: ${actorFetching}`);
+    console.log(`[${timestamp}] userRole: ${userRole}`);
+    console.log(`[${timestamp}] roleLoading: ${roleLoading}`);
+    console.log(`[${timestamp}] roleFetched: ${roleFetched}`);
+    console.log(`[${timestamp}] isAdmin: ${isAdmin}`);
+    console.log(`[${timestamp}] isAdminCheck: ${isAdminCheck}`);
+    console.log(`[${timestamp}] isPending: ${isPending}`);
+    console.log(`[${timestamp}] connectionPhase: ${connectionPhase}`);
+    console.log(`[${timestamp}] elapsedSeconds: ${elapsedSeconds}`);
+    console.log(`[${timestamp}] hasTimedOut: ${hasTimedOut}`);
+    console.log(`[${timestamp}] retryAttempt: ${retryAttempt}`);
+    console.log(`[${timestamp}] healthCheckStatus: ${healthCheckStatus}`);
+  }, [isAuthenticated, loginStatus, currentPrincipal, actor, actorFetching, userRole, roleLoading, roleFetched, isAdmin, isAdminCheck, isPending, connectionPhase, elapsedSeconds, hasTimedOut, retryAttempt, healthCheckStatus]);
+
+  // Health check on mount
+  useEffect(() => {
+    if (!actor || actorFetching || healthCheckStatus !== 'idle') {
+      return;
+    }
+
+    const performHealthCheck = async () => {
+      const timestamp = new Date().toISOString();
+      console.log(`[${timestamp}] === Performing Health Check ===`);
+      setHealthCheckStatus('checking');
 
       try {
-        // Validate principal format first
-        const principal = Principal.fromText(principalInput.trim());
+        const healthCheckTimeout = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Health check timeout')), 5000);
+        });
+
+        const healthCheckPromise = actor.getTotalQuestions();
         
-        setCheckingPrincipalStatus(true);
+        await Promise.race([healthCheckPromise, healthCheckTimeout]);
         
-        // Call getUserRole with the principal to check if they're already admin
-        // Note: We need to use a different approach since getUserRole only checks caller
-        // Instead, we'll try to register and handle the alreadyRegistered response
-        // For now, we'll just validate the format
-        setPrincipalIsAlreadyAdmin(false);
-      } catch (error) {
-        // Invalid principal format
-        setPrincipalIsAlreadyAdmin(false);
-      } finally {
-        setCheckingPrincipalStatus(false);
+        console.log(`[${timestamp}] Health check successful`);
+        setHealthCheckStatus('success');
+        setHealthCheckError('');
+      } catch (error: any) {
+        console.error(`[${timestamp}] Health check failed:`, error);
+        setHealthCheckStatus('failed');
+        setHealthCheckError(error.message || 'Health check failed');
       }
     };
 
-    // Debounce the check
-    const timeoutId = setTimeout(checkPrincipalStatus, 500);
-    return () => clearTimeout(timeoutId);
-  }, [principalInput, actor, actorFetching]);
+    performHealthCheck();
+  }, [actor, actorFetching, healthCheckStatus]);
 
-  // Auto-navigate after successful first admin registration
+  // Track connection phases based on state
   useEffect(() => {
-    if (showSuccessDialog && isFirstAdmin) {
-      const timer = setTimeout(() => {
-        navigate({ to: '/admin' });
-      }, 2000);
-      return () => clearTimeout(timer);
+    const timestamp = new Date().toISOString();
+    
+    if (hasTimedOut) {
+      console.log(`[${timestamp}] Connection phase: timeout`);
+      setConnectionPhase('timeout');
+      return;
     }
-  }, [showSuccessDialog, isFirstAdmin, navigate]);
 
-  const handleCopyPrincipal = () => {
-    if (currentPrincipal) {
-      navigator.clipboard.writeText(currentPrincipal);
-      toast.success('Copied!', {
-        description: 'Your principal has been copied to clipboard.',
-      });
+    if (healthCheckStatus === 'failed') {
+      console.log(`[${timestamp}] Connection phase: error (health check failed)`);
+      setConnectionPhase('error');
+      return;
     }
+
+    if (healthCheckStatus === 'success' && actor && !actorFetching) {
+      console.log(`[${timestamp}] Connection phase: ready (health check passed)`);
+      setConnectionPhase('ready');
+      return;
+    }
+
+    if (healthCheckStatus === 'checking') {
+      console.log(`[${timestamp}] Connection phase: verifying (health check in progress)`);
+      setConnectionPhase('verifying');
+      return;
+    }
+
+    if (!isAuthenticated) {
+      console.log(`[${timestamp}] Connection phase: initializing (not authenticated)`);
+      setConnectionPhase('initializing');
+      return;
+    }
+
+    if (loginStatus === 'logging-in') {
+      console.log(`[${timestamp}] Connection phase: authenticating`);
+      setConnectionPhase('authenticating');
+      return;
+    }
+
+    if (actorFetching) {
+      console.log(`[${timestamp}] Connection phase: connecting (actor fetching)`);
+      setConnectionPhase('connecting');
+      return;
+    }
+
+    if (isAuthenticated && !actor) {
+      console.log(`[${timestamp}] Connection phase: verifying (authenticated but no actor)`);
+      setConnectionPhase('verifying');
+      return;
+    }
+
+    console.log(`[${timestamp}] Connection phase: initializing (default)`);
+    setConnectionPhase('initializing');
+  }, [actor, actorFetching, isAuthenticated, loginStatus, hasTimedOut, healthCheckStatus]);
+
+  // Elapsed time counter - updates every second
+  useEffect(() => {
+    if (connectionPhase === 'ready' || hasTimedOut) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - connectionStartTime) / 1000);
+      setElapsedSeconds(elapsed);
+      
+      const timestamp = new Date().toISOString();
+      console.log(`[${timestamp}] Connection elapsed time: ${elapsed}s`);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [connectionPhase, connectionStartTime, hasTimedOut]);
+
+  // Timeout detection - 15 seconds
+  useEffect(() => {
+    if (connectionPhase === 'ready' || hasTimedOut) {
+      return;
+    }
+
+    const timeoutDuration = 15000; // 15 seconds
+    const timeoutId = setTimeout(() => {
+      const timestamp = new Date().toISOString();
+      console.error(`[${timestamp}] === CONNECTION TIMEOUT DETECTED ===`);
+      console.error(`[${timestamp}] Connection phase: ${connectionPhase}`);
+      console.error(`[${timestamp}] Elapsed time: ${Math.floor((Date.now() - connectionStartTime) / 1000)}s`);
+      console.error(`[${timestamp}] Actor available: ${!!actor}`);
+      console.error(`[${timestamp}] Actor fetching: ${actorFetching}`);
+      console.error(`[${timestamp}] Health check status: ${healthCheckStatus}`);
+      
+      setHasTimedOut(true);
+      toast.error('Connection timeout', {
+        description: 'Unable to establish connection to the backend service within 15 seconds.'
+      });
+    }, timeoutDuration);
+
+    return () => clearTimeout(timeoutId);
+  }, [connectionPhase, connectionStartTime, hasTimedOut, actor, actorFetching, healthCheckStatus]);
+
+  // Reset connection state on retry
+  const handleRetryConnection = () => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] === Retry Connection Initiated ===`);
+    console.log(`[${timestamp}] Retry attempt: ${retryAttempt + 1}`);
+    
+    setHasTimedOut(false);
+    setConnectionStartTime(Date.now());
+    setElapsedSeconds(0);
+    setRetryAttempt(prev => prev + 1);
+    setHealthCheckStatus('idle');
+    setHealthCheckError('');
+    
+    // Force re-render by invalidating actor query
+    queryClient.invalidateQueries({ queryKey: ['actor'] });
+    
+    toast.info('Retrying connection...', {
+      description: 'Attempting to reconnect to the backend service.'
+    });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCopyPrincipal = () => {
+    navigator.clipboard.writeText(currentPrincipal);
+    toast.success('Principal ID copied to clipboard');
+  };
+
+  const handlePrincipalInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPrincipalInput(e.target.value);
+    setPrincipalIsAlreadyAdmin(false);
+  };
+
+  const handleRegisterAdmin = () => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] === Register Admin Button Clicked ===`);
+    console.log(`[${timestamp}] Principal input: ${principalInput}`);
+    console.log(`[${timestamp}] Current user role: ${userRole}`);
+    console.log(`[${timestamp}] Is admin: ${isAdmin}`);
 
     if (!principalInput.trim()) {
-      toast.error('Validation Error', {
-        description: 'Please enter a principal ID.',
-      });
+      toast.error('Please enter a principal ID');
       return;
     }
 
     // Validate principal format
     try {
       Principal.fromText(principalInput.trim());
+      console.log(`[${timestamp}] Valid principal format`);
     } catch (error) {
-      toast.error('Invalid Principal', {
-        description: 'The principal ID format is invalid. Please check and try again.',
-      });
+      console.error(`[${timestamp}] Invalid principal format:`, error);
+      toast.error('Invalid principal ID format');
       return;
     }
 
-    // Check if actor is available before proceeding
-    if (!actor || actorFetching) {
-      toast.error('Connection Not Ready', {
-        description: 'Backend connection is still initializing. Please wait a moment and try again.',
-      });
+    if (!isAdmin && !isFirstAdmin) {
+      console.log(`[${timestamp}] Opening first admin confirmation dialog`);
+      setIsFirstAdmin(true);
       return;
     }
 
-    // Show info dialog before proceeding
-    setShowInfoDialog(true);
-  };
-
-  const handleProceedWithRegistration = () => {
-    setShowInfoDialog(false);
-    setProceedWithRegistration(true);
-
+    console.log(`[${timestamp}] Proceeding with admin registration`);
+    // Pass the principal as a string to the mutation
     registerAdmin(principalInput.trim(), {
-      onSuccess: async ({ result }) => {
+      onSuccess: ({ result, principal }) => {
+        const successTimestamp = new Date().toISOString();
+        console.log(`[${successTimestamp}] === Admin Registration Success ===`);
+        console.log(`[${successTimestamp}] Result:`, result);
+        
         if (result.__kind__ === 'success') {
-          // Determine if this was the first admin registration
-          const wasFirstAdmin = principalInput.trim() === currentPrincipal;
-          setIsFirstAdmin(wasFirstAdmin);
-          
-          // Show success toast with clear first admin message
-          toast.success('Successfully registered as first admin!', {
-            description: wasFirstAdmin 
-              ? 'You now have full administrative privileges. Redirecting to Admin Dashboard...' 
-              : 'The principal has been registered as an administrator.',
-            duration: 2000,
-          });
-          
-          // Invalidate user role queries to trigger immediate refetch
-          await queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
-          await queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
-          
-          // Show success dialog
+          console.log(`[${successTimestamp}] Registered principal: ${result.success.registeredPrincipal.toString()}`);
           setShowSuccessDialog(true);
           setPrincipalInput('');
+          queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
+          queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
         } else if (result.__kind__ === 'alreadyRegistered') {
+          console.log(`[${successTimestamp}] Principal already registered as admin`);
           setPrincipalIsAlreadyAdmin(true);
-          toast.info('Already Registered', {
-            description: 'This principal is already registered as an administrator.',
-          });
+          toast.info('This principal is already registered as an admin');
         } else if (result.__kind__ === 'unauthorized') {
-          setErrorMessage(
-            'Unauthorized: Only admins can assign user roles. After the initial setup, only existing administrators can register new admins.'
-          );
-          setShowErrorDialog(true);
-        } else if (result.__kind__ === 'internalError') {
-          setErrorMessage(
-            'Internal Error: An unexpected error occurred during registration. Please try again.'
-          );
-          setShowErrorDialog(true);
-        }
-      },
-      onError: (error: Error) => {
-        console.error('Registration error:', error);
-        if (error.message.includes('Unauthorized')) {
-          setErrorMessage(
-            'Unauthorized: Only admins can assign user roles. You do not have permission to register new administrators.'
-          );
+          console.error(`[${successTimestamp}] Unauthorized: Caller is not an admin`);
+          setErrorMessage('Unauthorized');
+          setErrorDetails('You do not have permission to register admins. Only existing admins can register new admins.');
           setShowErrorDialog(true);
         } else {
-          setErrorMessage(
-            `Registration failed: ${error.message}`
-          );
+          console.error(`[${successTimestamp}] Internal error during registration`);
+          setErrorMessage('Internal Error');
+          setErrorDetails('An internal error occurred during registration. Please try again.');
           setShowErrorDialog(true);
         }
       },
-      onSettled: () => {
-        setProceedWithRegistration(false);
-      },
+      onError: (error: any) => {
+        const errorTimestamp = new Date().toISOString();
+        console.error(`[${errorTimestamp}] === Admin Registration Error ===`);
+        console.error(`[${errorTimestamp}] Error:`, error);
+        console.error(`[${errorTimestamp}] Error message:`, error.message);
+        
+        if (error.message?.includes('Canister') || error.message?.includes('stopped')) {
+          console.error(`[${errorTimestamp}] Canister stopped error detected`);
+          setIsCanisterStoppedError(true);
+          setErrorMessage('Backend Service Unavailable');
+          setErrorDetails('The backend canister appears to be stopped. Please contact the system administrator to start the canister.');
+        } else {
+          setErrorMessage('Registration Failed');
+          setErrorDetails(error.message || 'An unexpected error occurred during registration.');
+        }
+        setShowErrorDialog(true);
+      }
     });
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-amber-500" />
-              Authentication Required
-            </CardTitle>
-            <CardDescription>
-              Please log in with Internet Identity to access admin registration.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
+  const handleFirstAdminConfirm = () => {
+    setIsFirstAdmin(false);
+    setProceedWithRegistration(true);
+    handleRegisterAdmin();
+  };
 
-  // Show success message if user is now an admin after registration
-  if (isAdmin && roleFetched && !roleLoading && !showRegistrationForm) {
+  const handleSuccessDialogClose = () => {
+    setShowSuccessDialog(false);
+    setCountdown(3);
+    const countdownInterval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          navigate({ to: '/' });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // Render connection timeout or error
+  if (hasTimedOut || healthCheckStatus === 'failed') {
+    const errorMsg = hasTimedOut ? 'Connection timeout' : 'Connection failed';
+    const errorDetail = hasTimedOut 
+      ? 'Unable to establish connection to the backend service within 15 seconds'
+      : healthCheckError || 'Health check failed - backend service may be unavailable';
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-              You Are an Administrator
-            </CardTitle>
-            <CardDescription>
-              You have successfully been registered as an admin.
-            </CardDescription>
+            <div className="flex items-center gap-3">
+              <WifiOff className="h-8 w-8 text-destructive" />
+              <div>
+                <CardTitle className="text-2xl">Connection Timeout</CardTitle>
+                <CardDescription>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{elapsedSeconds}s elapsed</span>
+                  </div>
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              You now have full administrative privileges. You can access the admin dashboard to manage tests, questions, and users.
-            </p>
-            <div className="flex gap-3">
-              <Button onClick={() => navigate({ to: '/admin' })} className="flex-1">
-                Go to Admin Dashboard
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <div className="font-semibold">{errorMsg}</div>
+                <div className="text-sm mt-1">{errorDetail}</div>
+              </AlertDescription>
+            </Alert>
+
+            <div className="space-y-2">
+              <h3 className="font-semibold text-sm">Troubleshooting steps:</h3>
+              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                <li>Check your internet connection</li>
+                <li>Verify the backend canister is running</li>
+                <li>Try refreshing the page</li>
+                <li>Clear your browser cache and cookies</li>
+                <li>Contact the system administrator if the issue persists</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={handleRetryConnection} className="flex-1">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry Connection
               </Button>
-              <Button variant="outline" onClick={() => navigate({ to: '/' })}>
-                Go Home
+              <Button onClick={() => window.location.reload()} variant="outline" className="flex-1">
+                Refresh Page
               </Button>
+            </div>
+
+            <div className="text-xs text-muted-foreground">
+              <div>Retry attempt: {retryAttempt}</div>
+              <div>Connection phase: {connectionPhase}</div>
+              <div>Health check status: {healthCheckStatus}</div>
             </div>
           </CardContent>
         </Card>
@@ -264,59 +433,108 @@ export default function AdminRegistration() {
     );
   }
 
+  // Render loading state with progressive status
+  if (connectionPhase !== 'ready') {
+    const phaseMessages = {
+      initializing: 'Initializing connection...',
+      authenticating: 'Authenticating with Internet Identity...',
+      connecting: 'Connecting to backend service...',
+      verifying: 'Verifying connection health...',
+      ready: 'Connection established',
+      timeout: 'Connection timeout',
+      error: 'Connection error'
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div>
+                <CardTitle className="text-2xl">Connecting to Backend</CardTitle>
+                <CardDescription>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{elapsedSeconds}s elapsed</span>
+                  </div>
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">{phaseMessages[connectionPhase]}</span>
+                <Badge variant="outline">{connectionPhase}</Badge>
+              </div>
+              <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-500"
+                  style={{ 
+                    width: connectionPhase === 'initializing' ? '20%' :
+                           connectionPhase === 'authenticating' ? '40%' :
+                           connectionPhase === 'connecting' ? '60%' :
+                           connectionPhase === 'verifying' ? '80%' :
+                           '100%'
+                  }}
+                />
+              </div>
+            </div>
+
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Please wait while we establish a secure connection to the backend service. This may take a few seconds.
+              </AlertDescription>
+            </Alert>
+
+            {elapsedSeconds > 10 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Connection is taking longer than expected. If this persists, try refreshing the page or check your network connection.
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Main registration UI
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 py-12 px-4">
+      <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            Admin Registration
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Register Internet Identity principals as administrators
-          </p>
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Admin Registration</h1>
+          <p className="text-slate-600 dark:text-slate-400">Register Internet Identity principals as administrators</p>
         </div>
 
-        {/* Backend Connection Status */}
-        {isActorLoading && (
-          <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Loader2 className="h-5 w-5 text-amber-600 dark:text-amber-400 animate-spin" />
-                <div>
-                  <p className="font-semibold text-amber-900 dark:text-amber-100">
-                    Connecting to backend...
-                  </p>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    Please wait while we establish a connection to the backend service.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Current User Info */}
+        {/* Your Principal ID Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-blue-600" />
-              Your Principal ID
-            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-primary" />
+              <CardTitle>Your Principal ID</CardTitle>
+            </div>
             <CardDescription>
               This is your Internet Identity principal. You can register yourself or another principal as an admin.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <code className="flex-1 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded text-sm break-all">
-                {currentPrincipal}
-              </code>
+              <Input
+                value={currentPrincipal}
+                readOnly
+                className="font-mono text-sm"
+              />
               <Button
+                onClick={handleCopyPrincipal}
                 variant="outline"
                 size="icon"
-                onClick={handleCopyPrincipal}
-                disabled={!currentPrincipal}
               >
                 <Copy className="h-4 w-4" />
               </Button>
@@ -327,185 +545,129 @@ export default function AdminRegistration() {
         {/* Registration Form */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Register Admin</span>
-              {principalIsAlreadyAdmin && (
-                <Badge variant="default" className="bg-green-600">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Already Admin
-                </Badge>
-              )}
-            </CardTitle>
+            <CardTitle>Register New Admin</CardTitle>
             <CardDescription>
-              Enter the principal ID of the user you want to register as an administrator.
+              Enter the principal ID of the user you want to register as an administrator
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="principal">Principal ID</Label>
-                <Input
-                  id="principal"
-                  type="text"
-                  placeholder="Enter principal ID"
-                  value={principalInput}
-                  onChange={(e) => setPrincipalInput(e.target.value)}
-                  disabled={isFormDisabled}
-                  className="font-mono text-sm"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Paste the principal ID of the user you want to make an admin. You can use your own principal ID shown above.
-                </p>
-              </div>
-
-              {/* Already Admin Alert */}
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="principal">Principal ID</Label>
+              <Input
+                id="principal"
+                value={principalInput}
+                onChange={handlePrincipalInputChange}
+                placeholder="Enter principal ID (e.g., xxxxx-xxxxx-xxxxx-xxxxx-xxx)"
+                className="font-mono"
+              />
               {principalIsAlreadyAdmin && (
-                <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-                  <Info className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  <AlertDescription className="text-green-800 dark:text-green-200">
-                    This principal already has admin access. No need to register again.
-                  </AlertDescription>
-                </Alert>
+                <p className="text-sm text-amber-600 dark:text-amber-400">
+                  This principal is already registered as an admin
+                </p>
               )}
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isFormDisabled}
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Registering...
-                  </>
-                ) : isActorLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Connecting...
-                  </>
-                ) : principalIsAlreadyAdmin ? (
-                  <>
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Already Registered
-                  </>
-                ) : (
-                  'Register as Admin'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Info Card */}
-        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-          <CardContent className="pt-6">
-            <div className="flex gap-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <div className="space-y-2 text-sm text-blue-900 dark:text-blue-100">
-                <p className="font-semibold">Important Information:</p>
-                <ul className="list-disc list-inside space-y-1 text-blue-800 dark:text-blue-200">
-                  <li>The first admin registration requires no authorization</li>
-                  <li>After the first admin is registered, only existing admins can register new admins</li>
-                  <li>Admin privileges grant full access to create tests, questions, and manage users</li>
-                  <li>Make sure to register a trusted principal as the first admin</li>
-                </ul>
-              </div>
             </div>
+
+            <Button
+              onClick={handleRegisterAdmin}
+              disabled={isPending || !principalInput.trim()}
+              className="w-full"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Registering...
+                </>
+              ) : (
+                <>
+                  <ShieldAlert className="h-4 w-4 mr-2" />
+                  Register as Admin
+                </>
+              )}
+            </Button>
           </CardContent>
         </Card>
+
+        {/* Info Alert */}
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Note:</strong> Only existing admins can register new admins. If this is the first admin registration,
+            the system will automatically allow it.
+          </AlertDescription>
+        </Alert>
       </div>
 
-      {/* Confirmation Dialog */}
-      <AlertDialog open={showInfoDialog} onOpenChange={setShowInfoDialog}>
+      {/* First Admin Confirmation Dialog */}
+      <AlertDialog open={isFirstAdmin} onOpenChange={setIsFirstAdmin}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-blue-600" />
-              Confirm Admin Registration
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <p>
-                You are about to register the following principal as an administrator:
-              </p>
-              <code className="block bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded text-xs break-all">
-                {principalInput}
-              </code>
-              <p className="text-amber-600 dark:text-amber-400 font-medium">
-                Admin privileges grant full access to the platform. Make sure you trust this principal.
-              </p>
+            <AlertDialogTitle>First Admin Registration</AlertDialogTitle>
+            <AlertDialogDescription>
+              This appears to be the first admin registration for this system. Are you sure you want to proceed?
+              This will grant full administrative privileges to the specified principal.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleProceedWithRegistration}>
+            <AlertDialogAction onClick={handleFirstAdminConfirm}>
               Confirm Registration
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Error Dialog */}
-      <AlertDialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-              Registration Failed
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <p className="text-red-600 dark:text-red-400">
-                {errorMessage}
-              </p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setShowErrorDialog(false)}>
-              Close
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {/* Success Dialog */}
-      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <PartyPopper className="h-5 w-5 text-green-600" />
-              {isFirstAdmin ? 'First Admin Registered Successfully!' : 'Admin Registered Successfully!'}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              {isFirstAdmin ? (
-                <>
-                  <p className="text-green-600 dark:text-green-400 font-medium">
-                    Congratulations! You are now registered as the first administrator.
-                  </p>
-                  <p>
-                    You now have full administrative privileges and can access the Admin Dashboard to manage tests, questions, and users.
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Redirecting to Admin Dashboard in 2 seconds...
-                  </p>
-                </>
-              ) : (
-                <p className="text-green-600 dark:text-green-400">
-                  The principal has been successfully registered as an administrator.
-                </p>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={() => {
-              setShowSuccessDialog(false);
-              if (isFirstAdmin) {
-                navigate({ to: '/admin' });
-              }
-            }}>
-              {isFirstAdmin ? 'Go to Dashboard' : 'Close'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <PartyPopper className="h-8 w-8 text-green-600" />
+              <DialogTitle className="text-2xl">Registration Successful!</DialogTitle>
+            </div>
+            <DialogDescription>
+              The principal has been successfully registered as an administrator.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Alert>
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertDescription>
+                The new admin can now access all administrative features and register additional admins.
+              </AlertDescription>
+            </Alert>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSuccessDialogClose}>
+              Close (Redirecting in {countdown}s)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Dialog */}
+      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-8 w-8 text-destructive" />
+              <DialogTitle className="text-2xl">{errorMessage}</DialogTitle>
+            </div>
+            <DialogDescription>{errorDetails}</DialogDescription>
+          </DialogHeader>
+          {isCanisterStoppedError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Canister Stopped:</strong> The backend canister needs to be started by a system administrator.
+                Please contact support for assistance.
+              </AlertDescription>
+            </Alert>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setShowErrorDialog(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
