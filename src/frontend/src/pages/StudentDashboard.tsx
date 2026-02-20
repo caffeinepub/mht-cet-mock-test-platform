@@ -1,13 +1,13 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useFullSyllabusTests, useChapterWiseTests, useChapterWiseTestById } from '../hooks/useQueries';
-import { useActor } from '../hooks/useActor';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, BookOpen, Award } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { Clock, BookOpen, Award, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { ChapterWiseTestDetails, ClassLevel, Subject } from '../backend';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface TestWithDetails {
   testId: bigint;
@@ -16,7 +16,6 @@ interface TestWithDetails {
 
 export default function StudentDashboard() {
   const { identity, isInitializing } = useInternetIdentity();
-  const { actor } = useActor();
   const navigate = useNavigate();
   const { data: tests = [], isLoading: testsLoading } = useFullSyllabusTests();
   const { data: chapterWiseTests = [], isLoading: chapterWiseTestsLoading } = useChapterWiseTests();
@@ -29,35 +28,14 @@ export default function StudentDashboard() {
   }, [identity, isInitializing, navigate]);
 
   const handleStartTest = async (testId: bigint) => {
-    if (!actor) return;
-    
+    // Test attempt functionality not yet implemented in backend
     setStartingTest(testId.toString());
     
-    try {
-      // Start the test and get attempt ID
-      await actor.startTest(testId);
-      
-      // Get the user's test attempts to find the newly created one
-      const attempts = await actor.getUserTestAttempts(identity!.getPrincipal());
-      const latestAttempt = attempts
-        .filter(a => a.testId === testId)
-        .sort((a, b) => Number(b.createdAt - a.createdAt))[0];
-      
-      if (latestAttempt) {
-        // Start Section 1
-        await actor.startSection(latestAttempt.attemptId, BigInt(1));
-        
-        // Navigate to test interface with attemptId
-        navigate({
-          to: '/test/$testId',
-          params: { testId: testId.toString() },
-          search: { attemptId: latestAttempt.attemptId.toString() },
-        });
-      }
-    } catch (error) {
-      console.error('Error starting test:', error);
+    // Show alert that feature is coming soon
+    setTimeout(() => {
       setStartingTest(null);
-    }
+      alert('Test-taking functionality is coming soon! The backend is still being developed.');
+    }, 500);
   };
 
   if (isInitializing || testsLoading) {
@@ -87,6 +65,15 @@ export default function StudentDashboard() {
             Start practicing with our comprehensive MHT-CET mock tests
           </p>
         </div>
+
+        {/* Feature Notice */}
+        <Alert className="mb-8 border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertTitle className="text-amber-900 dark:text-amber-100">Test-Taking Feature Coming Soon</AlertTitle>
+          <AlertDescription className="text-amber-800 dark:text-amber-200">
+            The test-taking functionality is currently under development. You can view available tests below, but taking tests will be enabled once the backend implementation is complete.
+          </AlertDescription>
+        </Alert>
 
         {/* Full Syllabus Mock Tests Section */}
         <section className="mb-12">
@@ -164,7 +151,7 @@ export default function StudentDashboard() {
                       onClick={() => handleStartTest(test.testId)}
                       disabled={startingTest === test.testId.toString()}
                     >
-                      {startingTest === test.testId.toString() ? 'Starting...' : 'Start Test'}
+                      {startingTest === test.testId.toString() ? 'Starting...' : 'Start Test (Coming Soon)'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -430,7 +417,7 @@ function SubjectSection({ subject, tests, onStartTest, startingTest }: SubjectSe
                 onClick={() => onStartTest(test.testId)}
                 disabled={startingTest === test.testId.toString()}
               >
-                {startingTest === test.testId.toString() ? 'Starting...' : 'Start Test'}
+                {startingTest === test.testId.toString() ? 'Starting...' : 'Start Test (Coming Soon)'}
               </Button>
             </CardContent>
           </Card>

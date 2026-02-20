@@ -69,39 +69,6 @@ export const FullSyllabusTest = IDL.Record({
   'section2' : TestSection,
   'testId' : IDL.Nat,
 });
-export const LeaderboardEntry = IDL.Record({
-  'userName' : IDL.Text,
-  'rank' : IDL.Nat,
-  'totalScore' : IDL.Nat,
-  'totalTimeTaken' : IDL.Int,
-});
-export const Answer = IDL.Record({
-  'selectedOptionIndex' : IDL.Nat,
-  'questionId' : IDL.Nat,
-});
-export const TestAttempt = IDL.Record({
-  'section2SubmittedAt' : IDL.Opt(IDL.Int),
-  'section1Score' : IDL.Nat,
-  'attemptId' : IDL.Nat,
-  'isCompleted' : IDL.Bool,
-  'section1StartTime' : IDL.Opt(IDL.Int),
-  'singleSectionSubmittedAt' : IDL.Opt(IDL.Int),
-  'userId' : IDL.Principal,
-  'createdAt' : IDL.Int,
-  'section1Answers' : IDL.Vec(Answer),
-  'currentSection' : IDL.Nat,
-  'section2Score' : IDL.Nat,
-  'totalScore' : IDL.Nat,
-  'totalTimeTaken' : IDL.Int,
-  'section2Answers' : IDL.Vec(Answer),
-  'section1SubmittedAt' : IDL.Opt(IDL.Int),
-  'singleSectionScore' : IDL.Nat,
-  'testId' : IDL.Nat,
-  'completionTimestamp' : IDL.Int,
-  'singleSectionStartTime' : IDL.Opt(IDL.Int),
-  'singleSectionAnswers' : IDL.Vec(Answer),
-  'section2StartTime' : IDL.Opt(IDL.Int),
-});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'student' : IDL.Null,
@@ -188,13 +155,7 @@ export const idlService = IDL.Service({
       ],
       ['query'],
     ),
-  'getCurrentTestId' : IDL.Func([], [IDL.Opt(IDL.Nat)], ['query']),
   'getFullSyllabusTests' : IDL.Func([], [IDL.Vec(FullSyllabusTest)], ['query']),
-  'getLeaderboard' : IDL.Func(
-      [IDL.Nat],
-      [IDL.Vec(LeaderboardEntry)],
-      ['query'],
-    ),
   'getQuestion' : IDL.Func([IDL.Nat], [IDL.Opt(Question)], ['query']),
   'getQuestionsByClassLevel' : IDL.Func(
       [ClassLevel],
@@ -202,7 +163,6 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getQuestionsBySubject' : IDL.Func([Subject], [IDL.Vec(Question)], ['query']),
-  'getTestAttempt' : IDL.Func([IDL.Nat], [IDL.Opt(TestAttempt)], ['query']),
   'getTotalQuestions' : IDL.Func([], [IDL.Nat], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
@@ -210,21 +170,9 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getUserRole' : IDL.Func([], [UserRole], ['query']),
-  'getUserTestAttempts' : IDL.Func(
-      [IDL.Principal],
-      [IDL.Vec(TestAttempt)],
-      ['query'],
-    ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'registerAdmin' : IDL.Func([IDL.Principal], [RegistrationResult], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'startSection' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
-  'startTest' : IDL.Func([IDL.Nat], [IDL.Nat], []),
-  'submitSection' : IDL.Func(
-      [IDL.Nat, IDL.Nat, IDL.Vec(Answer)],
-      [IDL.Record({ 'score' : IDL.Nat, 'correctAnswers' : IDL.Nat })],
-      [],
-    ),
 });
 
 export const idlInitArgs = [];
@@ -290,39 +238,6 @@ export const idlFactory = ({ IDL }) => {
     'section1' : TestSection,
     'section2' : TestSection,
     'testId' : IDL.Nat,
-  });
-  const LeaderboardEntry = IDL.Record({
-    'userName' : IDL.Text,
-    'rank' : IDL.Nat,
-    'totalScore' : IDL.Nat,
-    'totalTimeTaken' : IDL.Int,
-  });
-  const Answer = IDL.Record({
-    'selectedOptionIndex' : IDL.Nat,
-    'questionId' : IDL.Nat,
-  });
-  const TestAttempt = IDL.Record({
-    'section2SubmittedAt' : IDL.Opt(IDL.Int),
-    'section1Score' : IDL.Nat,
-    'attemptId' : IDL.Nat,
-    'isCompleted' : IDL.Bool,
-    'section1StartTime' : IDL.Opt(IDL.Int),
-    'singleSectionSubmittedAt' : IDL.Opt(IDL.Int),
-    'userId' : IDL.Principal,
-    'createdAt' : IDL.Int,
-    'section1Answers' : IDL.Vec(Answer),
-    'currentSection' : IDL.Nat,
-    'section2Score' : IDL.Nat,
-    'totalScore' : IDL.Nat,
-    'totalTimeTaken' : IDL.Int,
-    'section2Answers' : IDL.Vec(Answer),
-    'section1SubmittedAt' : IDL.Opt(IDL.Int),
-    'singleSectionScore' : IDL.Nat,
-    'testId' : IDL.Nat,
-    'completionTimestamp' : IDL.Int,
-    'singleSectionStartTime' : IDL.Opt(IDL.Int),
-    'singleSectionAnswers' : IDL.Vec(Answer),
-    'section2StartTime' : IDL.Opt(IDL.Int),
   });
   const UserRole = IDL.Variant({ 'admin' : IDL.Null, 'student' : IDL.Null });
   const RegistrationResult = IDL.Variant({
@@ -407,15 +322,9 @@ export const idlFactory = ({ IDL }) => {
         ],
         ['query'],
       ),
-    'getCurrentTestId' : IDL.Func([], [IDL.Opt(IDL.Nat)], ['query']),
     'getFullSyllabusTests' : IDL.Func(
         [],
         [IDL.Vec(FullSyllabusTest)],
-        ['query'],
-      ),
-    'getLeaderboard' : IDL.Func(
-        [IDL.Nat],
-        [IDL.Vec(LeaderboardEntry)],
         ['query'],
       ),
     'getQuestion' : IDL.Func([IDL.Nat], [IDL.Opt(Question)], ['query']),
@@ -429,7 +338,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Question)],
         ['query'],
       ),
-    'getTestAttempt' : IDL.Func([IDL.Nat], [IDL.Opt(TestAttempt)], ['query']),
     'getTotalQuestions' : IDL.Func([], [IDL.Nat], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
@@ -437,21 +345,9 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getUserRole' : IDL.Func([], [UserRole], ['query']),
-    'getUserTestAttempts' : IDL.Func(
-        [IDL.Principal],
-        [IDL.Vec(TestAttempt)],
-        ['query'],
-      ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'registerAdmin' : IDL.Func([IDL.Principal], [RegistrationResult], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'startSection' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
-    'startTest' : IDL.Func([IDL.Nat], [IDL.Nat], []),
-    'submitSection' : IDL.Func(
-        [IDL.Nat, IDL.Nat, IDL.Vec(Answer)],
-        [IDL.Record({ 'score' : IDL.Nat, 'correctAnswers' : IDL.Nat })],
-        [],
-      ),
   });
 };
 

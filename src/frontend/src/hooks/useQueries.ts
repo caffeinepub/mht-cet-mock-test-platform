@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { FullSyllabusTest, Question, UserProfile, TestAttempt, ChapterWiseTestDetails, LeaderboardEntry } from '../backend';
+import type { FullSyllabusTest, Question, UserProfile, ChapterWiseTestDetails } from '../backend';
 import { UserRole__1 } from '../backend';
 
 // Full Syllabus Test Hooks
@@ -280,32 +280,4 @@ export function useIsCallerAdmin() {
   });
 
   return query;
-}
-
-// Test Attempt Hooks
-export function useTestAttempt(attemptId: bigint | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<TestAttempt | null>({
-    queryKey: ['testAttempt', attemptId?.toString()],
-    queryFn: async () => {
-      if (!actor || attemptId === null) return null;
-      return actor.getTestAttempt(attemptId);
-    },
-    enabled: !!actor && !isFetching && attemptId !== null,
-  });
-}
-
-// Leaderboard Hook
-export function useLeaderboard(testId: bigint | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<LeaderboardEntry[]>({
-    queryKey: ['leaderboard', testId?.toString()],
-    queryFn: async () => {
-      if (!actor || testId === null) return [];
-      return actor.getLeaderboard(testId);
-    },
-    enabled: !!actor && !isFetching && testId !== null,
-  });
 }

@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the first admin registration authorization logic to allow bootstrapping the application with an initial administrator without requiring pre-existing admin permissions.
+**Goal:** Fix the admin registration bootstrapping logic to allow the first admin to register successfully without authorization errors.
 
 **Planned changes:**
-- Fix the `registerAdmin` endpoint authorization in backend/main.mo to allow first admin registration when the admin principals list is empty
-- Add comprehensive diagnostic logging to track admin list state, caller principals, authorization checks, and registration outcomes
-- Review and fix admin principals list initialization to properly handle empty state during first deployment
-- Update AdminRegistration.tsx to automatically refetch user role after successful registration, display success message, and navigate to Admin Dashboard
-- Add visual indicator in AdminRegistration.tsx to check and display if the principal is already registered as admin before submission
+- Update registerAdmin endpoint to check if admin list is empty BEFORE running authorization checks, allowing first admin registration to proceed without "User is not registered" error
+- Add comprehensive diagnostic logging to registerAdmin showing admin list size, first-time setup status, caller principal, authorization decision path, and registration outcome with timestamps
+- Update AdminRegistration.tsx to automatically refetch user role query after successful registration, display success message, and redirect to Admin Dashboard after 2 seconds
 
-**User-visible outcome:** The first user can successfully register as admin without encountering "Unauthorized" errors, see confirmation of their admin status, and automatically access the Admin Dashboard. Subsequent admin registrations will correctly require existing admin authorization.
+**User-visible outcome:** The first user can successfully register as an admin without encountering "User is not registered" errors, and will be automatically redirected to the Admin Dashboard with their admin status properly recognized.

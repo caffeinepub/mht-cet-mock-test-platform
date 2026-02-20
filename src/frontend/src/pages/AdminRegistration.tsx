@@ -162,14 +162,15 @@ export default function AdminRegistration() {
           const wasFirstAdmin = principalInput.trim() === currentPrincipal;
           setIsFirstAdmin(wasFirstAdmin);
           
-          // Show success toast
+          // Show success toast with clear first admin message
           toast.success('Successfully registered as first admin!', {
             description: wasFirstAdmin 
-              ? 'You now have full administrative privileges.' 
+              ? 'You now have full administrative privileges. Redirecting to Admin Dashboard...' 
               : 'The principal has been registered as an administrator.',
+            duration: 2000,
           });
           
-          // Invalidate user role queries to trigger refetch
+          // Invalidate user role queries to trigger immediate refetch
           await queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
           await queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
           
@@ -452,7 +453,9 @@ export default function AdminRegistration() {
               Registration Failed
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
-              <p className="text-red-600 dark:text-red-400">{errorMessage}</p>
+              <p className="text-red-600 dark:text-red-400">
+                {errorMessage}
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -469,16 +472,19 @@ export default function AdminRegistration() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <PartyPopper className="h-5 w-5 text-green-600" />
-              {isFirstAdmin ? 'Successfully Registered as First Admin!' : 'Admin Registered Successfully'}
+              {isFirstAdmin ? 'First Admin Registered Successfully!' : 'Admin Registered Successfully!'}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
               {isFirstAdmin ? (
                 <>
                   <p className="text-green-600 dark:text-green-400 font-medium">
-                    Congratulations! You have been registered as the first administrator.
+                    Congratulations! You are now registered as the first administrator.
                   </p>
                   <p>
-                    You now have full administrative privileges. Redirecting to admin dashboard in 2 seconds...
+                    You now have full administrative privileges and can access the Admin Dashboard to manage tests, questions, and users.
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Redirecting to Admin Dashboard in 2 seconds...
                   </p>
                 </>
               ) : (
@@ -495,7 +501,7 @@ export default function AdminRegistration() {
                 navigate({ to: '/admin' });
               }
             }}>
-              {isFirstAdmin ? 'Go to Dashboard Now' : 'Close'}
+              {isFirstAdmin ? 'Go to Dashboard' : 'Close'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

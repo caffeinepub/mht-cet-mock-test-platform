@@ -1,46 +1,18 @@
+import List "mo:core/List";
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
 
 module {
-  // Old Actor Types
-  type OldOption = {
+  type Option = {
     optionText : ?Text;
     optionImage : ?Text;
   };
 
-  type OldQuestion = {
+  type Question = {
     id : Nat;
     questionText : ?Text;
     questionImage : ?Text;
-    options : [OldOption];
-    correctAnswerIndex : Nat;
-    explanation : Text;
-    subject : {
-      #physics;
-      #chemistry;
-      #maths;
-    };
-    classLevel : {
-      #class11th;
-      #class12th;
-    };
-  };
-
-  type OldActor = {
-    questions : Map.Map<Nat, OldQuestion>;
-  };
-
-  // New Actor Types
-  type NewOption = {
-    optionText : ?Text;
-    optionImage : ?Text;
-  };
-
-  type NewQuestion = {
-    id : Nat;
-    questionText : ?Text;
-    questionImage : ?Text;
-    options : [NewOption];
+    options : [Option];
     correctAnswerIndex : Nat;
     explanation : ?Text;
     subject : {
@@ -54,16 +26,63 @@ module {
     };
   };
 
+  type TestSection = {
+    name : Text;
+    durationMinutes : Nat;
+    subjects : [{
+      #physics;
+      #chemistry;
+      #maths;
+    }];
+    marksPerQuestion : Nat;
+    questionIds : [Nat];
+  };
+
+  type FullSyllabusTest = {
+    testId : Nat;
+    testName : Text;
+    createdAt : Int;
+    section1 : TestSection;
+    section2 : TestSection;
+    isActive : Bool;
+  };
+
+  type TestAttemptStatus = {
+    section1 : {
+      status : {
+        #notStarted;
+        #inProgress;
+        #submitted;
+      };
+      timestamp : Int;
+    };
+    section2 : {
+      status : {
+        #notStarted;
+        #inProgress;
+        #submitted;
+      };
+      timestamp : Int;
+    };
+    overall : { #notStarted; #inProgress; #completed };
+  };
+
+  // Define Old and New Actor Types
+  type OldActor = {
+    admins : List.List<Principal>;
+    questions : Map.Map<Nat, Question>;
+    fullSyllabusTests : Map.Map<Nat, FullSyllabusTest>;
+    sectionStatuses : Map.Map<Nat, TestAttemptStatus>;
+  };
+
   type NewActor = {
-    questions : Map.Map<Nat, NewQuestion>;
+    adminPrincipals : List.List<Principal>;
+    questions : Map.Map<Nat, Question>;
+    fullSyllabusTests : Map.Map<Nat, FullSyllabusTest>;
+    sectionStatuses : Map.Map<Nat, TestAttemptStatus>;
   };
 
   public func run(old : OldActor) : NewActor {
-    let newQuestions = old.questions.map<Nat, OldQuestion, NewQuestion>(
-      func(_id, oldQuestion) {
-        { oldQuestion with explanation = ?oldQuestion.explanation };
-      }
-    );
-    { questions = newQuestions };
+    { old with adminPrincipals = old.admins };
   };
 };

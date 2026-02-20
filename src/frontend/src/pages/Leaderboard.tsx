@@ -1,18 +1,13 @@
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useLeaderboard } from '../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trophy, ArrowLeft, Medal } from 'lucide-react';
+import { Trophy, ArrowLeft, Construction, AlertCircle } from 'lucide-react';
 import { useEffect } from 'react';
 
 export default function Leaderboard() {
-  const { testId } = useParams({ strict: false });
   const { identity, isInitializing } = useInternetIdentity();
   const navigate = useNavigate();
-
-  const testIdBigInt = testId ? BigInt(testId) : null;
-  const { data: leaderboard, isLoading, isError, error } = useLeaderboard(testIdBigInt);
 
   useEffect(() => {
     if (!isInitializing && !identity) {
@@ -20,41 +15,12 @@ export default function Leaderboard() {
     }
   }, [identity, isInitializing, navigate]);
 
-  const formatTime = (nanoseconds: bigint): string => {
-    const totalSeconds = Number(nanoseconds) / 1_000_000_000;
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = Math.floor(totalSeconds % 60);
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const getMedalIcon = (rank: number) => {
-    if (rank === 1) {
-      return <img src="/assets/generated/gold-medal.dim_64x64.png" alt="Gold Medal" className="h-8 w-8" />;
-    } else if (rank === 2) {
-      return <img src="/assets/generated/silver-medal.dim_64x64.png" alt="Silver Medal" className="h-8 w-8" />;
-    } else if (rank === 3) {
-      return <img src="/assets/generated/bronze-medal.dim_64x64.png" alt="Bronze Medal" className="h-8 w-8" />;
-    }
-    return null;
-  };
-
-  const getRankBackground = (rank: number) => {
-    if (rank === 1) {
-      return 'bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-950/30 dark:to-yellow-900/30 border-yellow-300 dark:border-yellow-700';
-    } else if (rank === 2) {
-      return 'bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/30 dark:to-gray-700/30 border-gray-300 dark:border-gray-600';
-    } else if (rank === 3) {
-      return 'bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 border-orange-300 dark:border-orange-700';
-    }
-    return 'bg-card border-border';
-  };
-
-  if (isInitializing || isLoading) {
+  if (isInitializing) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
           <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-muted-foreground">Loading leaderboard...</p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -80,71 +46,51 @@ export default function Leaderboard() {
           <CardHeader className="border-b bg-gradient-to-r from-[oklch(0.145_0_240)] to-[oklch(0.165_0_240)] text-white">
             <div className="flex items-center gap-3">
               <Trophy className="h-8 w-8" />
-              <CardTitle className="text-3xl">Leaderboard - Top 10</CardTitle>
+              <CardTitle className="text-3xl">Leaderboard</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            {isError && (
-              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center">
-                <p className="text-destructive">
-                  Failed to load leaderboard: {error instanceof Error ? error.message : 'Unknown error'}
-                </p>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Construction className="mb-4 h-16 w-16 text-amber-500" />
+              <h3 className="mb-4 text-2xl font-bold">Leaderboard Coming Soon</h3>
+              
+              <div className="mb-6 max-w-md rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/20">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+                  <div className="text-left">
+                    <p className="font-semibold text-amber-900 dark:text-amber-100">
+                      Feature Under Development
+                    </p>
+                    <p className="mt-1 text-sm text-amber-800 dark:text-amber-200">
+                      The leaderboard feature is currently being developed. This requires backend implementation for test attempts and scoring.
+                    </p>
+                  </div>
+                </div>
               </div>
-            )}
 
-            {!isError && leaderboard && leaderboard.length === 0 && (
-              <div className="flex min-h-[40vh] flex-col items-center justify-center text-center">
-                <Medal className="mb-4 h-16 w-16 text-muted-foreground/50" />
-                <p className="text-xl font-semibold text-muted-foreground">No data yet</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Be the first to complete this test and appear on the leaderboard!
-                </p>
-              </div>
-            )}
+              <p className="mb-4 text-muted-foreground">
+                Once the backend is complete, you'll be able to:
+              </p>
 
-            {!isError && leaderboard && leaderboard.length > 0 && (
-              <div className="space-y-3">
-                {leaderboard.map((entry) => {
-                  const rank = Number(entry.rank);
-                  const isTopThree = rank <= 3;
-
-                  return (
-                    <div
-                      key={rank}
-                      className={`flex items-center gap-4 rounded-lg border p-4 transition-all hover:shadow-md ${getRankBackground(rank)}`}
-                    >
-                      {/* Rank and Medal */}
-                      <div className="flex w-16 flex-shrink-0 items-center justify-center">
-                        {isTopThree ? (
-                          getMedalIcon(rank)
-                        ) : (
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-lg font-bold text-muted-foreground">
-                            {rank}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* User Name */}
-                      <div className="flex-1 min-w-0">
-                        <p className={`truncate font-semibold ${isTopThree ? 'text-lg' : 'text-base'}`}>
-                          {entry.userName}
-                        </p>
-                      </div>
-
-                      {/* Score */}
-                      <div className="flex flex-col items-end">
-                        <p className={`font-bold ${isTopThree ? 'text-xl' : 'text-lg'} text-primary`}>
-                          {entry.totalScore.toString()} marks
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Time: {formatTime(entry.totalTimeTaken)}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+              <ul className="mb-6 space-y-2 text-left text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>View top 10 scorers for each test</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>See rankings with scores and completion times</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Track your position among all test takers</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Compete with other students for top ranks</span>
+                </li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
 

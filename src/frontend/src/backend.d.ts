@@ -7,12 +7,6 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface LeaderboardEntry {
-    userName: string;
-    rank: bigint;
-    totalScore: bigint;
-    totalTimeTaken: bigint;
-}
 export interface ChapterWiseTestDetails {
     testName: string;
     durationMinutes: bigint;
@@ -43,29 +37,6 @@ export interface FullSyllabusTest {
     section2: TestSection;
     testId: bigint;
 }
-export interface TestAttempt {
-    section2SubmittedAt?: bigint;
-    section1Score: bigint;
-    attemptId: bigint;
-    isCompleted: boolean;
-    section1StartTime?: bigint;
-    singleSectionSubmittedAt?: bigint;
-    userId: Principal;
-    createdAt: bigint;
-    section1Answers: Array<Answer>;
-    currentSection: bigint;
-    section2Score: bigint;
-    totalScore: bigint;
-    totalTimeTaken: bigint;
-    section2Answers: Array<Answer>;
-    section1SubmittedAt?: bigint;
-    singleSectionScore: bigint;
-    testId: bigint;
-    completionTimestamp: bigint;
-    singleSectionStartTime?: bigint;
-    singleSectionAnswers: Array<Answer>;
-    section2StartTime?: bigint;
-}
 export interface TestSection {
     subjects: Array<Subject>;
     name: string;
@@ -76,10 +47,6 @@ export interface TestSection {
 export interface Option {
     optionImage?: string;
     optionText?: string;
-}
-export interface Answer {
-    selectedOptionIndex: bigint;
-    questionId: bigint;
 }
 export interface Question {
     id: bigint;
@@ -130,24 +97,14 @@ export interface backendInterface {
         __kind__: "testNotFound";
         testNotFound: null;
     }>;
-    getCurrentTestId(): Promise<bigint | null>;
     getFullSyllabusTests(): Promise<Array<FullSyllabusTest>>;
-    getLeaderboard(testId: bigint): Promise<Array<LeaderboardEntry>>;
     getQuestion(id: bigint): Promise<Question | null>;
     getQuestionsByClassLevel(classLevel: ClassLevel): Promise<Array<Question>>;
     getQuestionsBySubject(subject: Subject): Promise<Array<Question>>;
-    getTestAttempt(attemptId: bigint): Promise<TestAttempt | null>;
     getTotalQuestions(): Promise<bigint>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getUserRole(): Promise<UserRole>;
-    getUserTestAttempts(userId: Principal): Promise<Array<TestAttempt>>;
     isCallerAdmin(): Promise<boolean>;
     registerAdmin(newAdmin: Principal): Promise<RegistrationResult>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
-    startSection(attemptId: bigint, sectionNumber: bigint): Promise<void>;
-    startTest(testId: bigint): Promise<bigint>;
-    submitSection(attemptId: bigint, sectionNumber: bigint, answers: Array<Answer>): Promise<{
-        score: bigint;
-        correctAnswers: bigint;
-    }>;
 }

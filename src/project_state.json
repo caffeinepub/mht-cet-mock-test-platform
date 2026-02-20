@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 61,
+  "projectStateVersion": 65,
   "summary": "MHT-CET mock test platform called 'Concept Delta' with two test types: Full Syllabus Mock Tests (2 sections: 90min Physics+Chemistry, 90min Maths) and Chapter-Wise Tests (admin-configurable single section with custom duration, marks per question, and mixed subject support). Built on Internet Computer with Motoko backend and React frontend, featuring Internet Identity auth, admin panel for question/test management, student dashboard, timed test interface, scoring, leaderboards, PDF export, and YouTube subscription gate.",
   "architectural_notes": [
     "Motoko backend canister with stable memory for persistence",
@@ -21,9 +21,9 @@
     "Admin users receiving 'Unauthorized: Only admins can create questions' error even when they have admin role",
     "Admin users not seeing Admin panel option in menu bar even with admin role assigned",
     "Admin registration popup showing 'actor is not available' error preventing role assignment",
-    "First admin registration failing: user reports not getting admin access despite being first admin",
     "Admin Setup navigation link not appearing in Navbar despite deployment",
-    "Admin Setup navigation link not visible in Navbar despite user requesting it to be added back after removal"
+    "Admin Setup navigation link not visible in Navbar despite user requesting it to be added back after removal",
+    "First admin registration blocked by authorization check running before empty-list check (bootstrapping issue)"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -882,6 +882,14 @@
         "REQ-165"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-adminregistration-tsx-component-to-automatically-refetch-the-user-role-query-using-react-query-invalidation-immediately-after-successful-first-admin-registration-display-a-prominent-success-message-confirming-first-admin-status-and-automatically-navigate-to-the-admin-dashboard-after-a-2-second-delay",
+      "title": "Update the AdminRegistration.tsx component to automatically refetch the user role query using React Query invalidation immediately after successful first admin registration, display a prominent success message confirming first admin status, and automatically navigate to the Admin Dashboard after a 2-second delay",
+      "reqIds": [
+        "REQ-172"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1598,6 +1606,60 @@
       "summary": "Review and fix the admin principals list initialization in backend/main.mo to ensure it correctly handles empty state during first deployment and properly distinguishes between 'not initialized' and 'initialized but empty' states for the bootstrapping logic",
       "reqIds": [
         "REQ-163"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-131",
+      "summary": "Update the registerAdmin endpoint in backend/main.mo to fix the authorization check order by implementing proper bootstrapping logic that checks if the admin principals list is empty FIRST before running any authorization checks, allowing the first admin registration to proceed without 'Unauthorized: Only admins can assign user roles' error when the admin list size is 0",
+      "reqIds": [
+        "REQ-166"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-132",
+      "summary": "Add comprehensive diagnostic logging to the registerAdmin endpoint in backend/main.mo that logs the admin principals list size (AdminState.adminPrincipals.size()), whether this is first-time setup (size == 0), the caller's Internet Identity principal, the principal being registered, the authorization check result with detailed reasoning for pass/fail, and the registration outcome with timestamps",
+      "reqIds": [
+        "REQ-167"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-133",
+      "summary": "Fix the authorization flow order in the registerAdmin function in backend/main.mo to follow this exact sequence: (1) Check if AdminState.adminPrincipals.size() == 0 and allow registration immediately if true, (2) If not empty, check if isAdmin(caller) returns true and allow registration if true, (3) Otherwise return 'Unauthorized: Only admins can assign user roles' error",
+      "reqIds": [
+        "REQ-168"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-134",
+      "summary": "Add error logging in the registerAdmin endpoint in backend/main.mo that logs the exact reason for authorization failure, including whether the failure was due to non-empty admin list with non-admin caller, the count of existing admins, and the specific principal comparison results",
+      "reqIds": [
+        "REQ-169"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-135",
+      "summary": "Fix registerAdmin endpoint authorization flow order in backend/main.mo by checking AdminState.adminPrincipals.size() == 0 FIRST before any authorization logic, allowing first admin registration to proceed without auth checks (bootstrapping fix)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-136",
+      "summary": "Update the registerAdmin endpoint in backend/main.mo to fix the authorization flow by checking if the admin principals list is empty (AdminState.adminPrincipals.size() == 0) BEFORE running any authorization checks, allowing the first admin registration to succeed without 'User is not registered' or 'Unauthorized' errors when no admins exist yet",
+      "reqIds": [
+        "REQ-170"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-137",
+      "summary": "Add comprehensive diagnostic logging to the registerAdmin endpoint in backend/main.mo that logs the admin principals list size (AdminState.adminPrincipals.size()), whether this is first-time setup (size == 0), the caller's Internet Identity principal, the principal being registered, each step of the authorization check with pass/fail reasoning, and the final registration outcome with timestamps",
+      "reqIds": [
+        "REQ-171"
       ],
       "status": "pending"
     }

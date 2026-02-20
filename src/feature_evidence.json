@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-adminregistration-tsx-component-to-automatically-refetch-the-user-role-using-react-query-invalidation-immediately-after-successful-first-admin-registration-then-display-a-prominent-success-message-confirming-first-admin-status-and-automatically-navigate-to-the-admin-dashboard-after-a-2-second-delay",
-      "featureTitle": "Update the AdminRegistration.tsx component to automatically refetch the user role using React Query invalidation immediately after successful first admin registration, then display a prominent success message confirming first admin status, and automatically navigate to the Admin Dashboard after a 2-second delay",
+      "featureId": "feature-update-the-adminregistration-tsx-component-to-automatically-refetch-the-user-role-query-using-react-query-invalidation-immediately-after-successful-first-admin-registration-display-a-prominent-success-message-confirming-first-admin-status-and-automatically-navigate-to-the-admin-dashboard-after-a-2-second-delay",
+      "featureTitle": "Update the AdminRegistration.tsx component to automatically refetch the user role query using React Query invalidation immediately after successful first admin registration, display a prominent success message confirming first admin status, and automatically navigate to the Admin Dashboard after a 2-second delay",
       "files": [
         "frontend/src/pages/AdminRegistration.tsx"
       ],
@@ -17,27 +17,7 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-164"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-visual-indicator-in-the-adminregistration-tsx-component-that-shows-the-current-registration-status-for-the-displayed-principal-id-checking-if-it-s-already-registered-as-admin-before-allowing-registration-submission-to-prevent-duplicate-registration-attempts",
-      "featureTitle": "Add a visual indicator in the AdminRegistration.tsx component that shows the current registration status for the displayed principal ID, checking if it's already registered as admin before allowing registration submission to prevent duplicate registration attempts",
-      "files": [
-        "frontend/src/pages/AdminRegistration.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-165"
+        "REQ-172"
       ],
       "confidence": "high"
     }

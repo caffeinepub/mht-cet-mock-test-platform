@@ -1,28 +1,27 @@
 import List "mo:core/List";
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
-import Runtime "mo:core/Runtime";
-import Array "mo:core/Array";
 import Debug "mo:core/Debug";
-import Principal "mo:core/Principal";
 import Time "mo:core/Time";
-import Iter "mo:core/Iter";
+import Array "mo:core/Array";
 import Order "mo:core/Order";
+import Runtime "mo:core/Runtime";
+import Principal "mo:core/Principal";
+import Iter "mo:core/Iter";
+import Migration "migration";
 
 import AccessControl "authorization/access-control";
-import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
+import MixinAuthorization "authorization/MixinAuthorization";
 
-// Use the migration module for upgrading from previous versions
-
+(with migration = Migration.run)
 actor {
-  // Initialize access control state
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
   include MixinStorage();
 
-  let admins = List.empty<Principal>();
+  let adminPrincipals = List.empty<Principal>();
 
   // User Profile Type
   public type UserProfile = {
@@ -31,6 +30,7 @@ actor {
 
   let userProfiles = Map.empty<Principal, UserProfile>();
 
+  // Question Types
   type Option = {
     optionText : ?Text;
     optionImage : ?Text;
@@ -105,7 +105,7 @@ actor {
     overall : { #notStarted; #inProgress; #completed };
   };
 
-  // Add new LeaderboardEntry type
+  // LeaderboardEntry type
   public type LeaderboardEntry = {
     rank : Nat;
     userName : Text;
@@ -152,7 +152,6 @@ actor {
     #internalError;
   };
 
-  // Fixed registerAdmin function with proper bootstrapping logic
   public shared ({ caller }) func registerAdmin(newAdmin : Principal) : async RegistrationResult {
     let timestamp = Time.now().toText();
     let currentTime = Time.now();
@@ -161,31 +160,32 @@ actor {
     Debug.print("[" # timestamp # "] Caller principal: " # caller.toText());
     Debug.print("[" # timestamp # "] Target principal to register: " # newAdmin.toText());
 
-    // Check if the admin list is empty (first-time setup)
-    let isEmpty = admins.isEmpty();
-    Debug.print("[" # timestamp # "] Admin list empty (first-time setup): " # debug_show(isEmpty));
+    // Get current size of admin principals (List version)
+    let adminListSize = adminPrincipals.size();
+    Debug.print("[" # timestamp # "] adminPrincipals.list size: " # debug_show(adminListSize));
 
-    // Check current role of the target principal
-    let currentRole = AccessControl.getUserRole(accessControlState, newAdmin);
-    Debug.print("[" # timestamp # "] Current role of target principal: " # debug_show(currentRole));
+    // If admin principals list is empty (first-time setup)
+    if (adminListSize == 0) {
+      // Bootstrapping: No admins yet, allow without permission check
+      Debug.print("[" # timestamp # "] Admin principals empty - performing initial setup");
+      Debug.print("[" # timestamp # "] Skipping permission checks for first admin");
 
-    // If already an admin, return early
-    if (currentRole == #admin) {
-      Debug.print("[" # timestamp # "] Target principal is already an admin, returning #alreadyRegistered");
-      return #alreadyRegistered;
-    };
+      // Assign admin using existing approach
+      let currentRole = AccessControl.getUserRole(accessControlState, newAdmin);
+      if (currentRole == #admin) {
+        Debug.print("[" # timestamp # "] Target principal is already an admin, returning #alreadyRegistered");
+        return #alreadyRegistered;
+      };
 
-    // BOOTSTRAPPING: First admin registration
-    if (isEmpty) {
-      Debug.print("[" # timestamp # "] BOOTSTRAPPING: Registering first admin without authorization check");
-      Debug.print("[" # timestamp # "] Using AccessControl.assignRole() for first admin: " # newAdmin.toText());
-
-      // Use assignRole() for the first admin (no admin check required)
       AccessControl.assignRole(accessControlState, caller, newAdmin, #admin);
-      admins.add(newAdmin);
+      adminPrincipals.add(newAdmin);
 
       Debug.print("[" # timestamp # "] First admin successfully registered: " # newAdmin.toText());
-      Debug.print("[" # timestamp # "] Admin list size after registration: " # debug_show(admins.size()));
+      Debug.print("[" # timestamp # "] Admin principals entries after registration:");
+
+      for (principal in adminPrincipals.values()) {
+        Debug.print("[" # timestamp # "] - " # principal.toText());
+      };
 
       return #success({
         registeredPrincipal = newAdmin;
@@ -193,9 +193,8 @@ actor {
       });
     };
 
-    // SUBSEQUENT REGISTRATIONS: Require admin authorization
-    Debug.print("[" # timestamp # "] Admin list not empty, checking caller authorization");
-    Debug.print("[" # timestamp # "] Admin list size: " # debug_show(admins.size()));
+    // If not first admin registration, perform permission check
+    Debug.print("[" # timestamp # "] Checking admin permissions for subsequent registrations");
 
     let isCallerAdmin = AccessControl.isAdmin(accessControlState, caller);
     let callerRole = AccessControl.getUserRole(accessControlState, caller);
@@ -204,23 +203,26 @@ actor {
     Debug.print("[" # timestamp # "] Caller role: " # debug_show(callerRole));
 
     if (not isCallerAdmin) {
-      Debug.print("[" # timestamp # "] AUTHORIZATION FAILED: Caller is not an admin");
+      Debug.print("[" # timestamp # "] AUTHORIZATION FAILED: Caller is not an admin, returning #unauthorized");
       Debug.print("[" # timestamp # "] Rejecting admin registration for: " # newAdmin.toText());
       return #unauthorized;
     };
 
-    // Caller is authorized, proceed with registration
-    Debug.print("[" # timestamp # "] AUTHORIZATION PASSED: Caller is an admin");
-    Debug.print("[" # timestamp # "] Using AccessControl.assignRole() for subsequent admin: " # newAdmin.toText());
+    // Check if target principal is already an admin
+    let currentRole = AccessControl.getUserRole(accessControlState, newAdmin);
+    if (currentRole == #admin) {
+      Debug.print("[" # timestamp # "] Target principal is already an admin, returning #alreadyRegistered");
+      return #alreadyRegistered;
+    };
 
-    // Use assignRole() for subsequent admins (includes admin check internally)
+    // Proceed with admin registration for subsequent admins
     AccessControl.assignRole(accessControlState, caller, newAdmin, #admin);
-    admins.add(newAdmin);
+    adminPrincipals.add(newAdmin);
 
     Debug.print("[" # timestamp # "] Admin successfully registered: " # newAdmin.toText());
-    Debug.print("[" # timestamp # "] Admin list size after registration: " # debug_show(admins.size()));
+    Debug.print("[" # timestamp # "] Admin principals size after registration: " # debug_show(adminPrincipals.size()));
 
-    #success({
+    return #success({
       registeredPrincipal = newAdmin;
       timestamp = currentTime;
     });
@@ -297,7 +299,6 @@ actor {
     };
 
     let testId = nextTestId;
-
     let newTest : Test = {
       testId;
       testName;
@@ -625,451 +626,5 @@ actor {
         fullSyllabusTests.add(testId, updatedTest);
       };
     };
-  };
-
-  public shared ({ caller }) func startTest(testId : Nat) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can start tests");
-    };
-
-    let attemptId = nextTestAttemptId;
-    let currentTime = Time.now();
-
-    // Check if test exists (either full syllabus or chapter-wise)
-    let testExists = switch (fullSyllabusTests.get(testId)) {
-      case (?_) { true };
-      case (null) {
-        switch (tests.get(testId)) {
-          case (?_) { true };
-          case (null) { false };
-        };
-      };
-    };
-
-    if (not testExists) {
-      Runtime.trap("Test not found");
-    };
-
-    // Determine test type
-    let isChapterWise = switch (tests.get(testId)) {
-      case (?test) { test.testType == #chapterWise };
-      case (null) { false };
-    };
-
-    let newAttempt : TestAttempt = {
-      attemptId;
-      testId;
-      userId = caller;
-      createdAt = currentTime;
-      currentSection = 1;
-      section1StartTime = if (not isChapterWise) { ?currentTime } else { null };
-      section2StartTime = null;
-      section1SubmittedAt = null;
-      section2SubmittedAt = null;
-      isCompleted = false;
-      section1Answers = [];
-      section2Answers = [];
-      section1Score = 0;
-      section2Score = 0;
-      singleSectionStartTime = if (isChapterWise) { ?currentTime } else { null };
-      singleSectionSubmittedAt = null;
-      singleSectionAnswers = [];
-      singleSectionScore = 0;
-      totalScore = 0;
-      totalTimeTaken = 0;
-      completionTimestamp = 0;
-    };
-
-    testAttempts.add(attemptId, newAttempt);
-
-    let initialStatus : TestAttemptStatus = {
-      section1 = { status = #notStarted; timestamp = currentTime };
-      section2 = { status = #notStarted; timestamp = currentTime };
-      overall = #notStarted;
-    };
-
-    sectionStatuses.add(attemptId, initialStatus);
-
-    nextTestAttemptId += 1;
-
-    attemptId;
-  };
-
-  public shared ({ caller }) func startSection(attemptId : Nat, sectionNumber : Nat) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can start sections");
-    };
-
-    switch (testAttempts.get(attemptId)) {
-      case (null) {
-        Runtime.trap("Test attempt not found");
-      };
-      case (?attempt) {
-        if (caller != attempt.userId) {
-          Runtime.trap("Unauthorized: You do not own this test attempt");
-        };
-
-        if (sectionNumber < 1 or sectionNumber > 2) {
-          Runtime.trap("Invalid section number");
-        };
-
-        let startTime = Time.now();
-
-        let updatedAttempt : TestAttempt = {
-          attempt with
-          currentSection = sectionNumber;
-          section1StartTime = if (sectionNumber == 1) { ?startTime } else {
-            attempt.section1StartTime;
-          };
-          section2StartTime = if (sectionNumber == 2) { ?startTime } else {
-            attempt.section2StartTime;
-          };
-        };
-
-        testAttempts.add(attemptId, updatedAttempt);
-      };
-    };
-  };
-
-  public shared ({ caller }) func submitSection(attemptId : Nat, sectionNumber : Nat, answers : [Answer]) : async {
-    score : Nat;
-    correctAnswers : Nat;
-  } {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can submit sections");
-    };
-
-    switch (testAttempts.get(attemptId)) {
-      case (null) {
-        Runtime.trap("Test attempt not found");
-      };
-      case (?attempt) {
-        if (caller != attempt.userId) {
-          Runtime.trap("Unauthorized: You do not own this test attempt");
-        };
-
-        // Check if this is a chapter-wise test (sectionNumber = 0)
-        let isChapterWise = (sectionNumber == 0);
-
-        if (not isChapterWise) {
-          if (sectionNumber < 1 or sectionNumber > 2) {
-            Runtime.trap("Invalid section number");
-          };
-
-          if ((sectionNumber == 1 and attempt.section1StartTime == null) or (sectionNumber == 2 and attempt.section2StartTime == null)) {
-            Runtime.trap("Section has not started yet");
-          };
-
-          if ((sectionNumber == 1 and attempt.section1SubmittedAt != null) or (sectionNumber == 2 and attempt.section2SubmittedAt != null)) {
-            Runtime.trap("Section has already been submitted");
-          };
-
-          let sectionStartTime = if (sectionNumber == 1) { attempt.section1StartTime } else {
-            attempt.section2StartTime;
-          };
-
-          let currentTime = Time.now();
-          let timeLimit = 90 * 60 * 1000000000;
-
-          switch (sectionStartTime) {
-            case (null) {
-              Runtime.trap("Section has not started yet");
-            };
-            case (?startTime) {
-              if (currentTime - startTime > timeLimit) {
-                Runtime.trap("Section submission time exceeded");
-              };
-            };
-          };
-
-          var score = 0;
-          var correctAnswers = 0;
-
-          for (answer in answers.values()) {
-            switch (questions.get(answer.questionId)) {
-              case (null) {};
-              case (?question) {
-                if (answer.selectedOptionIndex == question.correctAnswerIndex) {
-                  correctAnswers += 1;
-                  score += if (sectionNumber == 1) { 1 } else { 2 };
-                };
-              };
-            };
-          };
-
-          var totalScore = attempt.totalScore;
-          var totalTimeTaken = attempt.totalTimeTaken;
-          var completionTimestamp = attempt.completionTimestamp;
-
-          let isCompleted = (sectionNumber == 2);
-          if (isCompleted) {
-            let section1Score = if (sectionNumber == 1) { score } else { attempt.section1Score };
-            let section2Score = if (sectionNumber == 2) { score } else { attempt.section2Score };
-
-            let section1Time = switch (attempt.section1StartTime, attempt.section1SubmittedAt) {
-              case (?start, ?end) { end - start };
-              case (_) { 0 };
-            };
-
-            let section2Time = switch (attempt.section2StartTime, ?currentTime) {
-              case (?start, ?end) { end - start };
-              case (_) { 0 };
-            };
-
-            totalScore := section1Score + section2Score;
-            totalTimeTaken := section1Time + section2Time;
-            completionTimestamp := currentTime;
-          };
-
-          let updatedAttempt : TestAttempt = {
-            attempt with
-            currentSection = sectionNumber;
-            section1SubmittedAt = if (sectionNumber == 1) { ?currentTime } else {
-              attempt.section1SubmittedAt;
-            };
-            section2SubmittedAt = if (sectionNumber == 2) { ?currentTime } else {
-              attempt.section2SubmittedAt;
-            };
-            isCompleted;
-            section1Score = if (sectionNumber == 1) { score } else { attempt.section1Score };
-            section2Score = if (sectionNumber == 2) { score } else { attempt.section2Score };
-            section1Answers = if (sectionNumber == 1) { answers } else {
-              attempt.section1Answers;
-            };
-            section2Answers = if (sectionNumber == 2) { answers } else {
-              attempt.section2Answers;
-            };
-            totalScore;
-            totalTimeTaken;
-            completionTimestamp;
-          };
-
-          testAttempts.add(attemptId, updatedAttempt);
-
-          return {
-            score;
-            correctAnswers;
-          };
-        } else {
-          if (attempt.singleSectionStartTime == null) {
-            Runtime.trap("Chapter-wise test section has not started yet");
-          };
-
-          if (attempt.singleSectionSubmittedAt != null) {
-            Runtime.trap("Chapter-wise test section has already been submitted");
-          };
-
-          switch (tests.get(attempt.testId)) {
-            case (null) {
-              Runtime.trap("Test configuration not found");
-            };
-            case (?test) {
-              if (test.testType != #chapterWise) {
-                Runtime.trap("Test is not a chapter-wise test");
-              };
-
-              let currentTime = Time.now();
-
-              let customDuration = switch (test.durationMinutes) {
-                case (?duration) { duration };
-                case (null) { Runtime.trap("Test duration not configured") };
-              };
-
-              let timeLimit = customDuration * 60 * 1000000000;
-
-              switch (attempt.singleSectionStartTime) {
-                case (null) {
-                  Runtime.trap("Section has not started yet");
-                };
-                case (?startTime) {
-                  if (currentTime - startTime > timeLimit) {
-                    Runtime.trap("Section submission time exceeded");
-                  };
-                };
-              };
-
-              let customMarksPerQuestion = switch (test.marksPerQuestion) {
-                case (?marks) { marks };
-                case (null) { Runtime.trap("Marks per question not configured") };
-              };
-
-              var score = 0;
-              var correctAnswers = 0;
-
-              for (answer in answers.values()) {
-                switch (questions.get(answer.questionId)) {
-                  case (null) {};
-                  case (?question) {
-                    if (answer.selectedOptionIndex == question.correctAnswerIndex) {
-                      correctAnswers += 1;
-                      score += customMarksPerQuestion;
-                    };
-                  };
-                };
-              };
-
-              let totalTimeTaken = switch (attempt.singleSectionStartTime) {
-                case (?startTime) { currentTime - startTime };
-                case (null) { 0 };
-              };
-
-              let updatedAttempt : TestAttempt = {
-                attempt with
-                singleSectionSubmittedAt = ?currentTime;
-                singleSectionAnswers = answers;
-                singleSectionScore = score;
-                isCompleted = true;
-                totalScore = score;
-                totalTimeTaken;
-                completionTimestamp = currentTime;
-              };
-
-              testAttempts.add(attemptId, updatedAttempt);
-
-              return {
-                score;
-                correctAnswers;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-
-  // New getLeaderboard function
-  public query ({ caller }) func getLeaderboard(testId : Nat) : async [LeaderboardEntry] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access leaderboard");
-    };
-
-    let completedAttemptsList = List.empty<TestAttempt>();
-
-    for (attempt in testAttempts.values()) {
-      if (
-        attempt.testId == testId and
-        attempt.isCompleted and
-        (
-          (attempt.section1Score > 0 or attempt.section2Score > 0) or
-          attempt.singleSectionScore > 0 or
-          attempt.totalScore > 0
-        )
-      ) {
-        completedAttemptsList.add(attempt);
-      };
-    };
-
-    let completedAttempts = completedAttemptsList.toArray();
-
-    let entriesList = List.empty<LeaderboardEntry>();
-
-    for (attempt in completedAttempts.values()) {
-      let userName = switch (userProfiles.get(attempt.userId)) {
-        case (null) { "Student" };
-        case (?profile) { profile.name };
-      };
-
-      let totalScore = if (attempt.totalScore > 0) {
-        attempt.totalScore;
-      } else if (attempt.section1Score > 0 or attempt.section2Score > 0) {
-        attempt.section1Score + attempt.section2Score;
-      } else {
-        attempt.singleSectionScore;
-      };
-
-      entriesList.add({
-        rank = 0;
-        userName;
-        totalScore;
-        totalTimeTaken = attempt.totalTimeTaken;
-      });
-    };
-
-    let compareLeaderboardEntry = func(a : LeaderboardEntry, b : LeaderboardEntry) : Order.Order {
-      if (a.totalScore > b.totalScore) {
-        #less;
-      } else if (a.totalScore < b.totalScore) {
-        #greater;
-      } else {
-        if (a.totalTimeTaken < b.totalTimeTaken) {
-          #less;
-        } else if (a.totalTimeTaken > b.totalTimeTaken) {
-          #greater;
-        } else {
-          #equal;
-        };
-      };
-    };
-
-    var entries = entriesList.toArray();
-    entries := entries.sort(
-      compareLeaderboardEntry
-    );
-
-    let topEntries = if (entries.size() > 10) {
-      entries.sliceToArray(0, 10);
-    } else {
-      entries;
-    };
-
-    // Convert topEntries to List for rank assignment
-    let topEntriesList = List.fromArray<LeaderboardEntry>(topEntries);
-
-    // Manually assign ranks using a for loop
-    let rankedEntriesList = List.empty<LeaderboardEntry>();
-    var currentRank = 1;
-
-    for (entry in topEntriesList.values()) {
-      rankedEntriesList.add({
-        entry with
-        rank = currentRank;
-      });
-      currentRank += 1;
-    };
-
-    // Convert back to array for output
-    rankedEntriesList.toArray();
-  };
-
-  public query ({ caller }) func getTestAttempt(attemptId : Nat) : async ?TestAttempt {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access test attempts");
-    };
-
-    switch (testAttempts.get(attemptId)) {
-      case (null) { null };
-      case (?attempt) {
-        if (caller != attempt.userId and not AccessControl.isAdmin(accessControlState, caller)) {
-          Runtime.trap("Unauthorized: You can only view your own test attempts");
-        };
-        ?attempt;
-      };
-    };
-  };
-
-  public query ({ caller }) func getUserTestAttempts(userId : Principal) : async [TestAttempt] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access test attempts");
-    };
-
-    if (caller != userId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own test attempts");
-    };
-
-    let iter = testAttempts.values();
-    let filtered = iter.filter(
-      func(testAttempt) {
-        testAttempt.userId == userId;
-      }
-    );
-    filtered.toArray();
-  };
-
-  public query ({ caller }) func getCurrentTestId() : async ?Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can get current test ID");
-    };
-
-    currentTestId;
   };
 };

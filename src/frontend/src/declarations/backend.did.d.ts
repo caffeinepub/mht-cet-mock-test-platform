@@ -10,10 +10,6 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface Answer {
-  'selectedOptionIndex' : bigint,
-  'questionId' : bigint,
-}
 export interface ChapterWiseTestDetails {
   'testName' : string,
   'durationMinutes' : bigint,
@@ -29,12 +25,6 @@ export interface FullSyllabusTest {
   'section1' : TestSection,
   'section2' : TestSection,
   'testId' : bigint,
-}
-export interface LeaderboardEntry {
-  'userName' : string,
-  'rank' : bigint,
-  'totalScore' : bigint,
-  'totalTimeTaken' : bigint,
 }
 export interface Option {
   'optionImage' : [] | [string],
@@ -57,29 +47,6 @@ export type RegistrationResult = { 'internalError' : null } |
 export type Subject = { 'maths' : null } |
   { 'chemistry' : null } |
   { 'physics' : null };
-export interface TestAttempt {
-  'section2SubmittedAt' : [] | [bigint],
-  'section1Score' : bigint,
-  'attemptId' : bigint,
-  'isCompleted' : boolean,
-  'section1StartTime' : [] | [bigint],
-  'singleSectionSubmittedAt' : [] | [bigint],
-  'userId' : Principal,
-  'createdAt' : bigint,
-  'section1Answers' : Array<Answer>,
-  'currentSection' : bigint,
-  'section2Score' : bigint,
-  'totalScore' : bigint,
-  'totalTimeTaken' : bigint,
-  'section2Answers' : Array<Answer>,
-  'section1SubmittedAt' : [] | [bigint],
-  'singleSectionScore' : bigint,
-  'testId' : bigint,
-  'completionTimestamp' : bigint,
-  'singleSectionStartTime' : [] | [bigint],
-  'singleSectionAnswers' : Array<Answer>,
-  'section2StartTime' : [] | [bigint],
-}
 export interface TestSection {
   'subjects' : Array<Subject>,
   'name' : string,
@@ -153,26 +120,16 @@ export interface _SERVICE {
     { 'ok' : ChapterWiseTestDetails } |
       { 'testNotFound' : null }
   >,
-  'getCurrentTestId' : ActorMethod<[], [] | [bigint]>,
   'getFullSyllabusTests' : ActorMethod<[], Array<FullSyllabusTest>>,
-  'getLeaderboard' : ActorMethod<[bigint], Array<LeaderboardEntry>>,
   'getQuestion' : ActorMethod<[bigint], [] | [Question]>,
   'getQuestionsByClassLevel' : ActorMethod<[ClassLevel], Array<Question>>,
   'getQuestionsBySubject' : ActorMethod<[Subject], Array<Question>>,
-  'getTestAttempt' : ActorMethod<[bigint], [] | [TestAttempt]>,
   'getTotalQuestions' : ActorMethod<[], bigint>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getUserRole' : ActorMethod<[], UserRole>,
-  'getUserTestAttempts' : ActorMethod<[Principal], Array<TestAttempt>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'registerAdmin' : ActorMethod<[Principal], RegistrationResult>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'startSection' : ActorMethod<[bigint, bigint], undefined>,
-  'startTest' : ActorMethod<[bigint], bigint>,
-  'submitSection' : ActorMethod<
-    [bigint, bigint, Array<Answer>],
-    { 'score' : bigint, 'correctAnswers' : bigint }
-  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

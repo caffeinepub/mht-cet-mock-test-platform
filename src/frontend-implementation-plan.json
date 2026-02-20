@@ -1,39 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix first admin registration authorization to allow bootstrapping without existing admin",
+  "title": "Fix admin registration bootstrapping logic - Frontend changes",
   "requirements": [
     {
-      "id": "REQ-164",
-      "summary": "Update AdminRegistration component to invalidate user role query after successful first admin registration, display success message, and auto-navigate to admin dashboard",
+      "id": "REQ-172",
+      "summary": "Update AdminRegistration component to invalidate user role query after successful first admin registration, display success message, and auto-navigate to Admin Dashboard",
       "acceptanceCriteria": [
-        "After successful registration, the user role query is invalidated and refetched",
-        "A success message displays 'Successfully registered as first admin!'",
-        "The Navbar automatically shows the 'Admin' link after role refetch",
-        "User is redirected to /admin/dashboard after 2 seconds"
+        "User role query is invalidated and refetched after successful registration",
+        "Success message clearly indicates first admin registration succeeded",
+        "User is automatically redirected to Admin Dashboard after 2 seconds",
+        "UI updates immediately to reflect new admin status without manual page refresh"
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/AdminRegistration.tsx",
           "operation": "modify",
-          "description": "After successful registerAdmin mutation, invalidate the ['callerUserRole'] query using queryClient.invalidateQueries to trigger a refetch of the user's role. Display a success toast with message 'Successfully registered as first admin!' using the toast utility. After a 2-second delay using setTimeout, programmatically navigate to '/admin/dashboard' using the router's navigate function. Ensure the success flow only triggers when the mutation returns { __kind__: 'success' }."
-        }
-      ]
-    },
-    {
-      "id": "REQ-165",
-      "summary": "Add visual indicator in AdminRegistration component showing current registration status and preventing duplicate registration attempts",
-      "acceptanceCriteria": [
-        "Component checks if the displayed principal is already an admin on mount",
-        "A status badge shows 'Already Admin' if the principal is registered",
-        "The register button is disabled if the principal is already an admin",
-        "Helpful message explains that this principal already has admin access"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/AdminRegistration.tsx",
-          "operation": "modify",
-          "description": "Add a check on component mount that calls the getUserRole backend method with the principal ID displayed in the input field to determine if it's already registered as admin. Display a status badge component (using shadcn/ui Badge) with text 'Already Admin' and appropriate styling (green background) if getUserRole returns { __kind__: 'admin' }. Disable the 'Register Admin' button when the principal is already an admin. Add an informational alert (using shadcn/ui Alert component) explaining 'This principal already has admin access' when the already-registered state is detected. Store the registration status in local component state to drive the UI conditionally."
+          "description": "Update the success handler in the AdminRegistration component to: (1) use queryClient.invalidateQueries() to refetch the 'callerUserRole' query immediately after successful registration, (2) display a prominent success message that explicitly confirms 'You are now registered as the first admin', (3) implement automatic navigation to '/admin/dashboard' after a 2-second delay using useNavigate from TanStack Router, and (4) ensure the success state clearly indicates first-admin status. Add React Query's useQueryClient hook import and TanStack Router's useNavigate hook. Update the success toast notification to reflect first-admin registration status."
         }
       ]
     }
